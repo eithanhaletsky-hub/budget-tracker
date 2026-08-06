@@ -219,6 +219,7 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(15, 19, 28, 0.55); display: grid; place-items: center; z-index: 50; padding: 20px; animation: fade 0.15s; }
+.modal-overlay[hidden] { display: none; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 .modal { max-width: 400px; width: 100%; }
 .modal h3 { font-size: 17px; margin-bottom: 8px; }
