@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ניהול תקציב — מעקב הוצאות והכנסות</title>
+  <meta name="description" content="אפליקציה נוחה למעקב אחרי הוצאות והכנסות, ניהול תקציב חודשי, גרפים וסטטיסטיקות. הנתונים נשמרים במכשיר שלך בלבד." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <span class="brand-logo">💰</span>
+        <div>
+          <h1>התקציב שלי</h1>
+          <p class="brand-sub">מעקב הוצאות והכנסות — פשוט ונוח</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="themeToggle" class="icon-btn" title="מצב כהה/בהיר" aria-label="החלף מצב תצוגה">🌙</button>
+        <div class="month-picker">
+          <button id="prevMonth" class="icon-btn" aria-label="חודש קודם">‹</button>
+          <input type="month" id="monthSelect" aria-label="בחר חודש" />
+          <button id="nextMonth" class="icon-btn" aria-label="חודש הבא">›</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Summary cards -->
+    <section class="summary-grid" aria-label="סיכום החודש">
+      <div class="card summary-card income">
+        <span class="summary-label">הכנסות החודש</span>
+        <span class="summary-value" id="totalIncome">₪0</span>
+      </div>
+      <div class="card summary-card expense">
+        <span class="summary-label">הוצאות החודש</span>
+        <span class="summary-value" id="totalExpense">₪0</span>
+      </div>
+      <div class="card summary-card balance">
+        <span class="summary-label">מאזן (נשאר)</span>
+        <span class="summary-value" id="balance">₪0</span>
+      </div>
+      <div class="card summary-card budget">
+        <span class="summary-label">
+          תקציב חודשי
+          <button id="editBudget" class="link-btn" title="ערוך תקציב">ערוך</button>
+        </span>
+        <span class="summary-value" id="budgetValue">—</span>
+        <div class="budget-bar" id="budgetBar" hidden>
+          <div class="budget-bar-fill" id="budgetBarFill"></div>
+        </div>
+        <span class="budget-hint" id="budgetHint"></span>
+      </div>
+    </section>
+
+    <div class="layout">
+      <!-- Left: add form + charts -->
+      <div class="col-side">
+        <section class="card form-card">
+          <h2>הוספת תנועה</h2>
+          <div class="type-toggle" role="tablist">
+            <button class="type-btn active" data-type="expense" role="tab">➖ הוצאה</button>
+            <button class="type-btn" data-type="income" role="tab">➕ הכנסה</button>
+          </div>
+          <form id="txForm">
+            <label>
+              סכום (₪)
+              <input type="number" id="amount" step="0.01" min="0" inputmode="decimal" placeholder="0.00" required />
+            </label>
+            <label>
+              קטגוריה
+              <select id="category" required></select>
+            </label>
+            <label>
+              תיאור (לא חובה)
+              <input type="text" id="description" placeholder="למשל: קניות בסופר" maxlength="80" />
+            </label>
+            <label>
+              תאריך
+              <input type="date" id="date" required />
+            </label>
+            <button type="submit" class="btn-primary" id="submitBtn">הוסף הוצאה</button>
+          </form>
+        </section>
+
+        <section class="card chart-card">
+          <h2>פילוח לפי קטגוריה</h2>
+          <div class="chart-wrap">
+            <canvas id="pieChart" width="240" height="240" aria-label="גרף עוגה של הוצאות לפי קטגוריה"></canvas>
+            <div id="pieLegend" class="pie-legend"></div>
+          </div>
+          <p class="empty-note" id="pieEmpty" hidden>אין הוצאות להצגה בחודש זה.</p>
+        </section>
+
+        <section class="card chart-card">
+          <h2>מגמה — 6 חודשים אחרונים</h2>
+          <div class="chart-wrap">
+            <canvas id="barChart" width="320" height="200" aria-label="גרף עמודות של הכנסות והוצאות לפי חודש"></canvas>
+          </div>
+          <div class="bar-legend">
+            <span><i class="dot income-dot"></i> הכנסות</span>
+            <span><i class="dot expense-dot"></i> הוצאות</span>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right: transactions list -->
+      <div class="col-main">
+        <section class="card list-card">
+          <div class="list-header">
+            <h2>התנועות שלי</h2>
+            <div class="list-tools">
+              <input type="search" id="searchInput" placeholder="🔍 חיפוש..." aria-label="חיפוש תנועות" />
+              <select id="filterType" aria-label="סינון לפי סוג">
+                <option value="all">הכל</option>
+                <option value="income">הכנסות</option>
+                <option value="expense">הוצאות</option>
+              </select>
+              <select id="filterCategory" aria-label="סינון לפי קטגוריה">
+                <option value="all">כל הקטגוריות</option>
+              </select>
+            </div>
+          </div>
+          <div class="tx-list" id="txList"></div>
+          <p class="empty-note" id="listEmpty">עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👉</p>
+        </section>
+      </div>
+    </div>
+
+    <section class="card data-card">
+      <h2>ניהול נתונים</h2>
+      <p class="muted">הנתונים שלך נשמרים אך ורק בדפדפן הזה, במכשיר שלך. מומלץ לגבות מדי פעם.</p>
+      <div class="data-actions">
+        <button class="btn-ghost" id="exportJson">📤 ייצוא (JSON)</button>
+        <button class="btn-ghost" id="exportCsv">📊 ייצוא (CSV)</button>
+        <button class="btn-ghost" id="importBtn">📥 ייבוא מקובץ</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden />
+        <button class="btn-danger" id="clearAll">🗑️ מחיקת הכל</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <div class="container">
+      <p>💾 כל הנתונים נשמרים במכשיר שלך בלבד — ללא שרת, ללא הרשמה, ללא מעקב.</p>
+    </div>
+  </footer>
+
+  <!-- Budget modal -->
+  <div class="modal-overlay" id="budgetModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="budgetModalTitle">
+      <h3 id="budgetModalTitle">הגדרת תקציב חודשי</h3>
+      <p class="muted">קבע כמה אתה מתכנן להוציא החודש. נעדכן אותך כשתתקרב לחריגה.</p>
+      <label>
+        סכום התקציב (₪)
+        <input type="number" id="budgetInput" min="0" step="1" placeholder="למשל: 5000" />
+      </label>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="budgetCancel">ביטול</button>
+        <button class="btn-ghost" id="budgetClear">אפס תקציב</button>
+        <button class="btn-primary" id="budgetSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
