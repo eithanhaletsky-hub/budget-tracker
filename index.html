@@ -4,18 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ניהול תקציב — מעקב הוצאות והכנסות</title>
-  <meta name="description" content="אפליקציה נוחה למעקב אחרי הוצאות והכנסות, ניהול תקציב חודשי, גרפים וסטטיסטיקות. הנתונים נשמרים במכשיר שלך בלבד." />
+  <meta name="description" content="אפליקציה נוחה למעקב אחרי הוצאות והכנסות, יעדי חיסכון, תנועות קבועות, תובנות חכמות וגרפים. הנתונים נשמרים במכשיר שלך בלבד." />
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
 </head>
 <body>
+  <div class="bg-decoration" aria-hidden="true"></div>
+
   <header class="app-header">
     <div class="container header-inner">
       <div class="brand">
         <span class="brand-logo">💰</span>
         <div>
           <h1>התקציב שלי</h1>
-          <p class="brand-sub">מעקב הוצאות והכנסות — פשוט ונוח</p>
+          <p class="brand-sub">מעקב הוצאות והכנסות — פשוט, חכם ונוח</p>
         </div>
       </div>
       <div class="header-actions">
@@ -33,18 +35,22 @@
     <!-- Summary cards -->
     <section class="summary-grid" aria-label="סיכום החודש">
       <div class="card summary-card income">
+        <span class="summary-icon">📈</span>
         <span class="summary-label">הכנסות החודש</span>
-        <span class="summary-value" id="totalIncome">₪0</span>
+        <span class="summary-value" id="totalIncome" data-value="0">₪0</span>
       </div>
       <div class="card summary-card expense">
+        <span class="summary-icon">📉</span>
         <span class="summary-label">הוצאות החודש</span>
-        <span class="summary-value" id="totalExpense">₪0</span>
+        <span class="summary-value" id="totalExpense" data-value="0">₪0</span>
       </div>
       <div class="card summary-card balance">
+        <span class="summary-icon">⚖️</span>
         <span class="summary-label">מאזן (נשאר)</span>
-        <span class="summary-value" id="balance">₪0</span>
+        <span class="summary-value" id="balance" data-value="0">₪0</span>
       </div>
       <div class="card summary-card budget">
+        <span class="summary-icon">🎯</span>
         <span class="summary-label">
           תקציב חודשי
           <button id="editBudget" class="link-btn" title="ערוך תקציב">ערוך</button>
@@ -55,6 +61,12 @@
         </div>
         <span class="budget-hint" id="budgetHint"></span>
       </div>
+    </section>
+
+    <!-- Smart insights -->
+    <section class="card insights-card" id="insightsCard">
+      <h2>✨ תובנות חכמות</h2>
+      <div class="insights-grid" id="insightsGrid"></div>
     </section>
 
     <div class="layout">
@@ -82,6 +94,10 @@
             <label>
               תאריך
               <input type="date" id="date" required />
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="isRecurring" />
+              <span>🔁 הפוך לתנועה קבועה (חוזרת כל חודש)</span>
             </label>
             <button type="submit" class="btn-primary" id="submitBtn">הוסף הוצאה</button>
           </form>
@@ -125,11 +141,32 @@
               </select>
             </div>
           </div>
+          <p class="list-hint" id="listHint" hidden>💡 לחיצה על תנועה פותחת עריכה</p>
           <div class="tx-list" id="txList"></div>
-          <p class="empty-note" id="listEmpty">עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👉</p>
+          <p class="empty-note" id="listEmpty">עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👈</p>
         </section>
       </div>
     </div>
+
+    <!-- Savings goals -->
+    <section class="card goals-card">
+      <div class="section-head">
+        <h2>🎯 יעדי חיסכון</h2>
+        <button class="btn-primary btn-sm" id="addGoal">+ יעד חדש</button>
+      </div>
+      <div class="goals-grid" id="goalsGrid"></div>
+      <p class="empty-note" id="goalsEmpty">אין עדיין יעדים. הגדר יעד חיסכון ראשון והתחל לעקוב! 🚀</p>
+    </section>
+
+    <!-- Recurring transactions -->
+    <section class="card recurring-card">
+      <div class="section-head">
+        <h2>🔁 תנועות קבועות</h2>
+        <span class="muted-inline">מתווספות אוטומטית בכל חודש חדש</span>
+      </div>
+      <div class="recurring-list" id="recurringList"></div>
+      <p class="empty-note" id="recurringEmpty">אין תנועות קבועות. סמן "הפוך לתנועה קבועה" בעת הוספת תנועה. 🔁</p>
+    </section>
 
     <section class="card data-card">
       <h2>ניהול נתונים</h2>
@@ -167,8 +204,58 @@
     </div>
   </div>
 
+  <!-- Edit transaction modal -->
+  <div class="modal-overlay" id="editModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+      <h3 id="editModalTitle">עריכת תנועה</h3>
+      <div class="type-toggle" role="tablist">
+        <button class="type-btn edit-type" data-type="expense" role="tab">➖ הוצאה</button>
+        <button class="type-btn edit-type" data-type="income" role="tab">➕ הכנסה</button>
+      </div>
+      <label>סכום (₪)<input type="number" id="editAmount" step="0.01" min="0" /></label>
+      <label>קטגוריה<select id="editCategory"></select></label>
+      <label>תיאור<input type="text" id="editDescription" maxlength="80" /></label>
+      <label>תאריך<input type="date" id="editDate" /></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="editCancel">ביטול</button>
+        <button class="btn-danger" id="editDelete">מחק</button>
+        <button class="btn-primary" id="editSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal modal -->
+  <div class="modal-overlay" id="goalModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
+      <h3 id="goalModalTitle">יעד חיסכון חדש</h3>
+      <p class="muted">קבע לעצמך מטרה — נעקוב אחרי ההתקדמות ונחגוג כשתגיע אליה! 🎉</p>
+      <label>שם היעד<input type="text" id="goalName" maxlength="40" placeholder="למשל: אוזניות חדשות" /></label>
+      <label>סכום היעד (₪)<input type="number" id="goalTarget" min="1" step="1" placeholder="למשל: 800" /></label>
+      <label>כמה כבר חסכת? (לא חובה)<input type="number" id="goalSaved" min="0" step="1" placeholder="0" /></label>
+      <div class="emoji-picker" id="goalEmojiPicker" aria-label="בחר אייקון"></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="goalCancel">ביטול</button>
+        <button class="btn-primary" id="goalSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contribute to goal modal -->
+  <div class="modal-overlay" id="contribModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="contribTitle">
+      <h3 id="contribTitle">הוספה לחיסכון</h3>
+      <p class="muted" id="contribSub"></p>
+      <label>סכום להוספה (₪)<input type="number" id="contribAmount" step="1" placeholder="למשל: 50" /></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="contribCancel">ביטול</button>
+        <button class="btn-primary" id="contribSave">הוסף</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div id="toast" class="toast" hidden></div>
+  <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
 
   <script src="app.js"></script>
 </body>
