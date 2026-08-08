@@ -12,11 +12,13 @@
     goals: "budgethelper.goals.v1",
     recurring: "budgethelper.recurring.v1",
     recApplied: "budgethelper.recApplied.v1",
+    customCats: "budgethelper.customCats.v1",
+    catBudgets: "budgethelper.catBudgets.v1",
     theme: "budgethelper.theme",
   };
 
   /* ---------- קטגוריות ---------- */
-  const CATEGORIES = {
+  const BUILTIN = {
     expense: [
       { id: "food", name: "מזון וסופר", icon: "🛒", color: "#f97316" },
       { id: "dining", name: "מסעדות ובתי קפה", icon: "🍔", color: "#ef4444" },
@@ -39,8 +41,12 @@
   };
   const GOAL_EMOJIS = ["🎯", "🎧", "📱", "💻", "🎮", "✈️", "🚲", "👟", "🎸", "📷", "🏖️", "🎁", "💍", "🚗", "🏠", "💰"];
 
-  const allCats = [...CATEGORIES.expense, ...CATEGORIES.income];
-  const catById = (id) => allCats.find((c) => c.id === id) || { name: "לא ידוע", icon: "❓", color: "#94a3b8" };
+  // קטגוריות מותאמות אישית (נטענות מ-localStorage) ממוזגות עם המובנות
+  let customCats = load(K.customCats, { expense: [], income: [] });
+  if (!customCats.expense) customCats = { expense: [], income: [] };
+  const catsOf = (type) => [...BUILTIN[type], ...(customCats[type] || [])];
+  const allCats = () => [...catsOf("expense"), ...catsOf("income")];
+  const catById = (id) => allCats().find((c) => c.id === id) || { name: "לא ידוע", icon: "❓", color: "#94a3b8" };
 
   /* ---------- מצב ---------- */
   let transactions = load(K.tx, []);
@@ -48,7 +54,10 @@
   let goals = load(K.goals, []);
   let recurring = load(K.recurring, []);
   let recApplied = load(K.recApplied, {}); // { "recId:YYYY-MM": true }
+  let catBudgets = load(K.catBudgets, {}); // { catId: monthlyAmount } — חל על כל חודש
   let currentType = "expense";
+  let newCatType = "expense";
+  let newCatEmoji = "🏷️";
   let editType = "expense";
   let currentMonth = ymNow();
   let editingId = null;
@@ -63,6 +72,8 @@
     localStorage.setItem(K.goals, JSON.stringify(goals));
     localStorage.setItem(K.recurring, JSON.stringify(recurring));
     localStorage.setItem(K.recApplied, JSON.stringify(recApplied));
+    localStorage.setItem(K.customCats, JSON.stringify(customCats));
+    localStorage.setItem(K.catBudgets, JSON.stringify(catBudgets));
   }
 
   /* ---------- תאריך/מספר ---------- */
@@ -96,6 +107,12 @@
     editSave: $("editSave"), editCancel: $("editCancel"), editDelete: $("editDelete"), editTypeBtns: document.querySelectorAll(".edit-type"),
     goalModal: $("goalModal"), goalName: $("goalName"), goalTarget: $("goalTarget"), goalSaved: $("goalSaved"), goalEmojiPicker: $("goalEmojiPicker"), goalSave: $("goalSave"), goalCancel: $("goalCancel"),
     contribModal: $("contribModal"), contribSub: $("contribSub"), contribAmount: $("contribAmount"), contribSave: $("contribSave"), contribCancel: $("contribCancel"),
+    lineChart: $("lineChart"), lineEmpty: $("lineEmpty"),
+    manageCats: $("manageCats"), catModal: $("catModal"), catManageList: $("catManageList"), catEmojiPicker: $("catEmojiPicker"),
+    newCatName: $("newCatName"), newCatColor: $("newCatColor"), catAdd: $("catAdd"), catClose: $("catClose"), newCatTypeBtns: document.querySelectorAll(".newcat-type"),
+    catBudgetList: $("catBudgetList"), catBudgetEmpty: $("catBudgetEmpty"), addCatBudget: $("addCatBudget"),
+    catBudgetModal: $("catBudgetModal"), catBudgetSelect: $("catBudgetSelect"), catBudgetAmount: $("catBudgetAmount"), catBudgetSave: $("catBudgetSave"), catBudgetCancel: $("catBudgetCancel"),
+    printReport: $("printReport"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
 
@@ -116,7 +133,7 @@
 
   /* ---------- טופס הוספה ---------- */
   function fillCatSelect(sel, type) {
-    sel.innerHTML = CATEGORIES[type].map((c) => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("");
+    sel.innerHTML = catsOf(type).map((c) => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("");
   }
   el.typeBtns.forEach((btn) => btn.addEventListener("click", () => {
     currentType = btn.dataset.type;
@@ -369,7 +386,54 @@
 
   /* ---------- גרפים ---------- */
   const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-  function renderCharts() { renderPie(); renderBar(); }
+  function renderCharts() { renderPie(); renderBar(); renderLine(); }
+
+  function renderLine() {
+    const ctx = el.lineChart.getContext("2d");
+    const W = el.lineChart.width, H = el.lineChart.height;
+    ctx.clearRect(0, 0, W, H);
+    const txs = monthTx();
+    el.lineEmpty.hidden = txs.length > 0;
+    if (!txs.length) return;
+
+    const [y, m] = currentMonth.split("-").map(Number);
+    const days = new Date(y, m, 0).getDate();
+    // מאזן מצטבר יומי
+    const daily = new Array(days + 1).fill(0);
+    txs.forEach((t) => { const d = +t.date.split("-")[2]; if (d >= 1 && d <= days) daily[d] += (t.type === "income" ? t.amount : -t.amount); });
+    const cum = []; let run = 0;
+    for (let d = 1; d <= days; d++) { run += daily[d]; cum.push(run); }
+    const max = Math.max(0, ...cum), min = Math.min(0, ...cum);
+    const range = (max - min) || 1;
+    const padT = 14, padB = 22, padX = 12, chartH = H - padT - padB, chartW = W - padX * 2;
+    const xAt = (i) => padX + (days === 1 ? chartW / 2 : (i / (days - 1)) * chartW);
+    const yAt = (v) => padT + (1 - (v - min) / range) * chartH;
+
+    // קו אפס
+    const zeroY = yAt(0);
+    ctx.strokeStyle = cssVar("--border"); ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(padX, zeroY); ctx.lineTo(W - padX, zeroY); ctx.stroke(); ctx.setLineDash([]);
+
+    // אזור מתחת לקו
+    const primary = cssVar("--primary");
+    ctx.beginPath(); ctx.moveTo(xAt(0), yAt(cum[0]));
+    for (let i = 1; i < cum.length; i++) ctx.lineTo(xAt(i), yAt(cum[i]));
+    ctx.lineTo(xAt(cum.length - 1), zeroY); ctx.lineTo(xAt(0), zeroY); ctx.closePath();
+    const grad = ctx.createLinearGradient(0, padT, 0, H - padB);
+    grad.addColorStop(0, primary + "44"); grad.addColorStop(1, primary + "05");
+    ctx.fillStyle = grad; ctx.fill();
+
+    // הקו
+    ctx.beginPath(); ctx.moveTo(xAt(0), yAt(cum[0]));
+    for (let i = 1; i < cum.length; i++) ctx.lineTo(xAt(i), yAt(cum[i]));
+    ctx.strokeStyle = primary; ctx.lineWidth = 2.5; ctx.lineJoin = "round"; ctx.stroke();
+
+    // נקודה אחרונה + ערך
+    const lx = xAt(cum.length - 1), ly = yAt(cum[cum.length - 1]);
+    ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI * 2); ctx.fillStyle = primary; ctx.fill();
+    ctx.fillStyle = cssVar("--text"); ctx.font = "700 12px sans-serif"; ctx.textBaseline = "bottom"; ctx.textAlign = lx > W - 60 ? "end" : "start";
+    ctx.fillText(fmtShort(cum[cum.length - 1]), lx + (lx > W - 60 ? -6 : 6), ly - 6);
+  }
 
   function renderPie() {
     const ctx = el.pieChart.getContext("2d");
@@ -604,11 +668,151 @@
   /* ---------- ESC סוגר מודלים ---------- */
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    [el.budgetModal, el.editModal, el.goalModal, el.contribModal].forEach((m) => m.hidden = true);
+    [el.budgetModal, el.editModal, el.goalModal, el.contribModal, el.catModal, el.catBudgetModal].forEach((m) => m.hidden = true);
   });
 
+  /* ---------- קטגוריות מותאמות אישית ---------- */
+  const CAT_EMOJIS = ["🏷️", "🐶", "🎾", "🎨", "☕", "🌱", "🧾", "💇", "🎓", "🎁", "🚿", "🍺", "👶", "💊", "🏋️", "✂️", "🔧", "📶", "🎵", "⛽"];
+  function renderCatEmojiPicker() {
+    el.catEmojiPicker.innerHTML = CAT_EMOJIS.map((e) => `<button type="button" class="emoji-opt ${e === newCatEmoji ? "selected" : ""}" data-emoji="${e}">${e}</button>`).join("");
+    el.catEmojiPicker.querySelectorAll(".emoji-opt").forEach((b) => b.addEventListener("click", () => { newCatEmoji = b.dataset.emoji; el.catEmojiPicker.querySelectorAll(".emoji-opt").forEach((x) => x.classList.toggle("selected", x === b)); }));
+  }
+  el.newCatTypeBtns.forEach((b) => b.addEventListener("click", () => { newCatType = b.dataset.type; el.newCatTypeBtns.forEach((x) => x.classList.toggle("active", x === b)); }));
+
+  function renderCatManageList() {
+    const rows = [];
+    ["expense", "income"].forEach((type) => {
+      catsOf(type).forEach((c) => {
+        const custom = (customCats[type] || []).some((x) => x.id === c.id);
+        rows.push(`<div class="cat-manage-item">
+          <span class="cm-icon" style="background:${c.color}22">${c.icon}</span>
+          <span class="cm-name">${escapeHtml(c.name)}</span>
+          <span class="cm-type">${type === "expense" ? "הוצאה" : "הכנסה"}</span>
+          ${custom ? `<button class="cm-del" data-delcat="${c.id}" title="מחק">🗑️</button>` : `<span class="cm-builtin">מובנה</span>`}
+        </div>`);
+      });
+    });
+    el.catManageList.innerHTML = rows.join("");
+    el.catManageList.querySelectorAll("[data-delcat]").forEach((b) => b.addEventListener("click", () => deleteCat(b.dataset.delcat)));
+  }
+  function openCatModal() { newCatType = "expense"; newCatEmoji = CAT_EMOJIS[0]; el.newCatTypeBtns.forEach((x) => x.classList.toggle("active", x.dataset.type === "expense")); el.newCatName.value = ""; renderCatEmojiPicker(); renderCatManageList(); el.catModal.hidden = false; }
+  function closeCatModal() { el.catModal.hidden = true; }
+  el.manageCats.addEventListener("click", openCatModal);
+  el.catClose.addEventListener("click", closeCatModal);
+  el.catModal.addEventListener("click", (e) => { if (e.target === el.catModal) closeCatModal(); });
+  el.catAdd.addEventListener("click", () => {
+    const name = el.newCatName.value.trim();
+    if (!name) { toast("נא להזין שם לקטגוריה"); return; }
+    const cat = { id: "custom_" + uid(), name, icon: newCatEmoji, color: el.newCatColor.value };
+    if (!customCats[newCatType]) customCats[newCatType] = [];
+    customCats[newCatType].push(cat);
+    save();
+    el.newCatName.value = "";
+    renderCatManageList();
+    fillCatSelect(el.category, currentType);
+    toast("הקטגוריה נוספה 🏷️");
+  });
+  function deleteCat(id) {
+    const used = transactions.some((t) => t.category === id);
+    if (used && !confirm("קטגוריה זו בשימוש בתנועות קיימות. למחוק בכל זאת? התנועות יישארו אך ללא קטגוריה מזוהה.")) return;
+    else if (!used && !confirm("למחוק את הקטגוריה?")) return;
+    ["expense", "income"].forEach((type) => { customCats[type] = (customCats[type] || []).filter((c) => c.id !== id); });
+    delete catBudgets[id];
+    save(); renderCatManageList(); fillCatSelect(el.category, currentType); renderAll();
+    toast("הקטגוריה נמחקה");
+  }
+
+  /* ---------- תקציב לפי קטגוריה ---------- */
+  function renderCatBudgets() {
+    const ids = Object.keys(catBudgets).filter((id) => catBudgets[id] > 0);
+    el.catBudgetEmpty.hidden = ids.length > 0;
+    const spentByCat = {};
+    monthTx().filter((t) => t.type === "expense").forEach((t) => spentByCat[t.category] = (spentByCat[t.category] || 0) + t.amount);
+    el.catBudgetList.innerHTML = ids.map((id) => {
+      const c = catById(id), budget = catBudgets[id], spent = spentByCat[id] || 0;
+      const pct = Math.min(100, Math.round(spent / budget * 100));
+      const over = spent > budget;
+      const color = over ? "var(--grad-expense)" : pct >= 80 ? "linear-gradient(135deg,#f59e0b,#fbbf24)" : "var(--grad-income)";
+      return `<div class="catbudget">
+        <div class="catbudget-head">
+          <span class="catbudget-icon" style="background:${c.color}22">${c.icon}</span>
+          <span class="catbudget-name">${c.name}</span>
+          <span class="catbudget-actions">
+            <button data-editcb="${id}" title="ערוך">✏️</button>
+            <button data-delcb="${id}" title="מחק">🗑️</button>
+          </span>
+        </div>
+        <div class="catbudget-nums"><b>${fmt(spent)}</b> מתוך ${fmt(budget)}</div>
+        <div class="catbudget-bar"><div class="catbudget-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+        <div class="catbudget-foot">
+          <span class="catbudget-status" style="color:${over ? "var(--expense)" : "var(--text-muted)"}">${over ? "⚠️ חריגה של " + fmt(spent - budget) : "נותרו " + fmt(budget - spent)}</span>
+          <span class="catbudget-status" style="color:var(--text-muted)">${pct}%</span>
+        </div>
+      </div>`;
+    }).join("");
+    el.catBudgetList.querySelectorAll("[data-delcb]").forEach((b) => b.addEventListener("click", () => { delete catBudgets[b.dataset.delcb]; save(); renderCatBudgets(); toast("תקציב הקטגוריה הוסר"); }));
+    el.catBudgetList.querySelectorAll("[data-editcb]").forEach((b) => b.addEventListener("click", () => openCatBudgetModal(b.dataset.editcb)));
+  }
+  function openCatBudgetModal(preId) {
+    el.catBudgetSelect.innerHTML = catsOf("expense").map((c) => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("");
+    if (preId) { el.catBudgetSelect.value = preId; el.catBudgetAmount.value = catBudgets[preId] || ""; }
+    else { el.catBudgetAmount.value = ""; }
+    el.catBudgetModal.hidden = false; el.catBudgetAmount.focus();
+  }
+  function closeCatBudgetModal() { el.catBudgetModal.hidden = true; }
+  el.addCatBudget.addEventListener("click", () => openCatBudgetModal(null));
+  el.catBudgetCancel.addEventListener("click", closeCatBudgetModal);
+  el.catBudgetModal.addEventListener("click", (e) => { if (e.target === el.catBudgetModal) closeCatBudgetModal(); });
+  el.catBudgetSave.addEventListener("click", () => {
+    const id = el.catBudgetSelect.value, amt = parseFloat(el.catBudgetAmount.value);
+    if (amt > 0) { catBudgets[id] = Math.round(amt); toast("תקציב הקטגוריה נשמר 📊"); } else { delete catBudgets[id]; }
+    save(); closeCatBudgetModal(); renderCatBudgets();
+  });
+
+  /* ---------- דוח חודשי להדפסה / PDF ---------- */
+  el.printReport.addEventListener("click", printReport);
+  function printReport() {
+    const txs = monthTx();
+    if (!txs.length) { toast("אין תנועות בחודש זה להפקת דוח"); return; }
+    const income = sum(txs.filter((t) => t.type === "income")), expense = sum(txs.filter((t) => t.type === "expense"));
+    const byCat = {};
+    txs.filter((t) => t.type === "expense").forEach((t) => byCat[t.category] = (byCat[t.category] || 0) + t.amount);
+    const catRows = Object.entries(byCat).sort((a, b) => b[1] - a[1]).map(([id, v]) => { const c = catById(id); return `<tr><td>${c.icon} ${escapeHtml(c.name)}</td><td>${fmt(v)}</td><td>${Math.round(v / expense * 100)}%</td></tr>`; }).join("");
+    const txRows = [...txs].sort((a, b) => a.date.localeCompare(b.date)).map((t) => { const c = catById(t.category); return `<tr><td>${t.date.split("-").reverse().join("/")}</td><td>${c.icon} ${escapeHtml(c.name)}</td><td>${escapeHtml(t.description || "")}</td><td class="${t.type}">${t.type === "income" ? "+" : "−"}${fmt(t.amount)}</td></tr>`; }).join("");
+    const budget = budgets[currentMonth];
+
+    let root = document.getElementById("printRoot");
+    if (!root) { root = document.createElement("div"); root.id = "printRoot"; document.body.appendChild(root); }
+    root.innerHTML = `
+      <div style="font-family:sans-serif;direction:rtl;padding:30px;color:#111;max-width:800px;margin:0 auto">
+        <h1 style="margin:0 0 4px">💰 דוח תקציב — ${monthLabel(currentMonth)}</h1>
+        <p style="color:#666;margin:0 0 20px">הופק בתאריך ${todayStr().split("-").reverse().join("/")}</p>
+        <div style="display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap">
+          <div style="flex:1;min-width:140px;border:1px solid #ddd;border-radius:10px;padding:14px"><div style="color:#666;font-size:13px">הכנסות</div><div style="font-size:22px;font-weight:800;color:#059669">${fmt(income)}</div></div>
+          <div style="flex:1;min-width:140px;border:1px solid #ddd;border-radius:10px;padding:14px"><div style="color:#666;font-size:13px">הוצאות</div><div style="font-size:22px;font-weight:800;color:#dc2626">${fmt(expense)}</div></div>
+          <div style="flex:1;min-width:140px;border:1px solid #ddd;border-radius:10px;padding:14px"><div style="color:#666;font-size:13px">מאזן</div><div style="font-size:22px;font-weight:800;color:${income - expense < 0 ? "#dc2626" : "#0284c7"}">${fmt(income - expense)}</div></div>
+          ${budget ? `<div style="flex:1;min-width:140px;border:1px solid #ddd;border-radius:10px;padding:14px"><div style="color:#666;font-size:13px">תקציב</div><div style="font-size:22px;font-weight:800;color:#d97706">${fmt(budget)}</div></div>` : ""}
+        </div>
+        <h2 style="border-bottom:2px solid #eee;padding-bottom:6px">פילוח הוצאות לפי קטגוריה</h2>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:14px">
+          <thead><tr style="text-align:right;color:#666"><th style="padding:8px">קטגוריה</th><th style="padding:8px">סכום</th><th style="padding:8px">אחוז</th></tr></thead>
+          <tbody>${catRows || '<tr><td colspan="3" style="padding:8px;color:#999">אין הוצאות</td></tr>'}</tbody>
+        </table>
+        <h2 style="border-bottom:2px solid #eee;padding-bottom:6px">כל התנועות (${txs.length})</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="text-align:right;color:#666"><th style="padding:6px">תאריך</th><th style="padding:6px">קטגוריה</th><th style="padding:6px">תיאור</th><th style="padding:6px">סכום</th></tr></thead>
+          <tbody>${txRows}</tbody>
+        </table>
+        <p style="color:#999;font-size:12px;margin-top:24px;text-align:center">הופק ע"י אפליקציית "התקציב שלי"</p>
+      </div>`;
+    root.querySelectorAll(".income").forEach((e) => e.style.color = "#059669");
+    root.querySelectorAll(".expense").forEach((e) => e.style.color = "#dc2626");
+    root.querySelectorAll("td").forEach((td) => { td.style.padding = "7px 8px"; td.style.borderBottom = "1px solid #eee"; });
+    setTimeout(() => window.print(), 100);
+  }
+
   /* ---------- רינדור כללי ---------- */
-  function renderAll() { renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); }
+  function renderAll() { renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); }
 
   /* ---------- אתחול ---------- */
   function init() {

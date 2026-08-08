@@ -84,7 +84,7 @@
               <input type="number" id="amount" step="0.01" min="0" inputmode="decimal" placeholder="0.00" required />
             </label>
             <label>
-              קטגוריה
+              <span class="label-row">קטגוריה <button type="button" class="link-btn" id="manageCats">⚙️ נהל קטגוריות</button></span>
               <select id="category" required></select>
             </label>
             <label>
@@ -122,6 +122,14 @@
             <span><i class="dot expense-dot"></i> הוצאות</span>
           </div>
         </section>
+
+        <section class="card chart-card">
+          <h2>מאזן מצטבר לאורך החודש</h2>
+          <div class="chart-wrap">
+            <canvas id="lineChart" width="320" height="200" aria-label="גרף קו של המאזן המצטבר לאורך החודש"></canvas>
+          </div>
+          <p class="empty-note" id="lineEmpty" hidden>אין תנועות בחודש זה להצגת מאזן.</p>
+        </section>
       </div>
 
       <!-- Right: transactions list -->
@@ -158,6 +166,16 @@
       <p class="empty-note" id="goalsEmpty">אין עדיין יעדים. הגדר יעד חיסכון ראשון והתחל לעקוב! 🚀</p>
     </section>
 
+    <!-- Per-category budgets -->
+    <section class="card catbudget-card">
+      <div class="section-head">
+        <h2>📊 תקציב לפי קטגוריה</h2>
+        <button class="btn-primary btn-sm" id="addCatBudget">+ הגדר תקציב לקטגוריה</button>
+      </div>
+      <div class="catbudget-list" id="catBudgetList"></div>
+      <p class="empty-note" id="catBudgetEmpty">הגדר תקציב חודשי לקטגוריות ספציפיות (למשל 500₪ למסעדות) ועקוב אחרי כל אחת בנפרד.</p>
+    </section>
+
     <!-- Recurring transactions -->
     <section class="card recurring-card">
       <div class="section-head">
@@ -172,6 +190,7 @@
       <h2>ניהול נתונים</h2>
       <p class="muted">הנתונים שלך נשמרים אך ורק בדפדפן הזה, במכשיר שלך. מומלץ לגבות מדי פעם.</p>
       <div class="data-actions">
+        <button class="btn-ghost" id="printReport">🖨️ דוח חודשי (הדפסה/PDF)</button>
         <button class="btn-ghost" id="exportJson">📤 ייצוא (JSON)</button>
         <button class="btn-ghost" id="exportCsv">📊 ייצוא (CSV)</button>
         <button class="btn-ghost" id="importBtn">📥 ייבוא מקובץ</button>
@@ -249,6 +268,47 @@
       <div class="modal-actions">
         <button class="btn-ghost" id="contribCancel">ביטול</button>
         <button class="btn-primary" id="contribSave">הוסף</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage categories modal -->
+  <div class="modal-overlay" id="catModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="catModalTitle">
+      <h3 id="catModalTitle">ניהול קטגוריות</h3>
+      <p class="muted">הוסף קטגוריות משלך. אפשר למחוק רק קטגוריות שיצרת.</p>
+      <div class="cat-manage-list" id="catManageList"></div>
+      <div class="cat-add-form">
+        <div class="type-toggle" role="tablist">
+          <button type="button" class="type-btn newcat-type active" data-type="expense">➖ הוצאה</button>
+          <button type="button" class="type-btn newcat-type" data-type="income">➕ הכנסה</button>
+        </div>
+        <label>שם הקטגוריה<input type="text" id="newCatName" maxlength="30" placeholder="למשל: חיות מחמד" /></label>
+        <div class="cat-row">
+          <label class="cat-color-label">צבע<input type="color" id="newCatColor" value="#6366f1" /></label>
+          <div style="flex:1">
+            <span class="mini-label">אייקון</span>
+            <div class="emoji-picker" id="catEmojiPicker"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="catClose">סגור</button>
+        <button class="btn-primary" id="catAdd">+ הוסף קטגוריה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category budget modal -->
+  <div class="modal-overlay" id="catBudgetModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="catBudgetTitle">
+      <h3 id="catBudgetTitle">תקציב לקטגוריה</h3>
+      <p class="muted">קבע תקרת הוצאה חודשית לקטגוריה. חל על כל חודש.</p>
+      <label>קטגוריה<select id="catBudgetSelect"></select></label>
+      <label>תקציב חודשי (₪)<input type="number" id="catBudgetAmount" min="0" step="1" placeholder="למשל: 500" /></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="catBudgetCancel">ביטול</button>
+        <button class="btn-primary" id="catBudgetSave">שמירה</button>
       </div>
     </div>
   </div>
