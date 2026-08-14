@@ -50,7 +50,7 @@ build({
 
 # ---- גרסאות הדגמה נעולות (לשליחה ללקוח) ----
 # ערוך את "contact" עם הטלפון/מייל שלך לפני שליחה.
-CONTACT = "לרכישה: 📩 [הכניסו כאן טלפון או מייל]"
+CONTACT = "eithan.haletsky@gmail.com"
 
 # 4) Demo — generic
 build({

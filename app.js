@@ -176,6 +176,7 @@
     catBudgetList: $("catBudgetList"), catBudgetEmpty: $("catBudgetEmpty"), addCatBudget: $("addCatBudget"),
     catBudgetModal: $("catBudgetModal"), catBudgetSelect: $("catBudgetSelect"), catBudgetAmount: $("catBudgetAmount"), catBudgetSave: $("catBudgetSave"), catBudgetCancel: $("catBudgetCancel"),
     printReport: $("printReport"), demoBtn: $("demoBtn"),
+    summaryBtn: $("summaryBtn"), summaryModal: $("summaryModal"), summaryTitle: $("summaryTitle"), summaryBody: $("summaryBody"), summaryClose: $("summaryClose"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
 
@@ -731,7 +732,7 @@
   /* ---------- ESC סוגר מודלים ---------- */
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    [el.budgetModal, el.editModal, el.goalModal, el.contribModal, el.catModal, el.catBudgetModal].forEach((m) => m.hidden = true);
+    [el.budgetModal, el.editModal, el.goalModal, el.contribModal, el.catModal, el.catBudgetModal, el.summaryModal].forEach((m) => m && (m.hidden = true));
   });
 
   /* ---------- קטגוריות מותאמות אישית ---------- */
@@ -1024,6 +1025,59 @@
   const exitBtn = document.getElementById("exitDemo");
   if (exitBtn) exitBtn.addEventListener("click", exitDemo);
 
+  /* ---------- סיכום חודשי (תצוגה נקייה) ---------- */
+  function openSummary() {
+    const ym = currentMonth;
+    const txs = transactions.filter((t) => ymOf(t.date) === ym);
+    const income = sum(txs.filter((t) => t.type === "income"));
+    const expense = sum(txs.filter((t) => t.type === "expense"));
+    const bal = income - expense;
+    el.summaryTitle.textContent = "סיכום — " + monthLabel(ym);
+
+    if (!txs.length) {
+      el.summaryBody.innerHTML = `<p class="sum-empty">אין תנועות בחודש זה. בחר חודש אחר או הוסף תנועות.</p>`;
+      el.summaryModal.hidden = false; return;
+    }
+    const byCat = {};
+    txs.filter((t) => t.type === "expense").forEach((t) => byCat[t.category] = (byCat[t.category] || 0) + t.amount);
+    const top = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const budget = budgets[ym];
+    const saveRate = income > 0 ? Math.round(bal / income * 100) : 0;
+
+    let html = `<div class="sum-stats">
+      <div class="sum-stat inc"><span class="l">הכנסות</span><span class="v">${fmt(income)}</span></div>
+      <div class="sum-stat exp"><span class="l">הוצאות</span><span class="v">${fmt(expense)}</span></div>
+      <div class="sum-stat bal"><span class="l">מאזן</span><span class="v ${bal < 0 ? "neg" : "pos"}">${fmt(bal)}</span></div>
+    </div>`;
+
+    if (budget > 0) {
+      const pct = Math.round(expense / budget * 100);
+      html += `<div class="sum-budget">🎯 תקציב: <b>${fmt(budget)}</b> · נוצל <b>${pct}%</b> · ${expense > budget ? `⚠️ חריגה של ${fmt(expense - budget)}` : `נותרו ${fmt(budget - expense)}`}</div>`;
+    }
+
+    if (top.length) {
+      html += `<div class="sum-h">💸 ההוצאות הגדולות</div><div class="sum-cats">`;
+      top.forEach(([id, val]) => {
+        const c = catById(id), pct = Math.round(val / expense * 100);
+        html += `<div class="sum-cat">
+          <span class="sum-cat-ico" style="background:${c.color}22">${c.icon}</span>
+          <span class="sum-cat-name">${c.name}</span>
+          <span class="sum-cat-bar"><i style="width:${pct}%;background:${c.color}"></i></span>
+          <span class="sum-cat-val">${fmt(val)} · ${pct}%</span>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+
+    html += `<p class="sum-note">${txs.length} תנועות החודש · ${bal >= 0 ? `חסכת ${saveRate}% מההכנסות 🌱` : "החודש ההוצאות עלו על ההכנסות"}</p>`;
+    el.summaryBody.innerHTML = html;
+    el.summaryModal.hidden = false;
+  }
+  function closeSummary() { el.summaryModal.hidden = true; }
+  if (el.summaryBtn) el.summaryBtn.addEventListener("click", openSummary);
+  if (el.summaryClose) el.summaryClose.addEventListener("click", closeSummary);
+  if (el.summaryModal) el.summaryModal.addEventListener("click", (e) => { if (e.target === el.summaryModal) closeSummary(); });
+
   /* ---------- רינדור כללי ---------- */
   function renderAll() { renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges(); }
 
@@ -1043,7 +1097,11 @@
     // באנר רכישה עליון
     const bb = document.createElement("div");
     bb.className = "buy-banner";
-    bb.innerHTML = `<span>✨ זוהי <b>גרסת הדגמה</b> — רוצים גרסה מלאה, ממותגת אישית עבורכם?</span><b class="buy-contact">${escapeHtml(APP.contact || "צרו קשר לרכישה 📩")}</b>`;
+    const c = APP.contact;
+    const contactHtml = (c && c.includes("@"))
+      ? `<a class="buy-contact" href="mailto:${escapeHtml(c)}">📩 ${escapeHtml(c)}</a>`
+      : `<b class="buy-contact">${escapeHtml(c || "צרו קשר לרכישה 📩")}</b>`;
+    bb.innerHTML = `<span>✨ זוהי <b>גרסת הדגמה</b> — רוצים גרסה מלאה, ממותגת אישית עבורכם?</span>${contactHtml}`;
     const main = document.querySelector("main.container");
     if (main) main.insertBefore(bb, main.firstChild);
     // מבטלים חילוץ נתונים ופעולות הרסניות

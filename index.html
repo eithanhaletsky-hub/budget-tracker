@@ -21,6 +21,7 @@
         </div>
       </div>
       <div class="header-actions">
+        <button id="summaryBtn" class="summary-btn" title="סיכום נקי של החודש">📋 סיכום חודשי</button>
         <button id="themeToggle" class="icon-btn" title="מצב כהה/בהיר" aria-label="החלף מצב תצוגה">🌙</button>
         <div class="month-picker">
           <button id="prevMonth" class="icon-btn" aria-label="חודש קודם">‹</button>
@@ -328,6 +329,17 @@
       <div class="modal-actions">
         <button class="btn-ghost" id="catBudgetCancel">ביטול</button>
         <button class="btn-primary" id="catBudgetSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly summary modal -->
+  <div class="modal-overlay" id="summaryModal" hidden>
+    <div class="modal card summary-modal" role="dialog" aria-modal="true" aria-labelledby="summaryTitle">
+      <h3 id="summaryTitle">סיכום חודשי</h3>
+      <div id="summaryBody"></div>
+      <div class="modal-actions">
+        <button class="btn-primary" id="summaryClose">סגירה</button>
       </div>
     </div>
   </div>

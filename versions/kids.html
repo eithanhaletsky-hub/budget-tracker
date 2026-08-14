@@ -433,6 +433,37 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
   color: var(--primary);
 }
 
+/* Summary button + modal */
+.summary-btn {
+  background: var(--grad); color: #fff; border: none; border-radius: 10px;
+  padding: 8px 14px; font-family: var(--font); font-size: 13.5px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 3px 12px rgba(99,102,241,0.3); transition: transform 0.12s, box-shadow 0.15s;
+}
+.summary-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(99,102,241,0.4); }
+.summary-btn:active { transform: scale(0.97); }
+
+.summary-modal { max-width: 460px; }
+.sum-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 8px 0 16px; }
+.sum-stat { padding: 12px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border); text-align: center; }
+.sum-stat .l { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 3px; }
+.sum-stat .v { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sum-stat.inc .v { color: var(--income); }
+.sum-stat.exp .v { color: var(--expense); }
+.sum-stat.bal .v.neg { color: var(--expense); }
+.sum-stat.bal .v.pos { color: var(--income); }
+.sum-budget { font-size: 13px; color: var(--text-muted); background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 16px; }
+.sum-budget b { color: var(--text); }
+.sum-h { font-size: 13.5px; font-weight: 800; margin-bottom: 10px; }
+.sum-cats { display: flex; flex-direction: column; gap: 8px; }
+.sum-cat { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
+.sum-cat-ico { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 15px; flex-shrink: 0; }
+.sum-cat-name { flex: 1; font-weight: 600; }
+.sum-cat-bar { flex: 1.4; height: 8px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.sum-cat-bar > i { display: block; height: 100%; border-radius: 999px; }
+.sum-cat-val { font-weight: 800; font-variant-numeric: tabular-nums; min-width: 62px; text-align: end; }
+.sum-note { font-size: 12.5px; color: var(--text-muted); margin-top: 14px; text-align: center; }
+.sum-empty { text-align: center; color: var(--text-muted); padding: 24px 8px; }
+
 /* Demo mode banner */
 .demo-banner {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
@@ -487,6 +518,7 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
         </div>
       </div>
       <div class="header-actions">
+        <button id="summaryBtn" class="summary-btn" title="סיכום נקי של החודש">📋 סיכום חודשי</button>
         <button id="themeToggle" class="icon-btn" title="מצב כהה/בהיר" aria-label="החלף מצב תצוגה">🌙</button>
         <div class="month-picker">
           <button id="prevMonth" class="icon-btn" aria-label="חודש קודם">‹</button>
@@ -798,6 +830,17 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
     </div>
   </div>
 
+  <!-- Monthly summary modal -->
+  <div class="modal-overlay" id="summaryModal" hidden>
+    <div class="modal card summary-modal" role="dialog" aria-modal="true" aria-labelledby="summaryTitle">
+      <h3 id="summaryTitle">סיכום חודשי</h3>
+      <div id="summaryBody"></div>
+      <div class="modal-actions">
+        <button class="btn-primary" id="summaryClose">סגירה</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div id="toast" class="toast" hidden></div>
   <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
@@ -982,6 +1025,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     catBudgetList: $("catBudgetList"), catBudgetEmpty: $("catBudgetEmpty"), addCatBudget: $("addCatBudget"),
     catBudgetModal: $("catBudgetModal"), catBudgetSelect: $("catBudgetSelect"), catBudgetAmount: $("catBudgetAmount"), catBudgetSave: $("catBudgetSave"), catBudgetCancel: $("catBudgetCancel"),
     printReport: $("printReport"), demoBtn: $("demoBtn"),
+    summaryBtn: $("summaryBtn"), summaryModal: $("summaryModal"), summaryTitle: $("summaryTitle"), summaryBody: $("summaryBody"), summaryClose: $("summaryClose"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
 
@@ -1537,7 +1581,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
   /* ---------- ESC סוגר מודלים ---------- */
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    [el.budgetModal, el.editModal, el.goalModal, el.contribModal, el.catModal, el.catBudgetModal].forEach((m) => m.hidden = true);
+    [el.budgetModal, el.editModal, el.goalModal, el.contribModal, el.catModal, el.catBudgetModal, el.summaryModal].forEach((m) => m && (m.hidden = true));
   });
 
   /* ---------- קטגוריות מותאמות אישית ---------- */
@@ -1830,6 +1874,59 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
   const exitBtn = document.getElementById("exitDemo");
   if (exitBtn) exitBtn.addEventListener("click", exitDemo);
 
+  /* ---------- סיכום חודשי (תצוגה נקייה) ---------- */
+  function openSummary() {
+    const ym = currentMonth;
+    const txs = transactions.filter((t) => ymOf(t.date) === ym);
+    const income = sum(txs.filter((t) => t.type === "income"));
+    const expense = sum(txs.filter((t) => t.type === "expense"));
+    const bal = income - expense;
+    el.summaryTitle.textContent = "סיכום — " + monthLabel(ym);
+
+    if (!txs.length) {
+      el.summaryBody.innerHTML = `<p class="sum-empty">אין תנועות בחודש זה. בחר חודש אחר או הוסף תנועות.</p>`;
+      el.summaryModal.hidden = false; return;
+    }
+    const byCat = {};
+    txs.filter((t) => t.type === "expense").forEach((t) => byCat[t.category] = (byCat[t.category] || 0) + t.amount);
+    const top = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const budget = budgets[ym];
+    const saveRate = income > 0 ? Math.round(bal / income * 100) : 0;
+
+    let html = `<div class="sum-stats">
+      <div class="sum-stat inc"><span class="l">הכנסות</span><span class="v">${fmt(income)}</span></div>
+      <div class="sum-stat exp"><span class="l">הוצאות</span><span class="v">${fmt(expense)}</span></div>
+      <div class="sum-stat bal"><span class="l">מאזן</span><span class="v ${bal < 0 ? "neg" : "pos"}">${fmt(bal)}</span></div>
+    </div>`;
+
+    if (budget > 0) {
+      const pct = Math.round(expense / budget * 100);
+      html += `<div class="sum-budget">🎯 תקציב: <b>${fmt(budget)}</b> · נוצל <b>${pct}%</b> · ${expense > budget ? `⚠️ חריגה של ${fmt(expense - budget)}` : `נותרו ${fmt(budget - expense)}`}</div>`;
+    }
+
+    if (top.length) {
+      html += `<div class="sum-h">💸 ההוצאות הגדולות</div><div class="sum-cats">`;
+      top.forEach(([id, val]) => {
+        const c = catById(id), pct = Math.round(val / expense * 100);
+        html += `<div class="sum-cat">
+          <span class="sum-cat-ico" style="background:${c.color}22">${c.icon}</span>
+          <span class="sum-cat-name">${c.name}</span>
+          <span class="sum-cat-bar"><i style="width:${pct}%;background:${c.color}"></i></span>
+          <span class="sum-cat-val">${fmt(val)} · ${pct}%</span>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+
+    html += `<p class="sum-note">${txs.length} תנועות החודש · ${bal >= 0 ? `חסכת ${saveRate}% מההכנסות 🌱` : "החודש ההוצאות עלו על ההכנסות"}</p>`;
+    el.summaryBody.innerHTML = html;
+    el.summaryModal.hidden = false;
+  }
+  function closeSummary() { el.summaryModal.hidden = true; }
+  if (el.summaryBtn) el.summaryBtn.addEventListener("click", openSummary);
+  if (el.summaryClose) el.summaryClose.addEventListener("click", closeSummary);
+  if (el.summaryModal) el.summaryModal.addEventListener("click", (e) => { if (e.target === el.summaryModal) closeSummary(); });
+
   /* ---------- רינדור כללי ---------- */
   function renderAll() { renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges(); }
 
@@ -1849,7 +1946,11 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     // באנר רכישה עליון
     const bb = document.createElement("div");
     bb.className = "buy-banner";
-    bb.innerHTML = `<span>✨ זוהי <b>גרסת הדגמה</b> — רוצים גרסה מלאה, ממותגת אישית עבורכם?</span><b class="buy-contact">${escapeHtml(APP.contact || "צרו קשר לרכישה 📩")}</b>`;
+    const c = APP.contact;
+    const contactHtml = (c && c.includes("@"))
+      ? `<a class="buy-contact" href="mailto:${escapeHtml(c)}">📩 ${escapeHtml(c)}</a>`
+      : `<b class="buy-contact">${escapeHtml(c || "צרו קשר לרכישה 📩")}</b>`;
+    bb.innerHTML = `<span>✨ זוהי <b>גרסת הדגמה</b> — רוצים גרסה מלאה, ממותגת אישית עבורכם?</span>${contactHtml}`;
     const main = document.querySelector("main.container");
     if (main) main.insertBefore(bb, main.firstChild);
     // מבטלים חילוץ נתונים ופעולות הרסניות
