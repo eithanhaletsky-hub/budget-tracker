@@ -48,4 +48,30 @@ build({
     "storeKey": "budgetcoach",
 }, 'versions/coach.html')
 
+# ---- גרסאות הדגמה נעולות (לשליחה ללקוח) ----
+# ערוך את "contact" עם הטלפון/מייל שלך לפני שליחה.
+CONTACT = "לרכישה: 📩 [הכניסו כאן טלפון או מייל]"
+
+# 4) Demo — generic
+build({
+    "name": "התקציב שלי", "logo": "💰",
+    "preset": "generic", "demoLock": True, "contact": CONTACT, "storeKey": "budgetdemo",
+}, 'versions/demo-generic.html')
+
+# 5) Demo — kids
+build({
+    "name": "הכסף שלי", "tagline": "לומדים לנהל כסף — בכיף! 🌟", "logo": "🐷",
+    "accent": {"primary": "#ec4899", "primary2": "#f59e0b"},
+    "preset": "kids", "kids": True, "variant": "kids",
+    "demoLock": True, "contact": CONTACT, "storeKey": "budgetdemokids",
+}, 'versions/demo-kids.html')
+
+# 6) Demo — coach
+build({
+    "name": "התקציב שלי", "tagline": "ניהול פיננסי חכם — בליווי מקצועי", "logo": "📊",
+    "accent": {"primary": "#0f766e", "primary2": "#0891b2"},
+    "preset": "coach", "variant": "coach", "brandedBy": "דנה כהן · מאמנת פיננסית",
+    "demoLock": True, "contact": CONTACT, "storeKey": "budgetdemocoach",
+}, 'versions/demo-coach.html')
+
 print('done.')

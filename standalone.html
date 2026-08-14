@@ -412,6 +412,27 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .cat-color-label input[type="color"] { width: 46px; height: 40px; padding: 2px; border-radius: 10px; cursor: pointer; }
 .mini-label { font-size: 13px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 5px; }
 
+/* Locked demo (client-facing) — buy banner + watermark */
+.buy-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  background: var(--grad); color: #fff; padding: 14px 20px; border-radius: var(--radius-sm);
+  margin-bottom: 20px; box-shadow: var(--shadow-lg); font-size: 14.5px; font-weight: 600;
+}
+.buy-banner b { font-weight: 800; }
+.buy-banner .buy-contact { background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.45); padding: 7px 14px; border-radius: 9px; white-space: nowrap; }
+.demo-watermark {
+  position: fixed; bottom: 16px; inset-inline-start: 16px; z-index: 65; pointer-events: none;
+  background: rgba(17,23,41,0.78); color: #fff; font-weight: 800; font-size: 12.5px;
+  padding: 7px 14px; border-radius: 999px; letter-spacing: 0.5px; box-shadow: var(--shadow-lg);
+}
+.demo-watermark::before { content: "🔒 "; }
+/* faint diagonal repeated mark behind content */
+.demo-locked::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.05;
+  background-image: repeating-linear-gradient(-45deg, transparent 0 120px, currentColor 120px 122px);
+  color: var(--primary);
+}
+
 /* Demo mode banner */
 .demo-banner {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
@@ -804,6 +825,8 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
     kids: !!CFG.kids,                 // מפעיל מצב הישגים/מדליות וטון ידידותי
     brandedBy: CFG.brandedBy || null, // שם עסק/מאמן להצגה (white-label)
     variant: CFG.variant || null,     // זהות עיצובית מלאה: kids | coach (מוסיף class ל-body)
+    demoLock: !!CFG.demoLock,          // גרסת הדגמה נעולה לשליחה ללקוח
+    contact: CFG.contact || null,      // פרטי יצירת קשר לבאנר הרכישה
   };
 
   const NS = CFG.storeKey || "budgethelper";
@@ -1793,6 +1816,31 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
   /* ---------- רינדור כללי ---------- */
   function renderAll() { renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges(); }
 
+  /* ---------- גרסת הדגמה נעולה (לשליחה ללקוח) ---------- */
+  function lockDemo() {
+    // מזרימים נתוני דוגמה אם ריק
+    if (!transactions.length) {
+      const d = buildDemoData();
+      transactions = d.transactions; budgets = d.budgets; goals = d.goals; recurring = d.recurring; recApplied = d.recApplied; catBudgets = d.catBudgets;
+      save();
+    }
+    document.body.classList.add("demo-locked");
+    // סימן מים
+    const wm = document.createElement("div");
+    wm.className = "demo-watermark"; wm.setAttribute("aria-hidden", "true"); wm.textContent = "גרסת הדגמה";
+    document.body.appendChild(wm);
+    // באנר רכישה עליון
+    const bb = document.createElement("div");
+    bb.className = "buy-banner";
+    bb.innerHTML = `<span>✨ זוהי <b>גרסת הדגמה</b> — רוצים גרסה מלאה, ממותגת אישית עבורכם?</span><b class="buy-contact">${escapeHtml(APP.contact || "צרו קשר לרכישה 📩")}</b>`;
+    const main = document.querySelector("main.container");
+    if (main) main.insertBefore(bb, main.firstChild);
+    // מבטלים חילוץ נתונים ופעולות הרסניות
+    ["exportJson", "exportCsv", "printReport", "importBtn", "clearAll", "demoBtn"].forEach((id) => { const e = document.getElementById(id); if (e) e.style.display = "none"; });
+    const dataCard = document.querySelector(".data-card");
+    if (dataCard) dataCard.hidden = true;
+  }
+
   /* ---------- אתחול ---------- */
   function init() {
     applyBranding();
@@ -1801,8 +1849,8 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
     el.monthSelect.value = currentMonth;
     fillCatSelect(el.category, currentType);
     fillCatSelect(el.editCategory, editType);
-    updateDemoBanner();
-    const added = applyRecurring();
+    if (APP.demoLock) lockDemo(); else updateDemoBanner();
+    const added = APP.demoLock ? 0 : applyRecurring();
     renderAll();
     if (added > 0) toast(`נוספו ${added} תנועות קבועות לחודש זה 🔁`);
   }

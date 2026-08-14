@@ -404,6 +404,27 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .cat-color-label input[type="color"] { width: 46px; height: 40px; padding: 2px; border-radius: 10px; cursor: pointer; }
 .mini-label { font-size: 13px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 5px; }
 
+/* Locked demo (client-facing) — buy banner + watermark */
+.buy-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  background: var(--grad); color: #fff; padding: 14px 20px; border-radius: var(--radius-sm);
+  margin-bottom: 20px; box-shadow: var(--shadow-lg); font-size: 14.5px; font-weight: 600;
+}
+.buy-banner b { font-weight: 800; }
+.buy-banner .buy-contact { background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.45); padding: 7px 14px; border-radius: 9px; white-space: nowrap; }
+.demo-watermark {
+  position: fixed; bottom: 16px; inset-inline-start: 16px; z-index: 65; pointer-events: none;
+  background: rgba(17,23,41,0.78); color: #fff; font-weight: 800; font-size: 12.5px;
+  padding: 7px 14px; border-radius: 999px; letter-spacing: 0.5px; box-shadow: var(--shadow-lg);
+}
+.demo-watermark::before { content: "🔒 "; }
+/* faint diagonal repeated mark behind content */
+.demo-locked::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.05;
+  background-image: repeating-linear-gradient(-45deg, transparent 0 120px, currentColor 120px 122px);
+  color: var(--primary);
+}
+
 /* Demo mode banner */
 .demo-banner {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;

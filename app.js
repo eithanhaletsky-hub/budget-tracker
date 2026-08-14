@@ -20,6 +20,8 @@
     kids: !!CFG.kids,                 // מפעיל מצב הישגים/מדליות וטון ידידותי
     brandedBy: CFG.brandedBy || null, // שם עסק/מאמן להצגה (white-label)
     variant: CFG.variant || null,     // זהות עיצובית מלאה: kids | coach (מוסיף class ל-body)
+    demoLock: !!CFG.demoLock,          // גרסת הדגמה נעולה לשליחה ללקוח
+    contact: CFG.contact || null,      // פרטי יצירת קשר לבאנר הרכישה
   };
 
   const NS = CFG.storeKey || "budgethelper";
@@ -1009,6 +1011,31 @@
   /* ---------- רינדור כללי ---------- */
   function renderAll() { renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges(); }
 
+  /* ---------- גרסת הדגמה נעולה (לשליחה ללקוח) ---------- */
+  function lockDemo() {
+    // מזרימים נתוני דוגמה אם ריק
+    if (!transactions.length) {
+      const d = buildDemoData();
+      transactions = d.transactions; budgets = d.budgets; goals = d.goals; recurring = d.recurring; recApplied = d.recApplied; catBudgets = d.catBudgets;
+      save();
+    }
+    document.body.classList.add("demo-locked");
+    // סימן מים
+    const wm = document.createElement("div");
+    wm.className = "demo-watermark"; wm.setAttribute("aria-hidden", "true"); wm.textContent = "גרסת הדגמה";
+    document.body.appendChild(wm);
+    // באנר רכישה עליון
+    const bb = document.createElement("div");
+    bb.className = "buy-banner";
+    bb.innerHTML = `<span>✨ זוהי <b>גרסת הדגמה</b> — רוצים גרסה מלאה, ממותגת אישית עבורכם?</span><b class="buy-contact">${escapeHtml(APP.contact || "צרו קשר לרכישה 📩")}</b>`;
+    const main = document.querySelector("main.container");
+    if (main) main.insertBefore(bb, main.firstChild);
+    // מבטלים חילוץ נתונים ופעולות הרסניות
+    ["exportJson", "exportCsv", "printReport", "importBtn", "clearAll", "demoBtn"].forEach((id) => { const e = document.getElementById(id); if (e) e.style.display = "none"; });
+    const dataCard = document.querySelector(".data-card");
+    if (dataCard) dataCard.hidden = true;
+  }
+
   /* ---------- אתחול ---------- */
   function init() {
     applyBranding();
@@ -1017,8 +1044,8 @@
     el.monthSelect.value = currentMonth;
     fillCatSelect(el.category, currentType);
     fillCatSelect(el.editCategory, editType);
-    updateDemoBanner();
-    const added = applyRecurring();
+    if (APP.demoLock) lockDemo(); else updateDemoBanner();
+    const added = APP.demoLock ? 0 : applyRecurring();
     renderAll();
     if (added > 0) toast(`נוספו ${added} תנועות קבועות לחודש זה 🔁`);
   }
