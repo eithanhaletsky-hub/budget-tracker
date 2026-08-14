@@ -351,6 +351,22 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .cat-color-label input[type="color"] { width: 46px; height: 40px; padding: 2px; border-radius: 10px; cursor: pointer; }
 .mini-label { font-size: 13px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 5px; }
 
+/* Achievements / badges */
+.badges-count { font-size: 13px; color: var(--text-muted); }
+.badges-count b { color: var(--primary); }
+.badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.badge {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+  padding: 16px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface-2);
+  transition: transform 0.16s;
+}
+.badge.unlocked { border-color: var(--primary); background: linear-gradient(135deg, var(--surface-2), rgba(99,102,241,0.08)); }
+.badge.unlocked:hover { transform: translateY(-3px) scale(1.02); }
+.badge.locked { opacity: 0.55; filter: grayscale(0.6); }
+.badge-emoji { font-size: 32px; line-height: 1; }
+.badge-name { font-weight: 800; font-size: 13.5px; }
+.badge-desc { font-size: 11px; color: var(--text-muted); }
+
 /* Print report — screen hides the print root; print shows only it */
 #printRoot { display: none; }
 @media print {
@@ -509,6 +525,15 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
         </section>
       </div>
     </div>
+
+    <!-- Achievements / badges (kids mode only) -->
+    <section class="card badges-card" hidden>
+      <div class="section-head">
+        <h2>🏅 ההישגים שלי</h2>
+        <span class="badges-count">נאספו <b id="badgesCount">0 / 8</b></span>
+      </div>
+      <div class="badges-grid" id="badgesGrid"></div>
+    </section>
 
     <!-- Savings goals -->
     <section class="card goals-card">
@@ -680,39 +705,97 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 (() => {
   "use strict";
 
-  const K = {
-    tx: "budgethelper.transactions.v1",
-    budget: "budgethelper.budgets.v1",
-    goals: "budgethelper.goals.v1",
-    recurring: "budgethelper.recurring.v1",
-    recApplied: "budgethelper.recApplied.v1",
-    customCats: "budgethelper.customCats.v1",
-    catBudgets: "budgethelper.catBudgets.v1",
-    theme: "budgethelper.theme",
+  /* ---------- קונפיגורציית מיתוג (White-Label) ----------
+   * גרסאות ממותגות מגדירות window.BUDGET_CONFIG לפני טעינת הקובץ.
+   * ברירת המחדל = הגרסה הכללית "התקציב שלי".
+   */
+  const CFG = (typeof window !== "undefined" && window.BUDGET_CONFIG) || {};
+  const APP = {
+    name: CFG.name || "התקציב שלי",
+    tagline: CFG.tagline || "מעקב הוצאות והכנסות — פשוט, חכם ונוח",
+    logo: CFG.logo || "💰",
+    accent: CFG.accent || null,      // { primary, primary2 }
+    preset: CFG.preset || "generic", // generic | kids | coach
+    kids: !!CFG.kids,                 // מפעיל מצב הישגים/מדליות וטון ידידותי
+    brandedBy: CFG.brandedBy || null, // שם עסק/מאמן להצגה (white-label)
   };
 
-  /* ---------- קטגוריות ---------- */
-  const BUILTIN = {
-    expense: [
-      { id: "food", name: "מזון וסופר", icon: "🛒", color: "#f97316" },
-      { id: "dining", name: "מסעדות ובתי קפה", icon: "🍔", color: "#ef4444" },
-      { id: "transport", name: "תחבורה", icon: "🚗", color: "#3b82f6" },
-      { id: "housing", name: "דיור וחשבונות", icon: "🏠", color: "#8b5cf6" },
-      { id: "shopping", name: "קניות", icon: "🛍️", color: "#ec4899" },
-      { id: "health", name: "בריאות", icon: "💊", color: "#14b8a6" },
-      { id: "entertainment", name: "בילויים", icon: "🎬", color: "#f59e0b" },
-      { id: "education", name: "חינוך", icon: "📚", color: "#6366f1" },
-      { id: "other_exp", name: "אחר", icon: "📌", color: "#64748b" },
-    ],
-    income: [
-      { id: "salary", name: "משכורת", icon: "💼", color: "#16a34a" },
-      { id: "allowance", name: "דמי כיס", icon: "🪙", color: "#22c55e" },
-      { id: "gift", name: "מתנה", icon: "🎁", color: "#84cc16" },
-      { id: "freelance", name: "עבודה עצמאית", icon: "💻", color: "#0ea5e9" },
-      { id: "refund", name: "החזר", icon: "↩️", color: "#06b6d4" },
-      { id: "other_inc", name: "אחר", icon: "📌", color: "#10b981" },
-    ],
+  const NS = CFG.storeKey || "budgethelper";
+  const K = {
+    tx: `${NS}.transactions.v1`,
+    budget: `${NS}.budgets.v1`,
+    goals: `${NS}.goals.v1`,
+    recurring: `${NS}.recurring.v1`,
+    recApplied: `${NS}.recApplied.v1`,
+    customCats: `${NS}.customCats.v1`,
+    catBudgets: `${NS}.catBudgets.v1`,
+    theme: `${NS}.theme`,
   };
+
+  /* ---------- קטגוריות (מובנות לפי preset) ---------- */
+  const PRESETS = {
+    generic: {
+      expense: [
+        { id: "food", name: "מזון וסופר", icon: "🛒", color: "#f97316" },
+        { id: "dining", name: "מסעדות ובתי קפה", icon: "🍔", color: "#ef4444" },
+        { id: "transport", name: "תחבורה", icon: "🚗", color: "#3b82f6" },
+        { id: "housing", name: "דיור וחשבונות", icon: "🏠", color: "#8b5cf6" },
+        { id: "shopping", name: "קניות", icon: "🛍️", color: "#ec4899" },
+        { id: "health", name: "בריאות", icon: "💊", color: "#14b8a6" },
+        { id: "entertainment", name: "בילויים", icon: "🎬", color: "#f59e0b" },
+        { id: "education", name: "חינוך", icon: "📚", color: "#6366f1" },
+        { id: "other_exp", name: "אחר", icon: "📌", color: "#64748b" },
+      ],
+      income: [
+        { id: "salary", name: "משכורת", icon: "💼", color: "#16a34a" },
+        { id: "allowance", name: "דמי כיס", icon: "🪙", color: "#22c55e" },
+        { id: "gift", name: "מתנה", icon: "🎁", color: "#84cc16" },
+        { id: "freelance", name: "עבודה עצמאית", icon: "💻", color: "#0ea5e9" },
+        { id: "refund", name: "החזר", icon: "↩️", color: "#06b6d4" },
+        { id: "other_inc", name: "אחר", icon: "📌", color: "#10b981" },
+      ],
+    },
+    kids: {
+      expense: [
+        { id: "candy", name: "ממתקים וחטיפים", icon: "🍬", color: "#ec4899" },
+        { id: "games", name: "משחקים ואפליקציות", icon: "🎮", color: "#8b5cf6" },
+        { id: "toys", name: "צעצועים", icon: "🧸", color: "#f59e0b" },
+        { id: "outings", name: "בילויים ויציאות", icon: "🎡", color: "#06b6d4" },
+        { id: "collect", name: "אספנות (קלפים/מדבקות)", icon: "🃏", color: "#3b82f6" },
+        { id: "gift_out", name: "מתנות שקניתי", icon: "🎁", color: "#f43f5e" },
+        { id: "kids_other", name: "אחר", icon: "📌", color: "#64748b" },
+      ],
+      income: [
+        { id: "allowance", name: "דמי כיס", icon: "🪙", color: "#22c55e" },
+        { id: "chores", name: "עבודות בית", icon: "🧹", color: "#10b981" },
+        { id: "birthday", name: "כסף יום הולדת", icon: "🎂", color: "#84cc16" },
+        { id: "gift_in", name: "מתנה", icon: "💌", color: "#0ea5e9" },
+        { id: "kids_other_in", name: "אחר", icon: "📌", color: "#14b8a6" },
+      ],
+    },
+    coach: {
+      expense: [
+        { id: "housing", name: "דיור ומשכנתא", icon: "🏠", color: "#8b5cf6" },
+        { id: "food", name: "מזון וצריכה", icon: "🛒", color: "#f97316" },
+        { id: "transport", name: "תחבורה ורכב", icon: "🚗", color: "#3b82f6" },
+        { id: "bills", name: "חשבונות וחובה", icon: "🧾", color: "#0ea5e9" },
+        { id: "insurance", name: "ביטוחים", icon: "🛡️", color: "#14b8a6" },
+        { id: "debt", name: "החזרי הלוואות", icon: "💳", color: "#f43f5e" },
+        { id: "health", name: "בריאות", icon: "💊", color: "#ef4444" },
+        { id: "leisure", name: "פנאי ותרבות", icon: "🎭", color: "#f59e0b" },
+        { id: "family", name: "משפחה וילדים", icon: "👨‍👩‍👧", color: "#ec4899" },
+        { id: "other_exp", name: "אחר", icon: "📌", color: "#64748b" },
+      ],
+      income: [
+        { id: "salary", name: "משכורת", icon: "💼", color: "#16a34a" },
+        { id: "business", name: "הכנסה מעסק", icon: "🏢", color: "#22c55e" },
+        { id: "investments", name: "השקעות ותשואות", icon: "📈", color: "#0ea5e9" },
+        { id: "rental", name: "הכנסה משכירות", icon: "🏘️", color: "#84cc16" },
+        { id: "other_inc", name: "אחר", icon: "📌", color: "#10b981" },
+      ],
+    },
+  };
+  const BUILTIN = PRESETS[APP.preset] || PRESETS.generic;
   const GOAL_EMOJIS = ["🎯", "🎧", "📱", "💻", "🎮", "✈️", "🚲", "👟", "🎸", "📷", "🏖️", "🎁", "💍", "🚗", "🏠", "💰"];
 
   // קטגוריות מותאמות אישית (נטענות מ-localStorage) ממוזגות עם המובנות
@@ -1477,7 +1560,7 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
           <thead><tr style="text-align:right;color:#666"><th style="padding:6px">תאריך</th><th style="padding:6px">קטגוריה</th><th style="padding:6px">תיאור</th><th style="padding:6px">סכום</th></tr></thead>
           <tbody>${txRows}</tbody>
         </table>
-        <p style="color:#999;font-size:12px;margin-top:24px;text-align:center">הופק ע"י אפליקציית "התקציב שלי"</p>
+        <p style="color:#999;font-size:12px;margin-top:24px;text-align:center">הופק ע"י ${escapeHtml(APP.brandedBy || APP.name)}</p>
       </div>`;
     root.querySelectorAll(".income").forEach((e) => e.style.color = "#059669");
     root.querySelectorAll(".expense").forEach((e) => e.style.color = "#dc2626");
@@ -1485,11 +1568,67 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
     setTimeout(() => window.print(), 100);
   }
 
+  /* ---------- מיתוג (White-Label) ---------- */
+  function applyBranding() {
+    document.title = APP.name + " — מעקב הוצאות והכנסות";
+    const logoEl = document.querySelector(".brand-logo");
+    const h1 = document.querySelector(".brand h1");
+    const sub = document.querySelector(".brand-sub");
+    if (logoEl) logoEl.textContent = APP.logo;
+    if (h1) h1.textContent = APP.name;
+    if (sub) sub.textContent = APP.tagline;
+    if (APP.accent) {
+      const r = document.documentElement;
+      const p = APP.accent.primary, p2 = APP.accent.primary2 || p;
+      r.style.setProperty("--primary", p);
+      r.style.setProperty("--primary-2", p2);
+      r.style.setProperty("--primary-dark", p);
+      r.style.setProperty("--grad", `linear-gradient(135deg, ${p} 0%, ${p2} 100%)`);
+    }
+    if (APP.brandedBy) {
+      const foot = document.querySelector(".app-footer .container p");
+      if (foot) foot.innerHTML = `מוגש לך ע"י <b>${escapeHtml(APP.brandedBy)}</b> · הנתונים נשמרים במכשיר שלך בלבד`;
+    }
+    // מצב ילדים: מציג את לוח ההישגים
+    const badgesCard = document.querySelector(".badges-card");
+    if (badgesCard) badgesCard.hidden = !APP.kids;
+  }
+
+  /* ---------- הישגים / מדליות (מצב ילדים) ---------- */
+  const BADGES = [
+    { id: "first_tx", emoji: "✍️", name: "הצעד הראשון", desc: "רשמת תנועה ראשונה", test: () => transactions.length >= 1 },
+    { id: "ten_tx", emoji: "🔟", name: "עשר על עשר", desc: "רשמת 10 תנועות", test: () => transactions.length >= 10 },
+    { id: "first_goal", emoji: "🎯", name: "חולם בגדול", desc: "יצרת יעד חיסכון", test: () => goals.length >= 1 },
+    { id: "goal_done", emoji: "🏆", name: "הגשמת חלום", desc: "השגת יעד חיסכון", test: () => goals.some((g) => g.saved >= g.target) },
+    { id: "saver", emoji: "💰", name: "חסכן על", desc: "חסכת 100₪ סה\"כ ביעדים", test: () => goals.reduce((s, g) => s + g.saved, 0) >= 100 },
+    { id: "consistent", emoji: "📅", name: "עקבי", desc: "רשמת תנועות ב-5 ימים שונים", test: () => new Set(transactions.map((t) => t.date)).size >= 5 },
+    { id: "budgeter", emoji: "🧠", name: "ראש מתכנן", desc: "הגדרת תקציב חודשי", test: () => Object.keys(budgets).length >= 1 },
+    { id: "positive", emoji: "🌱", name: "יותר נכנס מיוצא", desc: "סיימת חודש עם מאזן חיובי", test: () => { const byM = {}; transactions.forEach((t) => byM[ymOf(t.date)] = (byM[ymOf(t.date)] || 0) + (t.type === "income" ? t.amount : -t.amount)); return Object.values(byM).some((v) => v > 0); } },
+  ];
+  function renderBadges() {
+    if (!APP.kids) return;
+    const grid = document.getElementById("badgesGrid");
+    if (!grid) return;
+    let unlocked = 0;
+    grid.innerHTML = BADGES.map((b) => {
+      const got = b.test();
+      if (got) unlocked++;
+      return `<div class="badge ${got ? "unlocked" : "locked"}" title="${escapeHtml(b.desc)}">
+        <span class="badge-emoji">${got ? b.emoji : "🔒"}</span>
+        <span class="badge-name">${escapeHtml(b.name)}</span>
+        <span class="badge-desc">${escapeHtml(b.desc)}</span>
+      </div>`;
+    }).join("");
+    const count = document.getElementById("badgesCount");
+    if (count) count.textContent = `${unlocked} / ${BADGES.length}`;
+  }
+
   /* ---------- רינדור כללי ---------- */
-  function renderAll() { renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); }
+  function renderAll() { renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges(); }
 
   /* ---------- אתחול ---------- */
   function init() {
+    applyBranding();
     initTheme();
     el.date.value = todayStr();
     el.monthSelect.value = currentMonth;

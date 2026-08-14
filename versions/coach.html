@@ -1,3 +1,703 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ניהול תקציב — מעקב הוצאות והכנסות</title>
+  <meta name="description" content="אפליקציה נוחה למעקב אחרי הוצאות והכנסות, יעדי חיסכון, תנועות קבועות, תובנות חכמות וגרפים. הנתונים נשמרים במכשיר שלך בלבד." />
+  <style>
+:root {
+  --bg: #eef1f8;
+  --bg-2: #e6eaf5;
+  --surface: #ffffff;
+  --surface-2: #f5f7fc;
+  --border: #e4e8f2;
+  --text: #171d2e;
+  --text-muted: #6b7488;
+  --primary: #6366f1;
+  --primary-2: #8b5cf6;
+  --primary-dark: #4f46e5;
+  --income: #10b981;
+  --income-soft: #d1fae5;
+  --expense: #f43f5e;
+  --expense-soft: #ffe4e6;
+  --balance: #0ea5e9;
+  --budget: #f59e0b;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow: 0 2px 8px rgba(16, 24, 40, 0.06), 0 8px 28px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 12px 40px rgba(79, 70, 229, 0.16);
+  --radius: 18px;
+  --radius-sm: 12px;
+  --font: "Segoe UI", "Assistant", "Rubik", system-ui, -apple-system, sans-serif;
+  --grad: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+  --grad-income: linear-gradient(135deg, #10b981, #34d399);
+  --grad-expense: linear-gradient(135deg, #f43f5e, #fb7185);
+}
+
+[data-theme="dark"] {
+  --bg: #0b0f1a;
+  --bg-2: #0f1524;
+  --surface: #161d2e;
+  --surface-2: #1e2638;
+  --border: #2a3348;
+  --text: #eaedf5;
+  --text-muted: #98a2b8;
+  --primary: #818cf8;
+  --primary-2: #a78bfa;
+  --primary-dark: #a5b4fc;
+  --income: #34d399;
+  --income-soft: #0f3324;
+  --expense: #fb7185;
+  --expense-soft: #3d1620;
+  --balance: #38bdf8;
+  --budget: #fbbf24;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 12px 44px rgba(0, 0, 0, 0.45);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Decorative gradient blobs */
+.bg-decoration { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.bg-decoration::before, .bg-decoration::after {
+  content: ""; position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5;
+}
+.bg-decoration::before { width: 420px; height: 420px; background: radial-gradient(circle, #8b5cf6, transparent 70%); top: -120px; inset-inline-start: -80px; }
+.bg-decoration::after { width: 380px; height: 380px; background: radial-gradient(circle, #06b6d4, transparent 70%); top: 200px; inset-inline-end: -100px; opacity: 0.35; }
+[data-theme="dark"] .bg-decoration::before, [data-theme="dark"] .bg-decoration::after { opacity: 0.22; }
+
+.container { max-width: 1140px; margin: 0 auto; padding: 0 20px; }
+
+/* Header */
+.app-header {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+[data-theme="dark"] .app-header { background: rgba(16, 21, 34, 0.72); }
+.header-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 20px; flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-logo {
+  font-size: 30px; width: 50px; height: 50px; display: grid; place-items: center;
+  background: var(--grad); border-radius: 14px; box-shadow: var(--shadow-lg);
+}
+.brand h1 { font-size: 21px; font-weight: 800; letter-spacing: -0.5px; }
+.brand-sub { font-size: 12.5px; color: var(--text-muted); }
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.month-picker { display: flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; box-shadow: var(--shadow-sm); }
+.month-picker input[type="month"] { border: none; background: transparent; color: var(--text); font-family: var(--font); font-size: 14px; padding: 4px; cursor: pointer; }
+.month-picker input::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
+
+.icon-btn {
+  background: var(--surface); border: 1px solid var(--border); color: var(--text);
+  width: 36px; height: 36px; border-radius: 10px; font-size: 16px; cursor: pointer;
+  display: grid; place-items: center; transition: all 0.15s; box-shadow: var(--shadow-sm);
+}
+.icon-btn:hover { background: var(--surface-2); transform: translateY(-1px); }
+.icon-btn:active { transform: scale(0.94); }
+
+/* Cards */
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 22px; position: relative;
+}
+.card h2 { font-size: 15px; margin-bottom: 15px; font-weight: 700; }
+
+main { padding: 26px 0 44px; }
+section.card { margin-bottom: 22px; }
+
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.section-head h2 { margin: 0; }
+.muted-inline { font-size: 12px; color: var(--text-muted); }
+
+/* Summary */
+.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
+.summary-card { display: flex; flex-direction: column; gap: 4px; overflow: hidden; transition: transform 0.18s, box-shadow 0.18s; }
+.summary-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.summary-card::before { content: ""; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 4px; }
+.summary-card.income::before { background: var(--grad-income); }
+.summary-card.expense::before { background: var(--grad-expense); }
+.summary-card.balance::before { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
+.summary-card.budget::before { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.summary-icon { position: absolute; top: 16px; inset-inline-end: 18px; font-size: 22px; opacity: 0.55; }
+.summary-label { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+.summary-value { font-size: 27px; font-weight: 800; letter-spacing: -0.6px; font-variant-numeric: tabular-nums; }
+.summary-card.income .summary-value { color: var(--income); }
+.summary-card.expense .summary-value { color: var(--expense); }
+.summary-card.balance .summary-value.negative { color: var(--expense); }
+
+.budget-bar { height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin-top: 6px; border: 1px solid var(--border); }
+.budget-bar-fill { height: 100%; border-radius: 999px; transition: width 0.5s cubic-bezier(.4,0,.2,1), background 0.3s; width: 0; }
+.budget-hint { font-size: 12px; color: var(--text-muted); }
+.link-btn { background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer; font-family: var(--font); text-decoration: underline; padding: 0; }
+
+/* Insights */
+.insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+.insight {
+  display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: var(--radius-sm);
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.insight-emoji { font-size: 24px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; flex-shrink: 0; }
+.insight-body { min-width: 0; }
+.insight-label { font-size: 12px; color: var(--text-muted); }
+.insight-value { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+.insight-sub { font-size: 11.5px; color: var(--text-muted); }
+
+/* Layout */
+.layout { display: grid; grid-template-columns: 350px 1fr; gap: 22px; align-items: start; }
+.col-side { display: flex; flex-direction: column; gap: 22px; }
+.col-side .card, .col-main .card { margin-bottom: 0; }
+
+/* Form */
+.type-toggle { display: flex; gap: 6px; margin-bottom: 16px; background: var(--surface-2); padding: 5px; border-radius: 12px; }
+.type-btn { flex: 1; padding: 9px; border: none; background: transparent; border-radius: 8px; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text-muted); transition: all 0.18s; }
+.type-btn.active[data-type="expense"] { background: var(--grad-expense); color: #fff; box-shadow: 0 4px 12px rgba(244,63,94,0.3); }
+.type-btn.active[data-type="income"] { background: var(--grad-income); color: #fff; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+
+form label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 12px; }
+.checkbox-row { flex-direction: row !important; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.checkbox-row input { width: auto; cursor: pointer; }
+.checkbox-row span { font-size: 13px; }
+input, select {
+  font-family: var(--font); font-size: 14px; padding: 10px 12px; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--surface-2); color: var(--text); width: 100%; transition: all 0.15s;
+}
+input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.18); background: var(--surface); }
+
+.btn-primary {
+  width: 100%; padding: 12px; border: none; border-radius: 10px; background: var(--grad);
+  color: #fff; font-family: var(--font); font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: all 0.18s; box-shadow: 0 4px 14px rgba(99,102,241,0.32);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(99,102,241,0.42); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-sm { width: auto; padding: 8px 16px; font-size: 13.5px; }
+
+.btn-ghost, .btn-danger {
+  padding: 9px 14px; border-radius: 10px; font-family: var(--font); font-size: 13.5px; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); transition: all 0.15s;
+}
+.btn-ghost:hover { background: var(--surface); transform: translateY(-1px); }
+.btn-danger { border-color: transparent; background: var(--expense-soft); color: var(--expense); }
+.btn-danger:hover { filter: brightness(0.97); }
+
+/* Charts */
+.chart-wrap { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: center; }
+#pieChart { flex-shrink: 0; }
+.pie-legend { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 130px; font-size: 13px; }
+.pie-legend .leg-item { display: flex; align-items: center; gap: 8px; }
+.pie-legend .leg-color { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+.pie-legend .leg-name { flex: 1; }
+.pie-legend .leg-val { font-weight: 700; font-variant-numeric: tabular-nums; }
+.bar-legend { display: flex; gap: 18px; justify-content: center; margin-top: 10px; font-size: 12.5px; color: var(--text-muted); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+.income-dot { background: var(--income); }
+.expense-dot { background: var(--expense); }
+
+/* Transaction list */
+.list-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.list-header h2 { margin: 0; }
+.list-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.list-tools input, .list-tools select { width: auto; padding: 8px 10px; font-size: 13px; }
+.list-tools #searchInput { min-width: 130px; }
+.list-hint { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+
+.tx-list { display: flex; flex-direction: column; gap: 8px; max-height: 680px; overflow-y: auto; padding-inline-end: 4px; }
+.tx-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 14px; animation: slideIn 0.28s ease; cursor: pointer;
+  transition: transform 0.14s, box-shadow 0.14s, border-color 0.14s;
+}
+.tx-item:hover { transform: translateX(-3px); box-shadow: var(--shadow); border-color: var(--primary); }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.tx-icon { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; flex-shrink: 0; }
+.tx-body { flex: 1; min-width: 0; }
+.tx-cat { font-weight: 700; font-size: 14.5px; display: flex; align-items: center; gap: 6px; }
+.tx-recur-badge { font-size: 10px; background: var(--primary); color: #fff; padding: 1px 6px; border-radius: 6px; font-weight: 700; }
+.tx-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 8px; flex-wrap: wrap; }
+.tx-desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+.tx-amount { font-weight: 800; font-size: 15.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tx-amount.income { color: var(--income); }
+.tx-amount.expense { color: var(--expense); }
+.tx-del { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 17px; width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; transition: all 0.15s; }
+.tx-del:hover { background: var(--expense-soft); color: var(--expense); }
+
+.empty-note { text-align: center; color: var(--text-muted); font-size: 14px; padding: 26px 10px; }
+
+/* Goals */
+.goals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.goal {
+  padding: 16px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border);
+  position: relative; overflow: hidden; transition: transform 0.16s, box-shadow 0.16s;
+}
+.goal:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.goal.done { border-color: var(--income); background: linear-gradient(135deg, var(--income-soft), var(--surface-2)); }
+.goal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.goal-emoji { font-size: 26px; }
+.goal-name { font-weight: 800; font-size: 15px; flex: 1; }
+.goal-actions { display: flex; gap: 4px; }
+.goal-mini { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; padding: 3px; border-radius: 6px; transition: all 0.15s; }
+.goal-mini:hover { opacity: 1; background: var(--surface); }
+.goal-amounts { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; font-variant-numeric: tabular-nums; }
+.goal-saved { font-weight: 800; color: var(--income); }
+.goal-target { color: var(--text-muted); }
+.goal-bar { height: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.goal-bar-fill { height: 100%; background: var(--grad-income); border-radius: 999px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+.goal-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.goal-pct { font-size: 12px; font-weight: 700; color: var(--text-muted); }
+.goal-done-badge { font-size: 12px; font-weight: 800; color: var(--income); }
+.goal-add { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 5px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all 0.15s; }
+.goal-add:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+/* Recurring */
+.recurring-list { display: flex; flex-direction: column; gap: 8px; }
+.recurring-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; }
+.recurring-item .tx-icon { width: 38px; height: 38px; font-size: 18px; }
+.rec-body { flex: 1; min-width: 0; }
+.rec-title { font-weight: 700; font-size: 14px; }
+.rec-meta { font-size: 12px; color: var(--text-muted); }
+.rec-amount { font-weight: 800; font-variant-numeric: tabular-nums; }
+.rec-amount.income { color: var(--income); }
+.rec-amount.expense { color: var(--expense); }
+
+/* Emoji picker */
+.emoji-picker { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.emoji-opt { font-size: 20px; width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--border); background: var(--surface-2); cursor: pointer; transition: all 0.15s; }
+.emoji-opt:hover { transform: scale(1.1); }
+.emoji-opt.selected { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+
+/* Data + footer */
+.muted { color: var(--text-muted); font-size: 13px; margin-bottom: 14px; }
+.data-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.app-footer { border-top: 1px solid var(--border); padding: 22px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(10, 14, 26, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: grid; place-items: center; z-index: 50; padding: 20px; animation: fade 0.18s; }
+.modal-overlay[hidden] { display: none; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.modal { max-width: 420px; width: 100%; animation: pop 0.22s cubic-bezier(.34,1.56,.64,1); }
+@keyframes pop { from { opacity: 0; transform: scale(0.94) translateY(10px); } to { opacity: 1; transform: none; } }
+.modal h3 { font-size: 18px; margin-bottom: 8px; }
+.modal label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-muted); font-weight: 600; margin: 14px 0; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-start; flex-wrap: wrap; margin-top: 6px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 24px; inset-inline: 0; margin: 0 auto; width: fit-content; max-width: 90%; background: var(--text); color: var(--surface); padding: 12px 22px; border-radius: 12px; font-size: 14px; font-weight: 600; z-index: 60; box-shadow: var(--shadow-lg); animation: toastIn 0.28s ease; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* Confetti */
+.confetti-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 70; }
+
+/* Count-up pulse */
+.summary-value.bump { animation: bump 0.4s ease; }
+@keyframes bump { 0%,100% { transform: scale(1); } 40% { transform: scale(1.08); } }
+
+/* Responsive */
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .summary-grid { grid-template-columns: 1fr; } .brand-sub { display: none; } .list-header { flex-direction: column; align-items: stretch; } }
+
+.tx-list::-webkit-scrollbar { width: 8px; }
+.tx-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+/* Label row (manage categories link) */
+.label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* Per-category budgets */
+.catbudget-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.catbudget {
+  padding: 14px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.catbudget-head { display: flex; align-items: center; gap: 10px; }
+.catbudget-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
+.catbudget-name { font-weight: 700; font-size: 14px; flex: 1; }
+.catbudget-nums { font-size: 13px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.catbudget-nums b { color: var(--text); }
+.catbudget-bar { height: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.catbudget-bar-fill { height: 100%; border-radius: 999px; transition: width 0.5s cubic-bezier(.4,0,.2,1), background 0.3s; }
+.catbudget-foot { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+.catbudget-status { font-weight: 700; }
+.catbudget-actions button { background: none; border: none; cursor: pointer; font-size: 13px; opacity: 0.6; padding: 2px 4px; border-radius: 6px; }
+.catbudget-actions button:hover { opacity: 1; background: var(--surface); }
+
+/* Manage categories modal */
+.cat-manage-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; margin-bottom: 12px; }
+.cat-manage-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; font-size: 13.5px; }
+.cat-manage-item .cm-icon { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 16px; }
+.cat-manage-item .cm-name { flex: 1; font-weight: 600; }
+.cat-manage-item .cm-type { font-size: 11px; color: var(--text-muted); }
+.cat-manage-item .cm-del { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 15px; }
+.cat-manage-item .cm-del:hover { color: var(--expense); }
+.cat-manage-item .cm-builtin { font-size: 11px; color: var(--text-muted); }
+.cat-add-form { border-top: 1px dashed var(--border); padding-top: 12px; }
+.cat-row { display: flex; gap: 12px; align-items: flex-start; }
+.cat-color-label { flex-direction: column; width: auto; }
+.cat-color-label input[type="color"] { width: 46px; height: 40px; padding: 2px; border-radius: 10px; cursor: pointer; }
+.mini-label { font-size: 13px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 5px; }
+
+/* Achievements / badges */
+.badges-count { font-size: 13px; color: var(--text-muted); }
+.badges-count b { color: var(--primary); }
+.badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.badge {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+  padding: 16px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface-2);
+  transition: transform 0.16s;
+}
+.badge.unlocked { border-color: var(--primary); background: linear-gradient(135deg, var(--surface-2), rgba(99,102,241,0.08)); }
+.badge.unlocked:hover { transform: translateY(-3px) scale(1.02); }
+.badge.locked { opacity: 0.55; filter: grayscale(0.6); }
+.badge-emoji { font-size: 32px; line-height: 1; }
+.badge-name { font-weight: 800; font-size: 13.5px; }
+.badge-desc { font-size: 11px; color: var(--text-muted); }
+
+/* Print report — screen hides the print root; print shows only it */
+#printRoot { display: none; }
+@media print {
+  body * { visibility: hidden; }
+  #printRoot, #printRoot * { visibility: visible; }
+  #printRoot { display: block; position: absolute; inset: 0; padding: 0; }
+}
+
+</style>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
+</head>
+<body>
+  <div class="bg-decoration" aria-hidden="true"></div>
+
+  <header class="app-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <span class="brand-logo">💰</span>
+        <div>
+          <h1>התקציב שלי</h1>
+          <p class="brand-sub">מעקב הוצאות והכנסות — פשוט, חכם ונוח</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="themeToggle" class="icon-btn" title="מצב כהה/בהיר" aria-label="החלף מצב תצוגה">🌙</button>
+        <div class="month-picker">
+          <button id="prevMonth" class="icon-btn" aria-label="חודש קודם">‹</button>
+          <input type="month" id="monthSelect" aria-label="בחר חודש" />
+          <button id="nextMonth" class="icon-btn" aria-label="חודש הבא">›</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Summary cards -->
+    <section class="summary-grid" aria-label="סיכום החודש">
+      <div class="card summary-card income">
+        <span class="summary-icon">📈</span>
+        <span class="summary-label">הכנסות החודש</span>
+        <span class="summary-value" id="totalIncome" data-value="0">₪0</span>
+      </div>
+      <div class="card summary-card expense">
+        <span class="summary-icon">📉</span>
+        <span class="summary-label">הוצאות החודש</span>
+        <span class="summary-value" id="totalExpense" data-value="0">₪0</span>
+      </div>
+      <div class="card summary-card balance">
+        <span class="summary-icon">⚖️</span>
+        <span class="summary-label">מאזן (נשאר)</span>
+        <span class="summary-value" id="balance" data-value="0">₪0</span>
+      </div>
+      <div class="card summary-card budget">
+        <span class="summary-icon">🎯</span>
+        <span class="summary-label">
+          תקציב חודשי
+          <button id="editBudget" class="link-btn" title="ערוך תקציב">ערוך</button>
+        </span>
+        <span class="summary-value" id="budgetValue">—</span>
+        <div class="budget-bar" id="budgetBar" hidden>
+          <div class="budget-bar-fill" id="budgetBarFill"></div>
+        </div>
+        <span class="budget-hint" id="budgetHint"></span>
+      </div>
+    </section>
+
+    <!-- Smart insights -->
+    <section class="card insights-card" id="insightsCard">
+      <h2>✨ תובנות חכמות</h2>
+      <div class="insights-grid" id="insightsGrid"></div>
+    </section>
+
+    <div class="layout">
+      <!-- Left: add form + charts -->
+      <div class="col-side">
+        <section class="card form-card">
+          <h2>הוספת תנועה</h2>
+          <div class="type-toggle" role="tablist">
+            <button class="type-btn active" data-type="expense" role="tab">➖ הוצאה</button>
+            <button class="type-btn" data-type="income" role="tab">➕ הכנסה</button>
+          </div>
+          <form id="txForm">
+            <label>
+              סכום (₪)
+              <input type="number" id="amount" step="0.01" min="0" inputmode="decimal" placeholder="0.00" required />
+            </label>
+            <label>
+              <span class="label-row">קטגוריה <button type="button" class="link-btn" id="manageCats">⚙️ נהל קטגוריות</button></span>
+              <select id="category" required></select>
+            </label>
+            <label>
+              תיאור (לא חובה)
+              <input type="text" id="description" placeholder="למשל: קניות בסופר" maxlength="80" />
+            </label>
+            <label>
+              תאריך
+              <input type="date" id="date" required />
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="isRecurring" />
+              <span>🔁 הפוך לתנועה קבועה (חוזרת כל חודש)</span>
+            </label>
+            <button type="submit" class="btn-primary" id="submitBtn">הוסף הוצאה</button>
+          </form>
+        </section>
+
+        <section class="card chart-card">
+          <h2>פילוח לפי קטגוריה</h2>
+          <div class="chart-wrap">
+            <canvas id="pieChart" width="240" height="240" aria-label="גרף עוגה של הוצאות לפי קטגוריה"></canvas>
+            <div id="pieLegend" class="pie-legend"></div>
+          </div>
+          <p class="empty-note" id="pieEmpty" hidden>אין הוצאות להצגה בחודש זה.</p>
+        </section>
+
+        <section class="card chart-card">
+          <h2>מגמה — 6 חודשים אחרונים</h2>
+          <div class="chart-wrap">
+            <canvas id="barChart" width="320" height="200" aria-label="גרף עמודות של הכנסות והוצאות לפי חודש"></canvas>
+          </div>
+          <div class="bar-legend">
+            <span><i class="dot income-dot"></i> הכנסות</span>
+            <span><i class="dot expense-dot"></i> הוצאות</span>
+          </div>
+        </section>
+
+        <section class="card chart-card">
+          <h2>מאזן מצטבר לאורך החודש</h2>
+          <div class="chart-wrap">
+            <canvas id="lineChart" width="320" height="200" aria-label="גרף קו של המאזן המצטבר לאורך החודש"></canvas>
+          </div>
+          <p class="empty-note" id="lineEmpty" hidden>אין תנועות בחודש זה להצגת מאזן.</p>
+        </section>
+      </div>
+
+      <!-- Right: transactions list -->
+      <div class="col-main">
+        <section class="card list-card">
+          <div class="list-header">
+            <h2>התנועות שלי</h2>
+            <div class="list-tools">
+              <input type="search" id="searchInput" placeholder="🔍 חיפוש..." aria-label="חיפוש תנועות" />
+              <select id="filterType" aria-label="סינון לפי סוג">
+                <option value="all">הכל</option>
+                <option value="income">הכנסות</option>
+                <option value="expense">הוצאות</option>
+              </select>
+              <select id="filterCategory" aria-label="סינון לפי קטגוריה">
+                <option value="all">כל הקטגוריות</option>
+              </select>
+            </div>
+          </div>
+          <p class="list-hint" id="listHint" hidden>💡 לחיצה על תנועה פותחת עריכה</p>
+          <div class="tx-list" id="txList"></div>
+          <p class="empty-note" id="listEmpty">עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👈</p>
+        </section>
+      </div>
+    </div>
+
+    <!-- Achievements / badges (kids mode only) -->
+    <section class="card badges-card" hidden>
+      <div class="section-head">
+        <h2>🏅 ההישגים שלי</h2>
+        <span class="badges-count">נאספו <b id="badgesCount">0 / 8</b></span>
+      </div>
+      <div class="badges-grid" id="badgesGrid"></div>
+    </section>
+
+    <!-- Savings goals -->
+    <section class="card goals-card">
+      <div class="section-head">
+        <h2>🎯 יעדי חיסכון</h2>
+        <button class="btn-primary btn-sm" id="addGoal">+ יעד חדש</button>
+      </div>
+      <div class="goals-grid" id="goalsGrid"></div>
+      <p class="empty-note" id="goalsEmpty">אין עדיין יעדים. הגדר יעד חיסכון ראשון והתחל לעקוב! 🚀</p>
+    </section>
+
+    <!-- Per-category budgets -->
+    <section class="card catbudget-card">
+      <div class="section-head">
+        <h2>📊 תקציב לפי קטגוריה</h2>
+        <button class="btn-primary btn-sm" id="addCatBudget">+ הגדר תקציב לקטגוריה</button>
+      </div>
+      <div class="catbudget-list" id="catBudgetList"></div>
+      <p class="empty-note" id="catBudgetEmpty">הגדר תקציב חודשי לקטגוריות ספציפיות (למשל 500₪ למסעדות) ועקוב אחרי כל אחת בנפרד.</p>
+    </section>
+
+    <!-- Recurring transactions -->
+    <section class="card recurring-card">
+      <div class="section-head">
+        <h2>🔁 תנועות קבועות</h2>
+        <span class="muted-inline">מתווספות אוטומטית בכל חודש חדש</span>
+      </div>
+      <div class="recurring-list" id="recurringList"></div>
+      <p class="empty-note" id="recurringEmpty">אין תנועות קבועות. סמן "הפוך לתנועה קבועה" בעת הוספת תנועה. 🔁</p>
+    </section>
+
+    <section class="card data-card">
+      <h2>ניהול נתונים</h2>
+      <p class="muted">הנתונים שלך נשמרים אך ורק בדפדפן הזה, במכשיר שלך. מומלץ לגבות מדי פעם.</p>
+      <div class="data-actions">
+        <button class="btn-ghost" id="printReport">🖨️ דוח חודשי (הדפסה/PDF)</button>
+        <button class="btn-ghost" id="exportJson">📤 ייצוא (JSON)</button>
+        <button class="btn-ghost" id="exportCsv">📊 ייצוא (CSV)</button>
+        <button class="btn-ghost" id="importBtn">📥 ייבוא מקובץ</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden />
+        <button class="btn-danger" id="clearAll">🗑️ מחיקת הכל</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <div class="container">
+      <p>💾 כל הנתונים נשמרים במכשיר שלך בלבד — ללא שרת, ללא הרשמה, ללא מעקב.</p>
+    </div>
+  </footer>
+
+  <!-- Budget modal -->
+  <div class="modal-overlay" id="budgetModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="budgetModalTitle">
+      <h3 id="budgetModalTitle">הגדרת תקציב חודשי</h3>
+      <p class="muted">קבע כמה אתה מתכנן להוציא החודש. נעדכן אותך כשתתקרב לחריגה.</p>
+      <label>
+        סכום התקציב (₪)
+        <input type="number" id="budgetInput" min="0" step="1" placeholder="למשל: 5000" />
+      </label>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="budgetCancel">ביטול</button>
+        <button class="btn-ghost" id="budgetClear">אפס תקציב</button>
+        <button class="btn-primary" id="budgetSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit transaction modal -->
+  <div class="modal-overlay" id="editModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+      <h3 id="editModalTitle">עריכת תנועה</h3>
+      <div class="type-toggle" role="tablist">
+        <button class="type-btn edit-type" data-type="expense" role="tab">➖ הוצאה</button>
+        <button class="type-btn edit-type" data-type="income" role="tab">➕ הכנסה</button>
+      </div>
+      <label>סכום (₪)<input type="number" id="editAmount" step="0.01" min="0" /></label>
+      <label>קטגוריה<select id="editCategory"></select></label>
+      <label>תיאור<input type="text" id="editDescription" maxlength="80" /></label>
+      <label>תאריך<input type="date" id="editDate" /></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="editCancel">ביטול</button>
+        <button class="btn-danger" id="editDelete">מחק</button>
+        <button class="btn-primary" id="editSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal modal -->
+  <div class="modal-overlay" id="goalModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
+      <h3 id="goalModalTitle">יעד חיסכון חדש</h3>
+      <p class="muted">קבע לעצמך מטרה — נעקוב אחרי ההתקדמות ונחגוג כשתגיע אליה! 🎉</p>
+      <label>שם היעד<input type="text" id="goalName" maxlength="40" placeholder="למשל: אוזניות חדשות" /></label>
+      <label>סכום היעד (₪)<input type="number" id="goalTarget" min="1" step="1" placeholder="למשל: 800" /></label>
+      <label>כמה כבר חסכת? (לא חובה)<input type="number" id="goalSaved" min="0" step="1" placeholder="0" /></label>
+      <div class="emoji-picker" id="goalEmojiPicker" aria-label="בחר אייקון"></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="goalCancel">ביטול</button>
+        <button class="btn-primary" id="goalSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contribute to goal modal -->
+  <div class="modal-overlay" id="contribModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="contribTitle">
+      <h3 id="contribTitle">הוספה לחיסכון</h3>
+      <p class="muted" id="contribSub"></p>
+      <label>סכום להוספה (₪)<input type="number" id="contribAmount" step="1" placeholder="למשל: 50" /></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="contribCancel">ביטול</button>
+        <button class="btn-primary" id="contribSave">הוסף</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage categories modal -->
+  <div class="modal-overlay" id="catModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="catModalTitle">
+      <h3 id="catModalTitle">ניהול קטגוריות</h3>
+      <p class="muted">הוסף קטגוריות משלך. אפשר למחוק רק קטגוריות שיצרת.</p>
+      <div class="cat-manage-list" id="catManageList"></div>
+      <div class="cat-add-form">
+        <div class="type-toggle" role="tablist">
+          <button type="button" class="type-btn newcat-type active" data-type="expense">➖ הוצאה</button>
+          <button type="button" class="type-btn newcat-type" data-type="income">➕ הכנסה</button>
+        </div>
+        <label>שם הקטגוריה<input type="text" id="newCatName" maxlength="30" placeholder="למשל: חיות מחמד" /></label>
+        <div class="cat-row">
+          <label class="cat-color-label">צבע<input type="color" id="newCatColor" value="#6366f1" /></label>
+          <div style="flex:1">
+            <span class="mini-label">אייקון</span>
+            <div class="emoji-picker" id="catEmojiPicker"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="catClose">סגור</button>
+        <button class="btn-primary" id="catAdd">+ הוסף קטגוריה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category budget modal -->
+  <div class="modal-overlay" id="catBudgetModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="catBudgetTitle">
+      <h3 id="catBudgetTitle">תקציב לקטגוריה</h3>
+      <p class="muted">קבע תקרת הוצאה חודשית לקטגוריה. חל על כל חודש.</p>
+      <label>קטגוריה<select id="catBudgetSelect"></select></label>
+      <label>תקציב חודשי (₪)<input type="number" id="catBudgetAmount" min="0" step="1" placeholder="למשל: 500" /></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="catBudgetCancel">ביטול</button>
+        <button class="btn-primary" id="catBudgetSave">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" hidden></div>
+  <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
+  <script>
+window.BUDGET_CONFIG = {"name": "התקציב שלי", "tagline": "ניהול פיננסי חכם — בליווי מקצועי", "logo": "📊", "accent": {"primary": "#0f766e", "primary2": "#0891b2"}, "preset": "coach", "brandedBy": "דנה כהן · מאמנת פיננסית", "storeKey": "budgetcoach"};
 /* ===== ניהול תקציב — לוגיקה ===== *
  * כל הנתונים נשמרים ב-localStorage, במכשיר המשתמש בלבד.
  * ללא שרת, ללא API, ללא מעקב.
@@ -941,3 +1641,7 @@
   }
   init();
 })();
+
+</script>
+</body>
+</html>

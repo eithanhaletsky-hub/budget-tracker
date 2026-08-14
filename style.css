@@ -343,6 +343,22 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .cat-color-label input[type="color"] { width: 46px; height: 40px; padding: 2px; border-radius: 10px; cursor: pointer; }
 .mini-label { font-size: 13px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 5px; }
 
+/* Achievements / badges */
+.badges-count { font-size: 13px; color: var(--text-muted); }
+.badges-count b { color: var(--primary); }
+.badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.badge {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+  padding: 16px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface-2);
+  transition: transform 0.16s;
+}
+.badge.unlocked { border-color: var(--primary); background: linear-gradient(135deg, var(--surface-2), rgba(99,102,241,0.08)); }
+.badge.unlocked:hover { transform: translateY(-3px) scale(1.02); }
+.badge.locked { opacity: 0.55; filter: grayscale(0.6); }
+.badge-emoji { font-size: 32px; line-height: 1; }
+.badge-name { font-weight: 800; font-size: 13.5px; }
+.badge-desc { font-size: 11px; color: var(--text-muted); }
+
 /* Print report — screen hides the print root; print shows only it */
 #printRoot { display: none; }
 @media print {
