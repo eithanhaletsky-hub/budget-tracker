@@ -518,7 +518,7 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
       </div>
       <div class="card summary-card balance">
         <span class="summary-icon">⚖️</span>
-        <span class="summary-label">מאזן (נשאר)</span>
+        <span class="summary-label">מאזן החודש (הכנסות − הוצאות)</span>
         <span class="summary-value" id="balance" data-value="0">₪0</span>
       </div>
       <div class="card summary-card budget">
@@ -1106,7 +1106,7 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
       el.budgetBarFill.style.width = pct + "%";
       el.budgetBarFill.style.background = pct >= 100 ? "var(--grad-expense)" : pct >= 80 ? "linear-gradient(135deg,#f59e0b,#fbbf24)" : "var(--grad-income)";
       const rem = budget - expense;
-      if (rem >= 0) { el.budgetHint.textContent = `נותרו ${fmt(rem)} (${Math.round(pct)}% נוצל)`; el.budgetHint.style.color = pct >= 80 ? "var(--budget)" : "var(--text-muted)"; }
+      if (rem >= 0) { el.budgetHint.textContent = `נותרו מהתקציב ${fmt(rem)} (${Math.round(pct)}% נוצל)`; el.budgetHint.style.color = pct >= 80 ? "var(--budget)" : "var(--text-muted)"; }
       else { el.budgetHint.textContent = `⚠️ חריגה של ${fmt(-rem)}!`; el.budgetHint.style.color = "var(--expense)"; }
     } else {
       el.budgetValue.textContent = "—"; el.budgetBar.hidden = true;
@@ -1757,18 +1757,24 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
       const dim = daysIn(ym);
       const maxDay = isCur(ym) ? Math.max(3, curDay) : dim; // בחודש הנוכחי לא ליצור תאריכים עתידיים
       // הכנסות
-      tx.push(mk(ym, "income", inc[0].id, kid ? money(60, 100) : money(6500, 8200), "", 2));
-      if (inc[1]) tx.push(mk(ym, "income", inc[1].id, kid ? money(20, 70) : money(300, 1400), "", Math.min(12, maxDay)));
-      // הוצאות — מכסה את רוב הקטגוריות כדי שגרף העוגה יהיה עשיר
+      const incomes = [mk(ym, "income", inc[0].id, kid ? money(90, 140) : money(7000, 8500), "", 2)];
+      if (inc[1]) incomes.push(mk(ym, "income", inc[1].id, kid ? money(30, 80) : money(400, 1400), "", Math.min(12, maxDay)));
+      incomes.forEach((t) => tx.push(t));
+      const incomeTotal = incomes.reduce((s, t) => s + t.amount, 0);
+      // סך ההוצאות = חלק מההכנסה => מאזן חיובי תמיד. חודש נוכחי חלקי => פחות הוצאות.
+      const factor = isCur(ym) ? 0.5 : 0.65;
+      const target = incomeTotal * factor;
       const n = kid ? Math.min(exp.length, 6) : Math.min(exp.length, 8);
+      const weights = Array.from({ length: n }, () => 0.6 + Math.random() * 0.8);
+      const wsum = weights.reduce((a, b) => a + b, 0);
       for (let i = 0; i < n; i++) {
         const c = exp[i % exp.length];
-        const amt = kid ? money(5, 45) : (i === 0 ? money(700, 1500) : money(40, 550));
+        const amt = Math.max(kid ? 3 : 15, Math.round(target * weights[i] / wsum));
         tx.push(mk(ym, "expense", c.id, amt, descs[i % descs.length], 2 + Math.floor(Math.random() * Math.max(1, maxDay - 2))));
       }
     });
     const budgets = {};
-    months.slice(-3).forEach((ym) => budgets[ym] = kid ? 300 : 8000); // תקציב ל-3 החודשים האחרונים
+    months.slice(-3).forEach((ym) => budgets[ym] = kid ? 200 : 8000); // תקציב ל-3 החודשים האחרונים
     const catBudgets = {};
     catBudgets[exp[0].id] = kid ? 70 : 1600;
     if (exp[1]) catBudgets[exp[1].id] = kid ? 50 : 700;
