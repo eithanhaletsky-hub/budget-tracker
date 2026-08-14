@@ -32,6 +32,8 @@
     customCats: `${NS}.customCats.v1`,
     catBudgets: `${NS}.catBudgets.v1`,
     theme: `${NS}.theme`,
+    demoActive: `${NS}.demoActive`,
+    demoBackup: `${NS}.demoBackup`,
   };
 
   /* ---------- קטגוריות (מובנות לפי preset) ---------- */
@@ -171,7 +173,7 @@
     newCatName: $("newCatName"), newCatColor: $("newCatColor"), catAdd: $("catAdd"), catClose: $("catClose"), newCatTypeBtns: document.querySelectorAll(".newcat-type"),
     catBudgetList: $("catBudgetList"), catBudgetEmpty: $("catBudgetEmpty"), addCatBudget: $("addCatBudget"),
     catBudgetModal: $("catBudgetModal"), catBudgetSelect: $("catBudgetSelect"), catBudgetAmount: $("catBudgetAmount"), catBudgetSave: $("catBudgetSave"), catBudgetCancel: $("catBudgetCancel"),
-    printReport: $("printReport"),
+    printReport: $("printReport"), demoBtn: $("demoBtn"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
 
@@ -926,6 +928,84 @@
     if (count) count.textContent = `${unlocked} / ${BADGES.length}`;
   }
 
+  /* ---------- מצב הדגמה (נתונים לדוגמה) ---------- */
+  function buildDemoData() {
+    const exp = BUILTIN.expense, inc = BUILTIN.income, kid = APP.preset === "kids";
+    const now = new Date();
+    const months = [];
+    for (let i = 2; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); }
+    const cur = months[months.length - 1];
+    const daysIn = (ym) => { const [y, m] = ym.split("-").map(Number); return new Date(y, m, 0).getDate(); };
+    const money = (a, b) => Math.round(a + Math.random() * (b - a));
+    const day = (ym, d) => `${ym}-${String(Math.min(d, daysIn(ym), 28)).padStart(2, "0")}`;
+    const mk = (ym, type, cat, amount, desc, d) => ({ id: uid(), type, amount, category: cat, description: desc || "", date: day(ym, d) });
+    const descs = kid
+      ? ["בקיוסק", "עם חברים", "בקניון", "מתנה לחבר", ""]
+      : ["קניות שבועיות", "דלק", "מנוי חודשי", "ארוחה בחוץ", "חשבון חשמל", ""];
+    const tx = [];
+    months.forEach((ym) => {
+      const dim = daysIn(ym);
+      tx.push(mk(ym, "income", inc[0].id, kid ? money(50, 90) : money(6500, 8000), "", 2));
+      if (inc[1]) tx.push(mk(ym, "income", inc[1].id, kid ? money(20, 60) : money(300, 1200), "", 14));
+      const n = kid ? 5 : 7;
+      for (let i = 0; i < n; i++) {
+        const c = exp[i % exp.length];
+        const amt = kid ? money(5, 45) : (i === 0 ? money(600, 1200) : money(40, 450));
+        tx.push(mk(ym, "expense", c.id, amt, descs[i % descs.length], 2 + Math.floor(Math.random() * (dim - 3))));
+      }
+    });
+    const budgets = {}; budgets[cur] = kid ? 250 : 7000; months[0] && (budgets[months[0]] = kid ? 250 : 7000);
+    const catBudgets = {}; catBudgets[exp[0].id] = kid ? 60 : 1500; if (exp[1]) catBudgets[exp[1].id] = kid ? 50 : 600;
+    const goals = kid
+      ? [{ id: uid(), name: "אופניים חדשים", target: 600, saved: 380, emoji: "🚲" }, { id: uid(), name: "משחק מחשב", target: 150, saved: 150, emoji: "🎮" }]
+      : [{ id: uid(), name: "חופשה בחו\"ל", target: 6000, saved: 3800, emoji: "✈️" }, { id: uid(), name: "מחשב נייד", target: 4500, saved: 4500, emoji: "💻" }];
+    // recurring: הכנסה קבועה; מסומן כבר-הוחל לחודש הנוכחי כדי לא לשכפל
+    const recId = uid();
+    const recurring = [{ id: recId, type: "income", amount: kid ? money(50, 90) : money(6500, 8000), category: inc[0].id, description: "", day: 2, createdMonth: months[0] }];
+    const recApplied = {}; recApplied[`${recId}:${cur}`] = true; recApplied[`${recId}:${months[1]}`] = true;
+    return { transactions: tx, budgets, goals, recurring, recApplied, catBudgets };
+  }
+
+  function enterDemo() {
+    if (isDemo()) return;
+    // גיבוי הנתונים האמיתיים
+    const backup = { transactions, budgets, goals, recurring, recApplied, customCats, catBudgets };
+    localStorage.setItem(K.demoBackup, JSON.stringify(backup));
+    const d = buildDemoData();
+    transactions = d.transactions; budgets = d.budgets; goals = d.goals; recurring = d.recurring; recApplied = d.recApplied; catBudgets = d.catBudgets;
+    localStorage.setItem(K.demoActive, "1");
+    save();
+    currentMonth = ymNow(); el.monthSelect.value = currentMonth;
+    updateDemoBanner(); renderAll();
+    toast("נטענו נתוני הדגמה 🎬");
+  }
+  function exitDemo() {
+    let backup = null;
+    try { backup = JSON.parse(localStorage.getItem(K.demoBackup)); } catch { backup = null; }
+    backup = backup || { transactions: [], budgets: {}, goals: [], recurring: [], recApplied: {}, customCats: { expense: [], income: [] }, catBudgets: {} };
+    transactions = backup.transactions || []; budgets = backup.budgets || {}; goals = backup.goals || [];
+    recurring = backup.recurring || []; recApplied = backup.recApplied || {};
+    customCats = backup.customCats || { expense: [], income: [] }; catBudgets = backup.catBudgets || {};
+    localStorage.removeItem(K.demoActive); localStorage.removeItem(K.demoBackup);
+    save();
+    updateDemoBanner(); renderAll();
+    toast("יצאת ממצב הדגמה — הנתונים שלך שוחזרו");
+  }
+  const isDemo = () => localStorage.getItem(K.demoActive) === "1";
+  function updateDemoBanner() {
+    const banner = document.getElementById("demoBanner");
+    if (banner) banner.hidden = !isDemo();
+    if (el.demoBtn) el.demoBtn.style.display = isDemo() ? "none" : "";
+  }
+  if (el.demoBtn) el.demoBtn.addEventListener("click", () => {
+    if (transactions.length || goals.length || recurring.length) {
+      if (!confirm("לטעון נתוני הדגמה? הנתונים הנוכחיים שלך יישמרו בצד ויוחזרו כשתצא ממצב הדגמה.")) return;
+    }
+    enterDemo();
+  });
+  const exitBtn = document.getElementById("exitDemo");
+  if (exitBtn) exitBtn.addEventListener("click", exitDemo);
+
   /* ---------- רינדור כללי ---------- */
   function renderAll() { renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges(); }
 
@@ -937,6 +1017,7 @@
     el.monthSelect.value = currentMonth;
     fillCatSelect(el.category, currentType);
     fillCatSelect(el.editCategory, editType);
+    updateDemoBanner();
     const added = applyRecurring();
     renderAll();
     if (added > 0) toast(`נוספו ${added} תנועות קבועות לחודש זה 🔁`);

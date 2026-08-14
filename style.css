@@ -404,6 +404,20 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .cat-color-label input[type="color"] { width: 46px; height: 40px; padding: 2px; border-radius: 10px; cursor: pointer; }
 .mini-label { font-size: 13px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 5px; }
 
+/* Demo mode banner */
+.demo-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  background: var(--grad); color: #fff; padding: 12px 18px; border-radius: var(--radius-sm);
+  margin-bottom: 20px; box-shadow: var(--shadow-lg); font-size: 14px;
+}
+.demo-banner b { font-weight: 800; }
+.demo-banner button {
+  background: rgba(255,255,255,0.22); color: #fff; border: 1px solid rgba(255,255,255,0.4);
+  padding: 7px 14px; border-radius: 9px; font-family: var(--font); font-weight: 700; font-size: 13px; cursor: pointer;
+  transition: background 0.15s;
+}
+.demo-banner button:hover { background: rgba(255,255,255,0.34); }
+
 /* Achievements / badges */
 .badges-count { font-size: 13px; color: var(--text-muted); }
 .badges-count b { color: var(--primary); }

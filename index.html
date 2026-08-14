@@ -32,6 +32,12 @@
   </header>
 
   <main class="container">
+    <!-- Demo mode banner -->
+    <div class="demo-banner" id="demoBanner" hidden>
+      <span>🎬 <b>מצב הדגמה</b> — הנתונים שמוצגים הם לדוגמה בלבד</span>
+      <button id="exitDemo">יציאה ממצב הדגמה ↩️</button>
+    </div>
+
     <!-- Summary cards -->
     <section class="summary-grid" aria-label="סיכום החודש">
       <div class="card summary-card income">
@@ -202,6 +208,7 @@
       <h2>ניהול נתונים</h2>
       <p class="muted">הנתונים שלך נשמרים אך ורק בדפדפן הזה, במכשיר שלך. מומלץ לגבות מדי פעם.</p>
       <div class="data-actions">
+        <button class="btn-ghost" id="demoBtn">🎬 טען נתוני הדגמה</button>
         <button class="btn-ghost" id="printReport">🖨️ דוח חודשי (הדפסה/PDF)</button>
         <button class="btn-ghost" id="exportJson">📤 ייצוא (JSON)</button>
         <button class="btn-ghost" id="exportCsv">📊 ייצוא (CSV)</button>
