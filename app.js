@@ -19,6 +19,7 @@
     preset: CFG.preset || "generic", // generic | kids | coach
     kids: !!CFG.kids,                 // מפעיל מצב הישגים/מדליות וטון ידידותי
     brandedBy: CFG.brandedBy || null, // שם עסק/מאמן להצגה (white-label)
+    variant: CFG.variant || null,     // זהות עיצובית מלאה: kids | coach (מוסיף class ל-body)
   };
 
   const NS = CFG.storeKey || "budgethelper";
@@ -872,6 +873,7 @@
   /* ---------- מיתוג (White-Label) ---------- */
   function applyBranding() {
     document.title = APP.name + " — מעקב הוצאות והכנסות";
+    if (APP.variant) document.body.classList.add("variant-" + APP.variant);
     const logoEl = document.querySelector(".brand-logo");
     const h1 = document.querySelector(".brand h1");
     const sub = document.querySelector(".brand-sub");

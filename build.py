@@ -32,6 +32,7 @@ build({
     "accent": {"primary": "#ec4899", "primary2": "#f59e0b"},
     "preset": "kids",
     "kids": True,
+    "variant": "kids",
     "storeKey": "budgetkids",
 }, 'versions/kids.html')
 
@@ -42,6 +43,7 @@ build({
     "logo": "📊",
     "accent": {"primary": "#0f766e", "primary2": "#0891b2"},
     "preset": "coach",
+    "variant": "coach",
     "brandedBy": "דנה כהן · מאמנת פיננסית",
     "storeKey": "budgetcoach",
 }, 'versions/coach.html')

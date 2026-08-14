@@ -102,34 +102,6 @@
             <button type="submit" class="btn-primary" id="submitBtn">הוסף הוצאה</button>
           </form>
         </section>
-
-        <section class="card chart-card">
-          <h2>פילוח לפי קטגוריה</h2>
-          <div class="chart-wrap">
-            <canvas id="pieChart" width="240" height="240" aria-label="גרף עוגה של הוצאות לפי קטגוריה"></canvas>
-            <div id="pieLegend" class="pie-legend"></div>
-          </div>
-          <p class="empty-note" id="pieEmpty" hidden>אין הוצאות להצגה בחודש זה.</p>
-        </section>
-
-        <section class="card chart-card">
-          <h2>מגמה — 6 חודשים אחרונים</h2>
-          <div class="chart-wrap">
-            <canvas id="barChart" width="320" height="200" aria-label="גרף עמודות של הכנסות והוצאות לפי חודש"></canvas>
-          </div>
-          <div class="bar-legend">
-            <span><i class="dot income-dot"></i> הכנסות</span>
-            <span><i class="dot expense-dot"></i> הוצאות</span>
-          </div>
-        </section>
-
-        <section class="card chart-card">
-          <h2>מאזן מצטבר לאורך החודש</h2>
-          <div class="chart-wrap">
-            <canvas id="lineChart" width="320" height="200" aria-label="גרף קו של המאזן המצטבר לאורך החודש"></canvas>
-          </div>
-          <p class="empty-note" id="lineEmpty" hidden>אין תנועות בחודש זה להצגת מאזן.</p>
-        </section>
       </div>
 
       <!-- Right: transactions list -->
@@ -155,6 +127,37 @@
         </section>
       </div>
     </div>
+
+    <!-- Charts row (full width, 3-up) -->
+    <section class="charts-grid">
+      <div class="card chart-card">
+        <h2>פילוח לפי קטגוריה</h2>
+        <div class="chart-wrap">
+          <canvas id="pieChart" width="240" height="240" aria-label="גרף עוגה של הוצאות לפי קטגוריה"></canvas>
+          <div id="pieLegend" class="pie-legend"></div>
+        </div>
+        <p class="empty-note" id="pieEmpty" hidden>אין הוצאות להצגה בחודש זה.</p>
+      </div>
+
+      <div class="card chart-card">
+        <h2>מגמה — 6 חודשים אחרונים</h2>
+        <div class="chart-wrap">
+          <canvas id="barChart" width="320" height="200" aria-label="גרף עמודות של הכנסות והוצאות לפי חודש"></canvas>
+        </div>
+        <div class="bar-legend">
+          <span><i class="dot income-dot"></i> הכנסות</span>
+          <span><i class="dot expense-dot"></i> הוצאות</span>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <h2>מאזן מצטבר לאורך החודש</h2>
+        <div class="chart-wrap">
+          <canvas id="lineChart" width="320" height="200" aria-label="גרף קו של המאזן המצטבר לאורך החודש"></canvas>
+        </div>
+        <p class="empty-note" id="lineEmpty" hidden>אין תנועות בחודש זה להצגת מאזן.</p>
+      </div>
+    </section>
 
     <!-- Achievements / badges (kids mode only) -->
     <section class="card badges-card" hidden>
