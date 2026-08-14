@@ -1740,37 +1740,47 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
   function buildDemoData() {
     const exp = BUILTIN.expense, inc = BUILTIN.income, kid = APP.preset === "kids";
     const now = new Date();
+    const MONTHS = 6; // היסטוריה מלאה כדי שגרף 6 החודשים יהיה מלא
     const months = [];
-    for (let i = 2; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); }
+    for (let i = MONTHS - 1; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); }
     const cur = months[months.length - 1];
     const daysIn = (ym) => { const [y, m] = ym.split("-").map(Number); return new Date(y, m, 0).getDate(); };
     const money = (a, b) => Math.round(a + Math.random() * (b - a));
-    const day = (ym, d) => `${ym}-${String(Math.min(d, daysIn(ym), 28)).padStart(2, "0")}`;
+    const day = (ym, d) => `${ym}-${String(Math.min(Math.max(1, d), daysIn(ym), 28)).padStart(2, "0")}`;
     const mk = (ym, type, cat, amount, desc, d) => ({ id: uid(), type, amount, category: cat, description: desc || "", date: day(ym, d) });
     const descs = kid
-      ? ["בקיוסק", "עם חברים", "בקניון", "מתנה לחבר", ""]
-      : ["קניות שבועיות", "דלק", "מנוי חודשי", "ארוחה בחוץ", "חשבון חשמל", ""];
+      ? ["בקיוסק", "עם חברים", "בקניון", "מתנה לחבר", "בקנטינה", ""]
+      : ["קניות שבועיות", "דלק", "מנוי חודשי", "ארוחה בחוץ", "חשבון חשמל", "תרופות", ""];
     const tx = [];
+    const isCur = (ym) => ym === cur;
+    const curDay = now.getDate();
     months.forEach((ym) => {
       const dim = daysIn(ym);
-      tx.push(mk(ym, "income", inc[0].id, kid ? money(50, 90) : money(6500, 8000), "", 2));
-      if (inc[1]) tx.push(mk(ym, "income", inc[1].id, kid ? money(20, 60) : money(300, 1200), "", 14));
-      const n = kid ? 5 : 7;
+      const maxDay = isCur(ym) ? Math.max(3, curDay) : dim; // בחודש הנוכחי לא ליצור תאריכים עתידיים
+      // הכנסות
+      tx.push(mk(ym, "income", inc[0].id, kid ? money(60, 100) : money(6500, 8200), "", 2));
+      if (inc[1]) tx.push(mk(ym, "income", inc[1].id, kid ? money(20, 70) : money(300, 1400), "", Math.min(12, maxDay)));
+      // הוצאות — מכסה את רוב הקטגוריות כדי שגרף העוגה יהיה עשיר
+      const n = kid ? Math.min(exp.length, 6) : Math.min(exp.length, 8);
       for (let i = 0; i < n; i++) {
         const c = exp[i % exp.length];
-        const amt = kid ? money(5, 45) : (i === 0 ? money(600, 1200) : money(40, 450));
-        tx.push(mk(ym, "expense", c.id, amt, descs[i % descs.length], 2 + Math.floor(Math.random() * (dim - 3))));
+        const amt = kid ? money(5, 45) : (i === 0 ? money(700, 1500) : money(40, 550));
+        tx.push(mk(ym, "expense", c.id, amt, descs[i % descs.length], 2 + Math.floor(Math.random() * Math.max(1, maxDay - 2))));
       }
     });
-    const budgets = {}; budgets[cur] = kid ? 250 : 7000; months[0] && (budgets[months[0]] = kid ? 250 : 7000);
-    const catBudgets = {}; catBudgets[exp[0].id] = kid ? 60 : 1500; if (exp[1]) catBudgets[exp[1].id] = kid ? 50 : 600;
+    const budgets = {};
+    months.slice(-3).forEach((ym) => budgets[ym] = kid ? 300 : 8000); // תקציב ל-3 החודשים האחרונים
+    const catBudgets = {};
+    catBudgets[exp[0].id] = kid ? 70 : 1600;
+    if (exp[1]) catBudgets[exp[1].id] = kid ? 50 : 700;
+    if (exp[2]) catBudgets[exp[2].id] = kid ? 40 : 900;
     const goals = kid
-      ? [{ id: uid(), name: "אופניים חדשים", target: 600, saved: 380, emoji: "🚲" }, { id: uid(), name: "משחק מחשב", target: 150, saved: 150, emoji: "🎮" }]
-      : [{ id: uid(), name: "חופשה בחו\"ל", target: 6000, saved: 3800, emoji: "✈️" }, { id: uid(), name: "מחשב נייד", target: 4500, saved: 4500, emoji: "💻" }];
-    // recurring: הכנסה קבועה; מסומן כבר-הוחל לחודש הנוכחי כדי לא לשכפל
+      ? [{ id: uid(), name: "אופניים חדשים", target: 600, saved: 380, emoji: "🚲" }, { id: uid(), name: "משחק מחשב", target: 150, saved: 150, emoji: "🎮" }, { id: uid(), name: "טלפון חדש", target: 1200, saved: 240, emoji: "📱" }]
+      : [{ id: uid(), name: "חופשה בחו\"ל", target: 8000, saved: 5200, emoji: "✈️" }, { id: uid(), name: "מחשב נייד", target: 4500, saved: 4500, emoji: "💻" }, { id: uid(), name: "קרן חירום", target: 15000, saved: 6800, emoji: "🛟" }];
+    // תנועה קבועה (מסומנת כבר-הוחלה לחודשים הקיימים כדי לא לשכפל)
     const recId = uid();
-    const recurring = [{ id: recId, type: "income", amount: kid ? money(50, 90) : money(6500, 8000), category: inc[0].id, description: "", day: 2, createdMonth: months[0] }];
-    const recApplied = {}; recApplied[`${recId}:${cur}`] = true; recApplied[`${recId}:${months[1]}`] = true;
+    const recurring = [{ id: recId, type: "income", amount: kid ? money(60, 100) : money(6500, 8200), category: inc[0].id, description: kid ? "דמי כיס חודשיים" : "משכורת", day: 2, createdMonth: months[0] }];
+    const recApplied = {}; months.forEach((ym) => recApplied[`${recId}:${ym}`] = true);
     return { transactions: tx, budgets, goals, recurring, recApplied, catBudgets };
   }
 
@@ -1850,6 +1860,12 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     el.monthSelect.value = currentMonth;
     fillCatSelect(el.category, currentType);
     fillCatSelect(el.editCategory, editType);
+    // ריפוי-עצמי: אם מצב הדגמה פעיל אך הנתונים ריקים — טוענים מחדש
+    if (!APP.demoLock && isDemo() && !transactions.length) {
+      const d = buildDemoData();
+      transactions = d.transactions; budgets = d.budgets; goals = d.goals; recurring = d.recurring; recApplied = d.recApplied; catBudgets = d.catBudgets;
+      save();
+    }
     if (APP.demoLock) lockDemo(); else updateDemoBanner();
     const added = APP.demoLock ? 0 : applyRecurring();
     renderAll();
