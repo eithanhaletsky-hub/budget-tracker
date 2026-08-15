@@ -14,9 +14,12 @@ def build(config, out_path):
     html = html.replace('<link rel="stylesheet" href="style.css" />', '<style>\n' + css + '\n</style>')
     # prepend the config assignment inside the same script tag, before the IIFE runs
     html = html.replace('<script src="app.js"></script>', '<script>\n' + cfg_js + js + '\n</script>')
-    # non-Hebrew languages: LTR + lang for correct initial paint
+    # non-Hebrew languages: LTR + lang + translated <title> for correct initial paint / SEO
     if config and config.get('lang') and config.get('lang') != 'he':
         html = html.replace('lang="he" dir="rtl"', 'lang="%s" dir="ltr"' % config['lang'])
+        if config['lang'] == 'ru':
+            title = '%s — учёт доходов и расходов' % config.get('name', 'Мой бюджет')
+            html = html.replace('<title>ניהול תקציב — מעקב הוצאות והכנסות</title>', '<title>%s</title>' % title)
     if os.path.dirname(out_path):
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
     open(out_path, 'w', encoding='utf-8').write(html)
