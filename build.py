@@ -14,12 +14,15 @@ def build(config, out_path):
     html = html.replace('<link rel="stylesheet" href="style.css" />', '<style>\n' + css + '\n</style>')
     # prepend the config assignment inside the same script tag, before the IIFE runs
     html = html.replace('<script src="app.js"></script>', '<script>\n' + cfg_js + js + '\n</script>')
+    # non-Hebrew languages: LTR + lang for correct initial paint
+    if config and config.get('lang') and config.get('lang') != 'he':
+        html = html.replace('lang="he" dir="rtl"', 'lang="%s" dir="ltr"' % config['lang'])
     if os.path.dirname(out_path):
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
     open(out_path, 'w', encoding='utf-8').write(html)
-    tag = f' [{config["name"]}]' if config else ' [generic]'
     injected = 'BUDGET_CONFIG' in html
-    print(f'  {out_path}: {len(html)} bytes{tag}  config_injected={injected if config else "n/a"}')
+    line = f'  {out_path}: {len(html)} bytes  config_injected={injected if config else "n/a"}'
+    print(line.encode('ascii', 'replace').decode('ascii'))
 
 # 1) Generic (current) — no config
 build(None, 'standalone.html')
@@ -73,5 +76,15 @@ build({
     "preset": "coach", "variant": "coach", "brandedBy": "דנה כהן · מאמנת פיננסית",
     "demoLock": True, "contact": CONTACT, "storeKey": "budgetdemocoach",
 }, 'versions/demo-coach.html')
+
+# 7) Russian edition (no demo)
+build({
+    "name": "Мой бюджет",
+    "tagline": "Учёт доходов и расходов — просто и удобно",
+    "logo": "💰",
+    "lang": "ru",
+    "hideDemo": True,
+    "storeKey": "budgetru",
+}, 'versions/ru.html')
 
 print('done.')
