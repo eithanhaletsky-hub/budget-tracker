@@ -76,6 +76,7 @@
         <section class="card form-card">
           <div class="card-tabs">
             <button type="button" class="card-tab active" data-view="add">➕ הוספה</button>
+            <button type="button" class="card-tab" data-view="monthly">📅 סכום חודשי</button>
             <button type="button" class="card-tab" data-view="review">📋 סקירת החודש</button>
           </div>
           <div class="card-view" id="addView">
@@ -110,68 +111,52 @@
           <div class="card-view" id="reviewView" hidden>
             <div id="reviewPanel"></div>
           </div>
+          <div class="card-view" id="monthlyView" hidden>
+            <p class="monthly-intro">כמה הוצאת החודש על כל נושא? מלא סכום כולל לכל קטגוריה.</p>
+            <div id="monthlyGrid"></div>
+            <button type="button" class="btn-primary" id="monthlySave">💾 שמור סכומים</button>
+          </div>
         </section>
       </div>
 
-      <!-- Right: transactions list -->
+      <!-- Right: charts -->
       <div class="col-main">
-        <section class="card list-card">
-          <div class="list-header">
-            <h2>התנועות שלי</h2>
-            <div class="list-tools">
-              <input type="search" id="searchInput" placeholder="🔍 חיפוש..." aria-label="חיפוש תנועות" />
-              <select id="filterType" aria-label="סינון לפי סוג">
-                <option value="all">הכל</option>
-                <option value="income">הכנסות</option>
-                <option value="expense">הוצאות</option>
-              </select>
-              <select id="filterCategory" aria-label="סינון לפי קטגוריה">
-                <option value="all">כל הקטגוריות</option>
-              </select>
+        <section class="charts-grid">
+          <div class="card chart-card" id="pieCard">
+            <h2>פילוח לפי קטגוריה</h2>
+            <div class="chart-wrap">
+              <canvas id="pieChart" width="240" height="240" aria-label="גרף עוגה של הוצאות לפי קטגוריה"></canvas>
+              <div id="pieLegend" class="pie-legend"></div>
+            </div>
+            <p class="empty-note" id="pieEmpty" hidden>אין הוצאות להצגה בחודש זה.</p>
+          </div>
+
+          <div class="card chart-card" id="barCard">
+            <h2>מגמה — 6 חודשים אחרונים</h2>
+            <div class="chart-wrap">
+              <canvas id="barChart" width="320" height="200" aria-label="גרף עמודות של הכנסות והוצאות לפי חודש"></canvas>
+            </div>
+            <div class="bar-legend">
+              <span><i class="dot income-dot"></i> הכנסות</span>
+              <span><i class="dot expense-dot"></i> הוצאות</span>
             </div>
           </div>
-          <p class="list-hint" id="listHint" hidden>💡 לחיצה על תנועה פותחת עריכה</p>
-          <div class="tx-list" id="txList"></div>
-          <p class="empty-note" id="listEmpty">עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👈</p>
+
+          <div class="card chart-card" id="lineCard">
+            <h2>מאזן מצטבר לאורך החודש</h2>
+            <div class="chart-wrap">
+              <canvas id="lineChart" width="320" height="200" aria-label="גרף קו של המאזן המצטבר לאורך החודש"></canvas>
+            </div>
+            <p class="empty-note" id="lineEmpty" hidden>אין תנועות בחודש זה להצגת מאזן.</p>
+          </div>
+
+          <div class="card chart-card" id="catTableCard">
+            <h2>פירוט לפי קטגוריה</h2>
+            <div id="catTableBody"></div>
+          </div>
         </section>
       </div>
     </div>
-
-    <!-- Charts row (full width, 3-up) -->
-    <section class="charts-grid">
-      <div class="card chart-card" id="pieCard">
-        <h2>פילוח לפי קטגוריה</h2>
-        <div class="chart-wrap">
-          <canvas id="pieChart" width="240" height="240" aria-label="גרף עוגה של הוצאות לפי קטגוריה"></canvas>
-          <div id="pieLegend" class="pie-legend"></div>
-        </div>
-        <p class="empty-note" id="pieEmpty" hidden>אין הוצאות להצגה בחודש זה.</p>
-      </div>
-
-      <div class="card chart-card" id="barCard">
-        <h2>מגמה — 6 חודשים אחרונים</h2>
-        <div class="chart-wrap">
-          <canvas id="barChart" width="320" height="200" aria-label="גרף עמודות של הכנסות והוצאות לפי חודש"></canvas>
-        </div>
-        <div class="bar-legend">
-          <span><i class="dot income-dot"></i> הכנסות</span>
-          <span><i class="dot expense-dot"></i> הוצאות</span>
-        </div>
-      </div>
-
-      <div class="card chart-card" id="lineCard">
-        <h2>מאזן מצטבר לאורך החודש</h2>
-        <div class="chart-wrap">
-          <canvas id="lineChart" width="320" height="200" aria-label="גרף קו של המאזן המצטבר לאורך החודש"></canvas>
-        </div>
-        <p class="empty-note" id="lineEmpty" hidden>אין תנועות בחודש זה להצגת מאזן.</p>
-      </div>
-
-      <div class="card chart-card" id="catTableCard">
-        <h2>פירוט לפי קטגוריה</h2>
-        <div id="catTableBody"></div>
-      </div>
-    </section>
 
     <!-- Achievements / badges (kids mode only) -->
     <section class="card badges-card" hidden>
@@ -182,34 +167,54 @@
       <div class="badges-grid" id="badgesGrid"></div>
     </section>
 
-    <!-- Savings goals -->
-    <section class="card goals-card">
-      <div class="section-head">
-        <h2>🎯 יעדי חיסכון</h2>
-        <button class="btn-primary btn-sm" id="addGoal">+ יעד חדש</button>
-      </div>
-      <div class="goals-grid" id="goalsGrid"></div>
-      <p class="empty-note" id="goalsEmpty">אין עדיין יעדים. הגדר יעד חיסכון ראשון והתחל לעקוב! 🚀</p>
-    </section>
+    <!-- Bottom: transactions + goals + category budgets + recurring (compact grid) -->
+    <section class="bottom-grid">
+      <section class="card list-card" id="listCard">
+        <div class="list-header">
+          <h2>התנועות שלי</h2>
+          <div class="list-tools">
+            <input type="search" id="searchInput" placeholder="🔍 חיפוש..." aria-label="חיפוש תנועות" />
+            <select id="filterType" aria-label="סינון לפי סוג">
+              <option value="all">הכל</option>
+              <option value="income">הכנסות</option>
+              <option value="expense">הוצאות</option>
+            </select>
+            <select id="filterCategory" aria-label="סינון לפי קטגוריה">
+              <option value="all">כל הקטגוריות</option>
+            </select>
+          </div>
+        </div>
+        <p class="list-hint" id="listHint" hidden>💡 לחיצה על תנועה פותחת עריכה</p>
+        <div class="tx-list" id="txList"></div>
+        <p class="empty-note" id="listEmpty">עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👈</p>
+      </section>
 
-    <!-- Per-category budgets -->
-    <section class="card catbudget-card">
-      <div class="section-head">
-        <h2>📊 תקציב לפי קטגוריה</h2>
-        <button class="btn-primary btn-sm" id="addCatBudget">+ הגדר תקציב לקטגוריה</button>
-      </div>
-      <div class="catbudget-list" id="catBudgetList"></div>
-      <p class="empty-note" id="catBudgetEmpty">הגדר תקציב חודשי לקטגוריות ספציפיות (למשל 500₪ למסעדות) ועקוב אחרי כל אחת בנפרד.</p>
-    </section>
+      <section class="card goals-card">
+        <div class="section-head">
+          <h2>🎯 יעדי חיסכון</h2>
+          <button class="btn-primary btn-sm" id="addGoal">+ יעד חדש</button>
+        </div>
+        <div class="goals-grid" id="goalsGrid"></div>
+        <p class="empty-note" id="goalsEmpty">אין עדיין יעדים. הגדר יעד חיסכון ראשון והתחל לעקוב! 🚀</p>
+      </section>
 
-    <!-- Recurring transactions -->
-    <section class="card recurring-card">
-      <div class="section-head">
-        <h2>🔁 תנועות קבועות</h2>
-        <span class="muted-inline">מתווספות אוטומטית בכל חודש חדש</span>
-      </div>
-      <div class="recurring-list" id="recurringList"></div>
-      <p class="empty-note" id="recurringEmpty">אין תנועות קבועות. סמן "הפוך לתנועה קבועה" בעת הוספת תנועה. 🔁</p>
+      <section class="card catbudget-card">
+        <div class="section-head">
+          <h2>📊 תקציב לפי קטגוריה</h2>
+          <button class="btn-primary btn-sm" id="addCatBudget">+ הגדר תקציב לקטגוריה</button>
+        </div>
+        <div class="catbudget-list" id="catBudgetList"></div>
+        <p class="empty-note" id="catBudgetEmpty">הגדר תקציב חודשי לקטגוריות ספציפיות (למשל 500₪ למסעדות) ועקוב אחרי כל אחת בנפרד.</p>
+      </section>
+
+      <section class="card recurring-card">
+        <div class="section-head">
+          <h2>🔁 תנועות קבועות</h2>
+          <span class="muted-inline">מתווספות אוטומטית בכל חודש חדש</span>
+        </div>
+        <div class="recurring-list" id="recurringList"></div>
+        <p class="empty-note" id="recurringEmpty">אין תנועות קבועות. סמן "הפוך לתנועה קבועה" בעת הוספת תנועה. 🔁</p>
+      </section>
     </section>
 
     <section class="card data-card">

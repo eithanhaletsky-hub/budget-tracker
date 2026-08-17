@@ -157,6 +157,8 @@
     "יציאה ממצב הדגמה ↩️": "Выйти из демо-режима ↩️", "🏅 ההישגים שלי": "🏅 Мои достижения", "נאספו": "Собрано",
     // סקירת חודש / טבלאות
     "➕ הוספה": "➕ Добавить", "📋 סקירת החודש": "📋 Обзор месяца",
+    "📅 סכום חודשי": "📅 Сумма за месяц", "כמה הוצאת החודש על כל נושא? מלא סכום כולל לכל קטגוריה.": "Сколько вы потратили в этом месяце по темам? Укажите итог по каждой категории.",
+    "💾 שמור סכומים": "💾 Сохранить суммы", "הסכומים נשמרו ✅": "Суммы сохранены ✅", "סכום חודשי": "Сумма за месяц",
     "פירוט לפי קטגוריה — ": "Расходы по категориям — ", "פירוט לפי קטגוריה": "Расходы по категориям", "כל התנועות": "Все операции",
     'סה"כ': "Итого", "אין הוצאות בחודש זה": "Нет расходов в этом месяце", "אין תנועות בחודש זה": "Нет операций в этом месяце",
     // תוויות כלליות נוספות
@@ -268,6 +270,8 @@
     "מצב הדגמה": "Demo mode", "— הנתונים שמוצגים הם לדוגמה בלבד": "— showing sample data only",
     "יציאה ממצב הדגמה ↩️": "Exit demo mode ↩️", "🏅 ההישגים שלי": "🏅 My achievements", "נאספו": "Collected",
     "➕ הוספה": "➕ Add", "📋 סקירת החודש": "📋 Month overview",
+    "📅 סכום חודשי": "📅 Monthly amount", "כמה הוצאת החודש על כל נושא? מלא סכום כולל לכל קטגוריה.": "How much did you spend this month per topic? Enter a total per category.",
+    "💾 שמור סכומים": "💾 Save amounts", "הסכומים נשמרו ✅": "Amounts saved ✅", "סכום חודשי": "Monthly amount",
     "פירוט לפי קטגוריה — ": "Breakdown by category — ", "פירוט לפי קטגוריה": "Breakdown by category", "כל התנועות": "All transactions",
     'סה"כ': "Total", "אין הוצאות בחודש זה": "No expenses this month", "אין תנועות בחודש זה": "No transactions this month",
     "ערוך": "Edit",
@@ -461,6 +465,7 @@
     printReport: $("printReport"), demoBtn: $("demoBtn"),
     summaryBtn: $("summaryBtn"), summaryModal: $("summaryModal"), summaryTitle: $("summaryTitle"), summaryBody: $("summaryBody"), summaryClose: $("summaryClose"),
     cardTabs: document.querySelectorAll(".card-tab"), addView: $("addView"), reviewView: $("reviewView"), reviewPanel: $("reviewPanel"),
+    monthlyView: $("monthlyView"), monthlyGrid: $("monthlyGrid"), monthlySave: $("monthlySave"), listCard: $("listCard"),
     catTableCard: $("catTableCard"), catTableBody: $("catTableBody"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
@@ -671,6 +676,7 @@
     if (search) txs = txs.filter((t) => { const c = catById(t.category); return (t.description || "").toLowerCase().includes(search) || c.name.toLowerCase().includes(search) || String(t.amount).includes(search); });
     txs.sort((a, b) => (b.date === a.date ? b.id.localeCompare(a.id) : b.date.localeCompare(a.date)));
 
+    if (el.listCard) el.listCard.hidden = monthTx().length === 0; // מסתתר כשאין תנועות כלל בחודש
     el.listEmpty.hidden = txs.length > 0;
     el.listHint.hidden = txs.length === 0;
     if (txs.length === 0) el.listEmpty.textContent = monthTx().length === 0 ? "עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👈" : "לא נמצאו תנועות התואמות לסינון.";
@@ -1410,15 +1416,53 @@
     const view = tab.dataset.view;
     el.cardTabs.forEach((t) => t.classList.toggle("active", t === tab));
     if (el.addView) el.addView.hidden = view !== "add";
+    if (el.monthlyView) el.monthlyView.hidden = view !== "monthly";
     if (el.reviewView) el.reviewView.hidden = view !== "review";
     if (view === "review") renderReview();
+    if (view === "monthly") renderMonthlyPanel();
   }));
+
+  /* ---------- סכום חודשי לפי נושא ---------- */
+  const monthlyId = (cat, ym) => `m_${cat}_${ym}`;
+  function renderMonthlyPanel() {
+    if (!el.monthlyGrid) return;
+    const ym = currentMonth;
+    el.monthlyGrid.innerHTML = catsOf("expense").map((c) => {
+      const tx = transactions.find((t) => t.id === monthlyId(c.id, ym));
+      const val = tx ? tx.amount : "";
+      return `<div class="monthly-row">
+        <span class="m-ico" style="background:${c.color}22">${c.icon}</span>
+        <span class="m-name">${c.name}</span>
+        <input type="number" min="0" step="1" inputmode="decimal" data-cat="${c.id}" value="${val}" placeholder="0" />
+      </div>`;
+    }).join("");
+    translateDom(el.monthlyView);
+  }
+  function saveMonthly() {
+    const ym = currentMonth;
+    el.monthlyGrid.querySelectorAll("input[data-cat]").forEach((inp) => {
+      const cat = inp.dataset.cat, id = monthlyId(cat, ym), val = parseFloat(inp.value);
+      const idx = transactions.findIndex((t) => t.id === id);
+      if (val > 0) {
+        const rounded = Math.round(val * 100) / 100;
+        if (idx >= 0) transactions[idx].amount = rounded;
+        else transactions.push({ id, type: "expense", amount: rounded, category: cat, description: "סכום חודשי", date: `${ym}-15`, monthly: true });
+      } else if (idx >= 0) {
+        transactions.splice(idx, 1);
+      }
+    });
+    save();
+    renderAll();
+    toast("הסכומים נשמרו ✅");
+  }
+  if (el.monthlySave) el.monthlySave.addEventListener("click", saveMonthly);
 
   /* ---------- רינדור כללי ---------- */
   function renderAll() {
     renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges();
     renderCatTableCard();
     if (el.reviewView && !el.reviewView.hidden) renderReview();
+    if (el.monthlyView && !el.monthlyView.hidden) renderMonthlyPanel();
     translateDom(document.body);
   }
 
