@@ -469,6 +469,18 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .tbl-empty { color: var(--text-muted); text-align: center; padding: 18px; font-size: 13.5px; }
 #catTableCard { overflow-x: auto; }
 
+/* Excel-style category table (RU/EN compact): gridlines, header fill, zebra, data bars */
+.data-table.xls { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.data-table.xls th { background: var(--surface-2); border: 1px solid var(--border); text-align: center; color: var(--text); font-weight: 700; padding: 9px 6px; font-size: 12px; }
+.data-table.xls td { border: 1px solid var(--border); padding: 9px 8px; }
+.data-table.xls tbody tr:nth-child(even) { background: var(--surface-2); }
+.data-table.xls .xls-cat { font-weight: 700; }
+.data-table.xls .xls-cat .tc-ico { width: 24px; height: 24px; }
+.data-table.xls .xls-bar { width: 42%; min-width: 90px; }
+.data-table.xls .xls-bar-fill { display: block; height: 16px; border-radius: 3px; min-width: 4px; box-shadow: inset 0 -1px 2px rgba(0,0,0,0.12); }
+.data-table.xls .tbl-total { background: var(--surface-2); }
+.data-table.xls .tbl-total td { font-weight: 800; border-top: 2px solid var(--text-muted); }
+
 /* Compact layout (RU/EN): 2 cards, no insights, no trend/balance charts, category table instead */
 #catTableCard { display: none; }
 .compact #catTableCard { display: block; }

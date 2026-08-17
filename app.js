@@ -160,7 +160,7 @@
     "📅 סכום חודשי": "📅 Сумма за месяц", "כמה הוצאת החודש על כל נושא? מלא סכום כולל לכל קטגוריה.": "Сколько вы потратили в этом месяце по темам? Укажите итог по каждой категории.",
     "💾 שמור סכומים": "💾 Сохранить суммы", "הסכומים נשמרו ✅": "Суммы сохранены ✅", "סכום חודשי": "Сумма за месяц",
     "פירוט לפי קטגוריה — ": "Расходы по категориям — ", "פירוט לפי קטגוריה": "Расходы по категориям", "כל התנועות": "Все операции",
-    'סה"כ': "Итого", "אין הוצאות בחודש זה": "Нет расходов в этом месяце", "אין תנועות בחודש זה": "Нет операций в этом месяце",
+    'סה"כ': "Итого", "אין הוצאות בחודש זה": "Нет расходов в этом месяце", "אין תנועות בחודש זה": "Нет операций в этом месяце", "התפלגות": "Доля",
     // תוויות כלליות נוספות
     "ערוך": "Изм.",
   };
@@ -273,7 +273,7 @@
     "📅 סכום חודשי": "📅 Monthly amount", "כמה הוצאת החודש על כל נושא? מלא סכום כולל לכל קטגוריה.": "How much did you spend this month per topic? Enter a total per category.",
     "💾 שמור סכומים": "💾 Save amounts", "הסכומים נשמרו ✅": "Amounts saved ✅", "סכום חודשי": "Monthly amount",
     "פירוט לפי קטגוריה — ": "Breakdown by category — ", "פירוט לפי קטגוריה": "Breakdown by category", "כל התנועות": "All transactions",
-    'סה"כ': "Total", "אין הוצאות בחודש זה": "No expenses this month", "אין תנועות בחודש זה": "No transactions this month",
+    'סה"כ': "Total", "אין הוצאות בחודש זה": "No expenses this month", "אין תנועות בחודש זה": "No transactions this month", "התפלגות": "Share",
     "ערוך": "Edit",
   };
   const DICTS = { ru: TR_RU, en: TR_EN };
@@ -1407,9 +1407,31 @@
       `<h3 class="review-h">כל התנועות</h3>${monthTxTableHTML(currentMonth)}`;
     translateDom(el.reviewPanel);
   }
+  // טבלה בסגנון אקסל עם פסי התפלגות (לגרסאות התמציתיות)
+  function categoryTableXLS(ym) {
+    const exp = transactions.filter((t) => t.type === "expense" && ymOf(t.date) === ym);
+    const total = sum(exp);
+    if (!total) return `<p class="tbl-empty">אין הוצאות בחודש זה</p>`;
+    const byCat = {}; exp.forEach((t) => byCat[t.category] = (byCat[t.category] || 0) + t.amount);
+    const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+    const max = entries[0][1];
+    const rows = entries.map(([id, v]) => {
+      const c = catById(id), pct = Math.round(v / total * 100), barW = Math.max(4, Math.round(v / max * 100));
+      return `<tr>
+        <td class="xls-cat"><span class="tc-ico" style="background:${c.color}22">${c.icon}</span>${c.name}</td>
+        <td class="xls-bar"><span class="xls-bar-fill" style="width:${barW}%;background:${c.color}"></span></td>
+        <td class="tc-num">${fmt(v)}</td>
+        <td class="tc-num">${pct}%</td>
+      </tr>`;
+    }).join("");
+    return `<table class="data-table xls">
+      <thead><tr><th>קטגוריה</th><th>התפלגות</th><th>סכום</th><th>%</th></tr></thead>
+      <tbody>${rows}<tr class="tbl-total"><td>סה"כ</td><td></td><td class="tc-num">${fmt(total)}</td><td class="tc-num">100%</td></tr></tbody>
+    </table>`;
+  }
   function renderCatTableCard() {
     if (!el.catTableBody) return;
-    el.catTableBody.innerHTML = categoryBreakdownHTML(currentMonth);
+    el.catTableBody.innerHTML = categoryTableXLS(currentMonth);
     translateDom(el.catTableCard);
   }
   el.cardTabs.forEach((tab) => tab.addEventListener("click", () => {
