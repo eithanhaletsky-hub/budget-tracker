@@ -425,6 +425,37 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
   color: var(--primary);
 }
 
+/* Card tabs (Add / Month overview) */
+.card-tabs { display: flex; gap: 6px; margin-bottom: 16px; background: var(--surface-2); padding: 5px; border-radius: 12px; }
+.card-tab { flex: 1; padding: 9px; border: none; background: transparent; border-radius: 8px; font-family: var(--font); font-size: 13.5px; font-weight: 700; cursor: pointer; color: var(--text-muted); transition: all 0.18s; }
+.card-tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+.card-view[hidden] { display: none; }
+.review-h { font-size: 13.5px; font-weight: 800; margin: 4px 0 10px; }
+#reviewPanel .data-table { margin-bottom: 16px; }
+
+/* Data tables (review + category table) */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align: start; color: var(--text-muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--border); font-size: 12px; }
+.data-table td { padding: 8px; border-bottom: 1px solid var(--border); }
+.data-table .tc-num { text-align: end; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.data-table .tc-num.income { color: var(--income); }
+.data-table .tc-num.expense { color: var(--expense); }
+.data-table .tc-ico { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; margin-inline-end: 6px; vertical-align: middle; }
+.data-table .tc-desc { color: var(--text-muted); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.data-table .tbl-total td { font-weight: 800; border-top: 2px solid var(--border); border-bottom: none; }
+.tbl-empty { color: var(--text-muted); text-align: center; padding: 18px; font-size: 13.5px; }
+#catTableCard { overflow-x: auto; }
+
+/* Compact layout (RU/EN): 2 cards, no insights, no trend/balance charts, category table instead */
+#catTableCard { display: none; }
+.compact #catTableCard { display: block; }
+.compact #barCard, .compact #lineCard { display: none; }
+.compact .summary-card.income, .compact .summary-card.expense { display: none; }
+.compact .summary-grid { grid-template-columns: repeat(2, 1fr); }
+.compact .insights-card { display: none; }
+.compact #editBudget { display: inline-block; background: var(--grad); color: #fff; padding: 6px 14px; border-radius: 9px; text-decoration: none; font-weight: 700; box-shadow: 0 3px 10px rgba(99,102,241,0.3); }
+.compact #editBudget:hover { filter: brightness(1.06); }
+
 /* Summary button + modal */
 .summary-btn {
   background: var(--grad); color: #fff; border: none; border-radius: 10px;

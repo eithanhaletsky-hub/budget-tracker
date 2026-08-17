@@ -22,8 +22,9 @@
     variant: CFG.variant || null,     // זהות עיצובית מלאה: kids | coach (מוסיף class ל-body)
     demoLock: !!CFG.demoLock,          // גרסת הדגמה נעולה לשליחה ללקוח
     contact: CFG.contact || null,      // פרטי יצירת קשר לבאנר הרכישה
-    lang: CFG.lang || "he",            // שפת ממשק: he | ru
+    lang: CFG.lang || "he",            // שפת ממשק: he | ru | en
     hideDemo: !!CFG.hideDemo,          // מסתיר את כפתור "טען נתוני הדגמה"
+    compact: !!CFG.compact,            // פריסה תמציתית: 2 כרטיסים, בלי תובנות/גרפי מגמה, טבלת קטגוריות
   };
 
   /* ---------- i18n (עברית → רוסית) ---------- */
@@ -154,18 +155,134 @@
     "גרף קו של המאזן המצטבר לאורך החודש": "Линейный график накопленного баланса за месяц",
     "מצב הדגמה": "Демо-режим", "— הנתונים שמוצגים הם לדוגמה בלבד": "— показаны демонстрационные данные",
     "יציאה ממצב הדגמה ↩️": "Выйти из демо-режима ↩️", "🏅 ההישגים שלי": "🏅 Мои достижения", "נאספו": "Собрано",
+    // סקירת חודש / טבלאות
+    "➕ הוספה": "➕ Добавить", "📋 סקירת החודש": "📋 Обзор месяца",
+    "פירוט לפי קטגוריה — ": "Расходы по категориям — ", "פירוט לפי קטגוריה": "Расходы по категориям", "כל התנועות": "Все операции",
+    'סה"כ': "Итого", "אין הוצאות בחודש זה": "Нет расходов в этом месяце", "אין תנועות בחודש זה": "Нет операций в этом месяце",
     // תוויות כלליות נוספות
     "ערוך": "Изм.",
   };
-  const TR_SORTED = Object.entries(TR_RU).sort((a, b) => b[0].length - a[0].length);
+  const TR_EN = {
+    "מעקב הוצאות והכנסות": "expense & income tracker",
+    "📋 סיכום חודשי": "📋 Monthly summary", "סיכום חודשי": "Monthly summary", "סיכום נקי של החודש": "Clean monthly summary",
+    "החלף מצב תצוגה": "Toggle theme", "מצב כהה/בהיר": "Dark/light mode",
+    "חודש קודם": "Previous month", "בחר חודש": "Select month", "חודש הבא": "Next month",
+    "הכנסות החודש": "Income this month", "הוצאות החודש": "Expenses this month",
+    "מאזן החודש (הכנסות − הוצאות)": "Monthly balance (income − expenses)",
+    "תקציב חודשי": "Monthly budget", "ערוך תקציב": "Edit budget", "✨ תובנות חכמות": "✨ Smart insights",
+    "הוספת תנועה": "Add transaction", "➖ הוצאה": "➖ Expense", "➕ הכנסה": "➕ Income",
+    "סכום (₪)": "Amount (₪)", "⚙️ נהל קטגוריות": "⚙️ Categories",
+    "תיאור (לא חובה)": "Description (optional)", "למשל: קניות בסופר": "e.g. groceries",
+    "🔁 הפוך לתנועה קבועה (חוזרת כל חודש)": "🔁 Make recurring (every month)",
+    "הוסף הוצאה": "Add expense", "הוסף הכנסה": "Add income",
+    "פילוח לפי קטגוריה": "Breakdown by category", "אין הוצאות להצגה בחודש זה.": "No expenses to show this month.",
+    "מגמה — 6 חודשים אחרונים": "Trend — last 6 months",
+    "מאזן מצטבר לאורך החודש": "Cumulative balance this month", "אין תנועות בחודש זה להצגת מאזן.": "No transactions to show a balance.",
+    'סה"כ הוצאות': "Total expenses",
+    "התנועות שלי": "My transactions", "🔍 חיפוש...": "🔍 Search...", "חיפוש תנועות": "Search transactions",
+    "סינון לפי סוג": "Filter by type", "סינון לפי קטגוריה": "Filter by category", "כל הקטגוריות": "All categories",
+    "💡 לחיצה על תנועה פותחת עריכה": "💡 Click a transaction to edit",
+    "עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👈": "No transactions yet this month. Add the first! 👈",
+    "לא נמצאו תנועות התואמות לסינון.": "No transactions match the filter.", "🔁 קבוע": "🔁 recurring",
+    "🎯 יעדי חיסכון": "🎯 Savings goals", "+ יעד חדש": "+ New goal",
+    "אין עדיין יעדים. הגדר יעד חיסכון ראשון והתחל לעקוב! 🚀": "No goals yet. Set your first savings goal! 🚀",
+    "🎉 הושג!": "🎉 Reached!", "+ הוסף לחיסכון": "+ Add to savings", "מתוך ": "of ",
+    "📊 תקציב לפי קטגוריה": "📊 Budget by category", "+ הגדר תקציב לקטגוריה": "+ Set category budget",
+    "הגדר תקציב חודשי לקטגוריות ספציפיות (למשל 500₪ למסעדות) ועקוב אחרי כל אחת בנפרד.": "Set a monthly budget for specific categories (e.g. 500₪ for dining).",
+    "🔁 תנועות קבועות": "🔁 Recurring transactions", "מתווספות אוטומטית בכל חודש חדש": "Added automatically every new month",
+    'אין תנועות קבועות. סמן "הפוך לתנועה קבועה" בעת הוספת תנועה. 🔁': 'No recurring transactions. Check "Make recurring" when adding. 🔁',
+    "כל חודש ב-": "Monthly on day ", " לחודש": "",
+    "ניהול נתונים": "Data management",
+    "הנתונים שלך נשמרים אך ורק בדפדפן הזה, במכשיר שלך. מומלץ לגבות מדי פעם.": "Your data is stored only in this browser, on your device. Back up occasionally.",
+    "🎬 טען נתוני הדגמה": "🎬 Load demo data", "🖨️ דוח חודשי (הדפסה/PDF)": "🖨️ Monthly report (print/PDF)",
+    "📤 ייצוא (JSON)": "📤 Export (JSON)", "📊 ייצוא (CSV)": "📊 Export (CSV)",
+    "📥 ייבוא מקובץ": "📥 Import file", "🗑️ מחיקת הכל": "🗑️ Delete all",
+    "💾 כל הנתונים נשמרים במכשיר שלך בלבד — ללא שרת, ללא הרשמה, ללא מעקב.": "💾 All data stays on your device only — no server, no signup, no tracking.",
+    "הגדרת תקציב חודשי": "Set monthly budget",
+    "קבע כמה אתה מתכנן להוציא החודש. נעדכן אותך כשתתקרב לחריגה.": "Set how much you plan to spend this month.",
+    "סכום התקציב (₪)": "Budget amount (₪)", "למשל: 5000": "e.g. 5000",
+    "ביטול": "Cancel", "אפס תקציב": "Reset budget", "שמירה": "Save",
+    "עריכת תנועה": "Edit transaction", "קטגוריה": "Category", "תיאור": "Description", "תאריך": "Date", "מחק": "Delete",
+    "יעד חיסכון חדש": "New savings goal",
+    "קבע לעצמך מטרה — נעקוב אחרי ההתקדמות ונחגוג כשתגיע אליה! 🎉": "Set a goal — we'll track it and celebrate when you reach it! 🎉",
+    "שם היעד": "Goal name", "למשל: אוזניות חדשות": "e.g. new headphones",
+    "סכום היעד (₪)": "Goal amount (₪)", "למשל: 800": "e.g. 800",
+    "כמה כבר חסכת? (לא חובה)": "How much saved already? (optional)",
+    "הוספה לחיסכון": "Add to savings", "סכום להוספה (₪)": "Amount to add (₪)", "למשל: 50": "e.g. 50", "הוסף": "Add",
+    "ניהול קטגוריות": "Manage categories",
+    "הוסף קטגוריות משלך. אפשר למחוק רק קטגוריות שיצרת.": "Add your own categories. You can delete only ones you created.",
+    "שם הקטגוריה": "Category name", "למשל: חיות מחמד": "e.g. pets",
+    "צבע": "Color", "אייקון": "Icon", "סגור": "Close", "+ הוסף קטגוריה": "+ Add category", "מובנה": "built-in",
+    "הוצאה": "Expense", "הכנסה": "Income",
+    "תקציב לקטגוריה": "Category budget", "קבע תקרת הוצאה חודשית לקטגוריה. חל על כל חודש.": "Set a monthly spending cap for the category.",
+    "תקציב חודשי (₪)": "Monthly budget (₪)", "למשל: 500": "e.g. 500",
+    "סגירה": "Close", "💸 ההוצאות הגדולות": "💸 Top expenses",
+    "אין תנועות בחודש זה. בחר חודש אחר או הוסף תנועות.": "No transactions this month. Pick another month or add some.",
+    "ממוצע הוצאה יומית": "Average daily spend", "על פני ": "over ", " ימים": " days",
+    "הקטגוריה היקרה ביותר": "Biggest category", "אין הוצאות עדיין": "No expenses yet",
+    "תחזית להוצאות החודש": "Projected monthly spend", "בקצב הנוכחי": "at current pace",
+    "סך ההוצאות": "Total expenses", "לעומת החודש הקודם": "vs. previous month",
+    "יותר ב-": "more by ", "פחות ב-": "less by ", "אין נתונים להשוואה": "No data to compare",
+    "מאזן": "Balance", "הכנסות": "Income", "הוצאות": "Expenses",
+    "סיכום — ": "Summary — ", "🎯 תקציב: ": "🎯 Budget: ", " · נוצל ": " · used ",
+    "⚠️ חריגה של ": "⚠️ over by ", "נותרו מהתקציב ": "Budget left ", "נותרו ": "left ",
+    "% נוצל)": "% used)", "לא הוגדר תקציב לחודש זה": "No budget set for this month",
+    " תנועות החודש · ": " transactions · ", "חסכת ": "saved ", "% מההכנסות 🌱": "% of income 🌱",
+    "החודש ההוצאות עלו על ההכנסות": "This month expenses exceeded income",
+    " — נחסך ": " — saved ", " מתוך ": " of ",
+    "הוצאה נוספה ✅": "Expense added ✅", "הכנסה נוספה ✅": "Income added ✅",
+    "נא להזין סכום חוקי": "Enter a valid amount", "התנועה נמחקה": "Transaction deleted",
+    "התנועה עודכנה ✅": "Transaction updated ✅",
+    "נוספו ": "Added ", " תנועות קבועות לחודש זה 🔁": " recurring transactions 🔁",
+    "התנועה הקבועה הוסרה": "Recurring transaction removed",
+    "תקציב ל": "Budget for ", " נשמר": " saved", "התקציב אופס": "Budget reset",
+    "הנתונים יוצאו לקובץ JSON": "Data exported to JSON", "אין נתונים לייצוא": "No data to export",
+    "הנתונים יוצאו לקובץ CSV": "Data exported to CSV", "הנתונים יובאו בהצלחה ✅": "Data imported ✅",
+    "שגיאה: הקובץ אינו תקין": "Error: invalid file", "אין נתונים למחיקה": "No data to delete",
+    "כל הנתונים נמחקו": "All data deleted",
+    "היעד נשמר 🎯": "Goal saved 🎯", "היעד נמחק": "Goal deleted", "נוסף לחיסכון 💰": "Added to savings 💰",
+    'מזל טוב! השגת את היעד "': 'Congrats! You reached the goal "', '" 🎉': '" 🎉',
+    "הקטגוריה נוספה 🏷️": "Category added 🏷️", "הקטגוריה נמחקה": "Category deleted",
+    "תקציב הקטגוריה נשמר 📊": "Category budget saved 📊", "תקציב הקטגוריה הוסר": "Category budget removed",
+    "אין תנועות בחודש זה להפקת דוח": "No transactions for a report", "נא להזין שם ליעד": "Enter a goal name",
+    "נא להזין סכום יעד חוקי": "Enter a valid goal amount", "נא להזין שם לקטגוריה": "Enter a category name", "נא להזין סכום": "Enter an amount",
+    "למחוק את הקטגוריה?": "Delete the category?", "למחוק את היעד?": "Delete the goal?",
+    "קטגוריה זו בשימוש בתנועות קיימות. למחוק בכל זאת? התנועות יישארו אך ללא קטגוריה מזוהה.": "This category is used by existing transactions. Delete anyway? They'll remain uncategorized.",
+    "להסיר את התנועה הקבועה? תנועות שכבר נוספו יישארו.": "Remove the recurring transaction? Already-added ones remain.",
+    "הקובץ מכיל ": "The file has ", " תנועות. אישור = מיזוג עם הקיים · ביטול = החלפה מלאה": " transactions. OK = merge · Cancel = replace",
+    "למחוק את כל הנתונים לצמיתות? פעולה זו אינה הפיכה.\n\nמומלץ לייצא גיבוי קודם.": "Delete all data permanently? This cannot be undone.\n\nExport a backup first.",
+    "בטוח לגמרי? כל התנועות, היעדים, התקציבים והתנועות הקבועות יימחקו.": "Absolutely sure? All transactions, goals, budgets and recurring items will be deleted.",
+    "דוח תקציב — ": "Budget report — ", "הופק בתאריך ": "Generated ", "פילוח הוצאות לפי קטגוריה": "Expenses by category",
+    "סכום": "Amount", "אחוז": "%", "אין הוצאות": "No expenses", "כל התנועות (": "All transactions (", 'הופק ע"י ': "Generated by ",
+    "מזון וסופר": "Groceries", "מסעדות ובתי קפה": "Dining & cafés", "תחבורה": "Transport",
+    "דיור וחשבונות": "Housing & bills", "קניות": "Shopping", "בריאות": "Health",
+    "בילויים": "Entertainment", "חינוך": "Education", "אחר": "Other",
+    "משכורת": "Salary", "דמי כיס": "Allowance", "מתנה": "Gift", "עבודה עצמאית": "Freelance", "החזר": "Refund", "הכל": "All",
+    "ינואר": "January", "פברואר": "February", "מרץ": "March", "אפריל": "April", "מאי": "May", "יוני": "June",
+    "יולי": "July", "אוגוסט": "August", "ספטמבר": "September", "אוקטובר": "October", "נובמבר": "November", "דצמבר": "December",
+    "ינו": "Jan", "פבר": "Feb", "מרץ": "Mar", "אפר": "Apr", "מאי": "May", "יונ": "Jun", "יול": "Jul", "אוג": "Aug", "ספט": "Sep", "אוק": "Oct", "נוב": "Nov", "דצמ": "Dec",
+    "סיכום החודש": "Monthly summary", "מחק תנועה": "Delete transaction", "בחר אייקון": "Choose icon",
+    "גרף עוגה של הוצאות לפי קטגוריה": "Pie chart of expenses by category",
+    "גרף עמודות של הכנסות והוצאות לפי חודש": "Bar chart of income and expenses by month",
+    "גרף קו של המאזן המצטבר לאורך החודש": "Line chart of cumulative balance",
+    "מצב הדגמה": "Demo mode", "— הנתונים שמוצגים הם לדוגמה בלבד": "— showing sample data only",
+    "יציאה ממצב הדגמה ↩️": "Exit demo mode ↩️", "🏅 ההישגים שלי": "🏅 My achievements", "נאספו": "Collected",
+    "➕ הוספה": "➕ Add", "📋 סקירת החודש": "📋 Month overview",
+    "פירוט לפי קטגוריה — ": "Breakdown by category — ", "פירוט לפי קטגוריה": "Breakdown by category", "כל התנועות": "All transactions",
+    'סה"כ': "Total", "אין הוצאות בחודש זה": "No expenses this month", "אין תנועות בחודש זה": "No transactions this month",
+    "ערוך": "Edit",
+  };
+  const DICTS = { ru: TR_RU, en: TR_EN };
+  const ACTIVE_DICT = DICTS[APP.lang] || null;
+  const TR_SORTED = ACTIVE_DICT ? Object.entries(ACTIVE_DICT).sort((a, b) => b[0].length - a[0].length) : [];
   const HE_RE = /[֐-׿]/;
   function tr(s) {
-    if (APP.lang !== "ru" || !s || !HE_RE.test(s)) return s;
+    if (!ACTIVE_DICT || !s || !HE_RE.test(s)) return s;
     for (const [he, ru] of TR_SORTED) if (s.indexOf(he) !== -1) s = s.split(he).join(ru);
     return s;
   }
   function translateDom(root) {
-    if (APP.lang !== "ru") return;
+    if (!ACTIVE_DICT) return;
     root = root || document.body;
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode(n) {
@@ -185,7 +302,7 @@
     });
   }
   // תרגום אוטומטי של דיאלוגים native
-  if (APP.lang === "ru") {
+  if (ACTIVE_DICT) {
     const _c = window.confirm.bind(window); window.confirm = (m) => _c(tr(m));
     const _a = window.alert.bind(window); window.alert = (m) => _a(tr(m));
   }
@@ -343,6 +460,8 @@
     catBudgetModal: $("catBudgetModal"), catBudgetSelect: $("catBudgetSelect"), catBudgetAmount: $("catBudgetAmount"), catBudgetSave: $("catBudgetSave"), catBudgetCancel: $("catBudgetCancel"),
     printReport: $("printReport"), demoBtn: $("demoBtn"),
     summaryBtn: $("summaryBtn"), summaryModal: $("summaryModal"), summaryTitle: $("summaryTitle"), summaryBody: $("summaryBody"), summaryClose: $("summaryClose"),
+    cardTabs: document.querySelectorAll(".card-tab"), addView: $("addView"), reviewView: $("reviewView"), reviewPanel: $("reviewPanel"),
+    catTableCard: $("catTableCard"), catTableBody: $("catTableBody"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
 
@@ -1052,6 +1171,7 @@
       document.documentElement.setAttribute("dir", "ltr");
     }
     if (APP.hideDemo) { const dbtn = document.getElementById("demoBtn"); if (dbtn) dbtn.style.display = "none"; }
+    if (APP.compact) document.body.classList.add("compact");
     if (APP.variant) document.body.classList.add("variant-" + APP.variant);
     const logoEl = document.querySelector(".brand-logo");
     const h1 = document.querySelector(".brand h1");
@@ -1253,8 +1373,54 @@
   if (el.summaryClose) el.summaryClose.addEventListener("click", closeSummary);
   if (el.summaryModal) el.summaryModal.addEventListener("click", (e) => { if (e.target === el.summaryModal) closeSummary(); });
 
+  /* ---------- סקירת חודש + טבלאות ---------- */
+  function categoryBreakdownHTML(ym) {
+    const exp = transactions.filter((t) => t.type === "expense" && ymOf(t.date) === ym);
+    const total = sum(exp);
+    if (!total) return `<p class="tbl-empty">אין הוצאות בחודש זה</p>`;
+    const byCat = {}; exp.forEach((t) => byCat[t.category] = (byCat[t.category] || 0) + t.amount);
+    const rows = Object.entries(byCat).sort((a, b) => b[1] - a[1]).map(([id, v]) => {
+      const c = catById(id), pct = Math.round(v / total * 100);
+      return `<tr><td><span class="tc-ico" style="background:${c.color}22">${c.icon}</span>${c.name}</td><td class="tc-num">${fmt(v)}</td><td class="tc-num">${pct}%</td></tr>`;
+    }).join("");
+    return `<table class="data-table"><thead><tr><th>קטגוריה</th><th>סכום</th><th>אחוז</th></tr></thead><tbody>${rows}<tr class="tbl-total"><td>סה"כ</td><td class="tc-num">${fmt(total)}</td><td class="tc-num">100%</td></tr></tbody></table>`;
+  }
+  function monthTxTableHTML(ym) {
+    const txs = transactions.filter((t) => ymOf(t.date) === ym).sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+    if (!txs.length) return `<p class="tbl-empty">אין תנועות בחודש זה</p>`;
+    const rows = txs.map((t) => {
+      const c = catById(t.category), sign = t.type === "income" ? "+" : "−";
+      return `<tr><td>${t.date.split("-").reverse().join("/")}</td><td><span class="tc-ico" style="background:${c.color}22">${c.icon}</span>${c.name}</td><td class="tc-desc">${escapeHtml(t.description || "")}</td><td class="tc-num ${t.type}">${sign}${fmt(t.amount).replace("₪", "")}₪</td></tr>`;
+    }).join("");
+    return `<table class="data-table"><thead><tr><th>תאריך</th><th>קטגוריה</th><th>תיאור</th><th>סכום</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  function renderReview() {
+    if (!el.reviewPanel) return;
+    el.reviewPanel.innerHTML =
+      `<h3 class="review-h">פירוט לפי קטגוריה — ${monthLabel(currentMonth)}</h3>${categoryBreakdownHTML(currentMonth)}` +
+      `<h3 class="review-h">כל התנועות</h3>${monthTxTableHTML(currentMonth)}`;
+    translateDom(el.reviewPanel);
+  }
+  function renderCatTableCard() {
+    if (!el.catTableBody) return;
+    el.catTableBody.innerHTML = categoryBreakdownHTML(currentMonth);
+    translateDom(el.catTableCard);
+  }
+  el.cardTabs.forEach((tab) => tab.addEventListener("click", () => {
+    const view = tab.dataset.view;
+    el.cardTabs.forEach((t) => t.classList.toggle("active", t === tab));
+    if (el.addView) el.addView.hidden = view !== "add";
+    if (el.reviewView) el.reviewView.hidden = view !== "review";
+    if (view === "review") renderReview();
+  }));
+
   /* ---------- רינדור כללי ---------- */
-  function renderAll() { renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges(); translateDom(document.body); }
+  function renderAll() {
+    renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges();
+    renderCatTableCard();
+    if (el.reviewView && !el.reviewView.hidden) renderReview();
+    translateDom(document.body);
+  }
 
   /* ---------- גרסת הדגמה נעולה (לשליחה ללקוח) ---------- */
   function lockDemo() {

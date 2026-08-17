@@ -33,12 +33,6 @@
   </header>
 
   <main class="container">
-    <!-- Demo mode banner -->
-    <div class="demo-banner" id="demoBanner" hidden>
-      <span>🎬 <b>מצב הדגמה</b> — הנתונים שמוצגים הם לדוגמה בלבד</span>
-      <button id="exitDemo">יציאה ממצב הדגמה ↩️</button>
-    </div>
-
     <!-- Summary cards -->
     <section class="summary-grid" aria-label="סיכום החודש">
       <div class="card summary-card income">
@@ -80,7 +74,11 @@
       <!-- Left: add form + charts -->
       <div class="col-side">
         <section class="card form-card">
-          <h2>הוספת תנועה</h2>
+          <div class="card-tabs">
+            <button type="button" class="card-tab active" data-view="add">➕ הוספה</button>
+            <button type="button" class="card-tab" data-view="review">📋 סקירת החודש</button>
+          </div>
+          <div class="card-view" id="addView">
           <div class="type-toggle" role="tablist">
             <button class="type-btn active" data-type="expense" role="tab">➖ הוצאה</button>
             <button class="type-btn" data-type="income" role="tab">➕ הכנסה</button>
@@ -108,6 +106,10 @@
             </label>
             <button type="submit" class="btn-primary" id="submitBtn">הוסף הוצאה</button>
           </form>
+          </div>
+          <div class="card-view" id="reviewView" hidden>
+            <div id="reviewPanel"></div>
+          </div>
         </section>
       </div>
 
@@ -137,7 +139,7 @@
 
     <!-- Charts row (full width, 3-up) -->
     <section class="charts-grid">
-      <div class="card chart-card">
+      <div class="card chart-card" id="pieCard">
         <h2>פילוח לפי קטגוריה</h2>
         <div class="chart-wrap">
           <canvas id="pieChart" width="240" height="240" aria-label="גרף עוגה של הוצאות לפי קטגוריה"></canvas>
@@ -146,7 +148,7 @@
         <p class="empty-note" id="pieEmpty" hidden>אין הוצאות להצגה בחודש זה.</p>
       </div>
 
-      <div class="card chart-card">
+      <div class="card chart-card" id="barCard">
         <h2>מגמה — 6 חודשים אחרונים</h2>
         <div class="chart-wrap">
           <canvas id="barChart" width="320" height="200" aria-label="גרף עמודות של הכנסות והוצאות לפי חודש"></canvas>
@@ -157,12 +159,17 @@
         </div>
       </div>
 
-      <div class="card chart-card">
+      <div class="card chart-card" id="lineCard">
         <h2>מאזן מצטבר לאורך החודש</h2>
         <div class="chart-wrap">
           <canvas id="lineChart" width="320" height="200" aria-label="גרף קו של המאזן המצטבר לאורך החודש"></canvas>
         </div>
         <p class="empty-note" id="lineEmpty" hidden>אין תנועות בחודש זה להצגת מאזן.</p>
+      </div>
+
+      <div class="card chart-card" id="catTableCard">
+        <h2>פירוט לפי קטגוריה</h2>
+        <div id="catTableBody"></div>
       </div>
     </section>
 
@@ -209,7 +216,6 @@
       <h2>ניהול נתונים</h2>
       <p class="muted">הנתונים שלך נשמרים אך ורק בדפדפן הזה, במכשיר שלך. מומלץ לגבות מדי פעם.</p>
       <div class="data-actions">
-        <button class="btn-ghost" id="demoBtn">🎬 טען נתוני הדגמה</button>
         <button class="btn-ghost" id="printReport">🖨️ דוח חודשי (הדפסה/PDF)</button>
         <button class="btn-ghost" id="exportJson">📤 ייצוא (JSON)</button>
         <button class="btn-ghost" id="exportCsv">📊 ייצוא (CSV)</button>

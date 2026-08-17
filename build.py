@@ -17,8 +17,9 @@ def build(config, out_path):
     # non-Hebrew languages: LTR + lang + translated <title> for correct initial paint / SEO
     if config and config.get('lang') and config.get('lang') != 'he':
         html = html.replace('lang="he" dir="rtl"', 'lang="%s" dir="ltr"' % config['lang'])
-        if config['lang'] == 'ru':
-            title = '%s — учёт доходов и расходов' % config.get('name', 'Мой бюджет')
+        titles = {'ru': '%s — учёт доходов и расходов', 'en': '%s — income & expense tracker'}
+        if config['lang'] in titles:
+            title = titles[config['lang']] % config.get('name', '')
             html = html.replace('<title>ניהול תקציב — מעקב הוצאות והכנסות</title>', '<title>%s</title>' % title)
     if os.path.dirname(out_path):
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -80,14 +81,24 @@ build({
     "demoLock": True, "contact": CONTACT, "storeKey": "budgetdemocoach",
 }, 'versions/demo-coach.html')
 
-# 7) Russian edition (no demo)
+# 7) Russian edition (concise, no demo)
 build({
     "name": "Мой бюджет",
     "tagline": "Учёт доходов и расходов — просто и удобно",
     "logo": "💰",
     "lang": "ru",
-    "hideDemo": True,
+    "compact": True,
     "storeKey": "budgetru",
 }, 'versions/ru.html')
+
+# 8) English edition (concise, no demo)
+build({
+    "name": "My Budget",
+    "tagline": "Income & expense tracker — simple and handy",
+    "logo": "💰",
+    "lang": "en",
+    "compact": True,
+    "storeKey": "budgeten",
+}, 'versions/en.html')
 
 print('done.')
