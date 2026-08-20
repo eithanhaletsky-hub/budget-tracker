@@ -161,6 +161,7 @@
     "💾 שמור סכומים": "💾 Сохранить суммы", "הסכומים נשמרו ✅": "Суммы сохранены ✅", "סכום חודשי": "Сумма за месяц",
     "פירוט לפי קטגוריה — ": "Расходы по категориям — ", "פירוט לפי קטגוריה": "Расходы по категориям", "כל התנועות": "Все операции",
     'סה"כ': "Итого", "אין הוצאות בחודש זה": "Нет расходов в этом месяце", "אין תנועות בחודש זה": "Нет операций в этом месяце", "התפלגות": "Доля",
+    "⤢ הגדל": "⤢ Увеличить", "הגדל למסך מלא": "На весь экран", "✕ סגור": "✕ Закрыть", "מאזן החודש (תקציב − הוצאות)": "Баланс месяца (бюджет − расходы)",
     // תוויות כלליות נוספות
     "ערוך": "Изм.",
   };
@@ -274,6 +275,7 @@
     "💾 שמור סכומים": "💾 Save amounts", "הסכומים נשמרו ✅": "Amounts saved ✅", "סכום חודשי": "Monthly amount",
     "פירוט לפי קטגוריה — ": "Breakdown by category — ", "פירוט לפי קטגוריה": "Breakdown by category", "כל התנועות": "All transactions",
     'סה"כ': "Total", "אין הוצאות בחודש זה": "No expenses this month", "אין תנועות בחודש זה": "No transactions this month", "התפלגות": "Share",
+    "⤢ הגדל": "⤢ Enlarge", "הגדל למסך מלא": "Fullscreen", "✕ סגור": "✕ Close", "מאזן החודש (תקציב − הוצאות)": "Monthly balance (budget − expenses)",
     "ערוך": "Edit",
   };
   const DICTS = { ru: TR_RU, en: TR_EN };
@@ -466,7 +468,8 @@
     summaryBtn: $("summaryBtn"), summaryModal: $("summaryModal"), summaryTitle: $("summaryTitle"), summaryBody: $("summaryBody"), summaryClose: $("summaryClose"),
     cardTabs: document.querySelectorAll(".card-tab"), addView: $("addView"), reviewView: $("reviewView"), reviewPanel: $("reviewPanel"),
     monthlyView: $("monthlyView"), monthlyGrid: $("monthlyGrid"), monthlySave: $("monthlySave"), listCard: $("listCard"),
-    catTableCard: $("catTableCard"), catTableBody: $("catTableBody"),
+    catTableCard: $("catTableCard"), catTableBody: $("catTableBody"), balanceLabel: $("balanceLabel"),
+    chartExpand: $("chartExpand"), chartModal: $("chartModal"), chartModalBody: $("chartModalBody"), chartModalTitle: $("chartModalTitle"), chartClose: $("chartClose"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
 
@@ -580,12 +583,17 @@
     const txs = monthTx();
     const income = sum(txs.filter((t) => t.type === "income"));
     const expense = sum(txs.filter((t) => t.type === "expense"));
+    const budget = budgets[currentMonth];
+    // אם לא הוזנו הכנסות — התקציב משמש ככסף הזמין (מתאים למי שחי על פנסיה/סכום קבוע)
+    const usingBudget = income <= 0 && budget > 0;
+    const available = usingBudget ? budget : income;
+    const bal = available - expense;
     animateValue(el.totalIncome, income);
     animateValue(el.totalExpense, expense);
-    animateValue(el.balance, income - expense);
-    el.balance.classList.toggle("negative", income - expense < 0);
+    animateValue(el.balance, bal);
+    el.balance.classList.toggle("negative", bal < 0);
+    if (el.balanceLabel) el.balanceLabel.textContent = usingBudget ? "מאזן החודש (תקציב − הוצאות)" : "מאזן החודש (הכנסות − הוצאות)";
 
-    const budget = budgets[currentMonth];
     if (budget > 0) {
       el.budgetValue.textContent = fmt(budget);
       el.budgetBar.hidden = false;
@@ -1025,7 +1033,7 @@
   /* ---------- ESC סוגר מודלים ---------- */
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    [el.budgetModal, el.editModal, el.goalModal, el.contribModal, el.catModal, el.catBudgetModal, el.summaryModal].forEach((m) => m && (m.hidden = true));
+    [el.budgetModal, el.editModal, el.goalModal, el.contribModal, el.catModal, el.catBudgetModal, el.summaryModal, el.chartModal].forEach((m) => m && (m.hidden = true));
   });
 
   /* ---------- קטגוריות מותאמות אישית ---------- */
@@ -1331,7 +1339,9 @@
     const txs = transactions.filter((t) => ymOf(t.date) === ym);
     const income = sum(txs.filter((t) => t.type === "income"));
     const expense = sum(txs.filter((t) => t.type === "expense"));
-    const bal = income - expense;
+    const usingBudgetS = income <= 0 && budgets[ym] > 0;
+    const availableS = usingBudgetS ? budgets[ym] : income;
+    const bal = availableS - expense;
     el.summaryTitle.textContent = "סיכום — " + monthLabel(ym);
 
     if (!txs.length) {
@@ -1342,7 +1352,7 @@
     txs.filter((t) => t.type === "expense").forEach((t) => byCat[t.category] = (byCat[t.category] || 0) + t.amount);
     const top = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const budget = budgets[ym];
-    const saveRate = income > 0 ? Math.round(bal / income * 100) : 0;
+    const saveRate = availableS > 0 ? Math.round(bal / availableS * 100) : 0;
 
     let html = `<div class="sum-stats">
       <div class="sum-stat inc"><span class="l">הכנסות</span><span class="v">${fmt(income)}</span></div>
@@ -1431,6 +1441,17 @@
     el.catTableBody.innerHTML = categoryColumnChart(currentMonth);
     translateDom(el.catTableCard);
   }
+  // הגדלה למסך מלא
+  function openChartFull() {
+    if (!el.chartModalBody) return;
+    el.chartModalBody.innerHTML = categoryColumnChart(currentMonth);
+    translateDom(el.chartModal);
+    el.chartModal.hidden = false;
+  }
+  function closeChartFull() { if (el.chartModal) el.chartModal.hidden = true; }
+  if (el.chartExpand) el.chartExpand.addEventListener("click", openChartFull);
+  if (el.chartClose) el.chartClose.addEventListener("click", closeChartFull);
+  if (el.chartModal) el.chartModal.addEventListener("click", (e) => { if (e.target === el.chartModal) closeChartFull(); });
   el.cardTabs.forEach((tab) => tab.addEventListener("click", () => {
     const view = tab.dataset.view;
     el.cardTabs.forEach((t) => t.classList.toggle("active", t === tab));

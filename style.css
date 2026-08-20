@@ -483,6 +483,21 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .col-total { text-align: center; font-size: 17px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
 .col-total b { font-size: 19px; }
 
+/* Fullscreen chart modal */
+.chart-modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 96vw; max-width: 1200px; height: 92vh; padding: 22px; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); animation: pop 0.22s cubic-bezier(.34,1.56,.64,1); }
+.chart-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.chart-modal-head h3 { font-size: 20px; }
+#chartModalBody { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: auto; }
+#chartModalBody .col-chart { flex: 1; align-items: flex-end; gap: 22px; }
+#chartModalBody .col-bar-area { height: auto; flex: 1; }
+#chartModalBody .col-item { min-width: 120px; }
+#chartModalBody .col-val { font-size: 19px; }
+#chartModalBody .col-pct { font-size: 17px; }
+#chartModalBody .col-ico { width: 50px; height: 50px; font-size: 28px; }
+#chartModalBody .col-name { font-size: 15.5px; }
+#chartModalBody .col-total { font-size: 20px; }
+#chartModalBody .col-total b { font-size: 24px; }
+
 /* Compact layout (RU/EN): 2 cards, no insights, no trend/balance charts */
 .compact #barCard, .compact #lineCard { display: none; }
 .compact .summary-card.income, .compact .summary-card.expense { display: none; }

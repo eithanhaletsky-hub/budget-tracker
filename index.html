@@ -47,7 +47,7 @@
       </div>
       <div class="card summary-card balance">
         <span class="summary-icon">⚖️</span>
-        <span class="summary-label">מאזן החודש (הכנסות − הוצאות)</span>
+        <span class="summary-label" id="balanceLabel">מאזן החודש (הכנסות − הוצאות)</span>
         <span class="summary-value" id="balance" data-value="0">₪0</span>
       </div>
       <div class="card summary-card budget">
@@ -151,7 +151,10 @@
           </div>
 
           <div class="card chart-card" id="catTableCard">
-            <h2>פירוט לפי קטגוריה</h2>
+            <div class="section-head">
+              <h2>פירוט לפי קטגוריה</h2>
+              <button type="button" class="btn-ghost btn-sm" id="chartExpand" title="הגדל למסך מלא">⤢ הגדל</button>
+            </div>
             <div id="catTableBody"></div>
           </div>
         </section>
@@ -352,6 +355,17 @@
       <div class="modal-actions">
         <button class="btn-primary" id="summaryClose">סגירה</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen chart modal -->
+  <div class="modal-overlay" id="chartModal" hidden>
+    <div class="chart-modal">
+      <div class="chart-modal-head">
+        <h3 id="chartModalTitle">פירוט לפי קטגוריה</h3>
+        <button class="btn-ghost" id="chartClose">✕ סגור</button>
+      </div>
+      <div id="chartModalBody"></div>
     </div>
   </div>
 
