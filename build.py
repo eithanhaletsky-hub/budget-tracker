@@ -4,7 +4,23 @@
    כל גרסה = אותו קוד עם window.BUDGET_CONFIG שונה שמוזרק לפני האפליקציה."""
 import json, os
 
-def build(config, out_path):
+SW_JS = """/* BudgetHelper service worker — offline + installable */
+const CACHE = 'bh-v1';
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    fetch(e.request).then(res => {
+      const copy = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(()=>{});
+      return res;
+    }).catch(() => caches.match(e.request))
+  );
+});
+"""
+
+def build(config, out_path, pwa=False):
     html = open('index.html', encoding='utf-8').read()
     css = open('style.css', encoding='utf-8').read()
     js = open('app.js', encoding='utf-8').read()
@@ -21,11 +37,37 @@ def build(config, out_path):
         if config['lang'] in titles:
             title = titles[config['lang']] % config.get('name', '')
             html = html.replace('<title>ניהול תקציב — מעקב הוצאות והכנסות</title>', '<title>%s</title>' % title)
+    if pwa:
+        base = os.path.splitext(os.path.basename(out_path))[0]
+        cfg = config or {}
+        name = cfg.get('name', 'התקציב שלי')
+        theme = (cfg.get('accent') or {}).get('primary', '#6366f1')
+        manifest = {
+            "name": name, "short_name": name,
+            "start_url": os.path.basename(out_path), "scope": "./",
+            "display": "standalone", "background_color": "#ffffff", "theme_color": theme,
+            "icons": [
+                {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+                {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+                {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+            ],
+        }
+        os.makedirs(os.path.dirname(out_path) or '.', exist_ok=True)
+        open(os.path.join(os.path.dirname(out_path), base + '.webmanifest'), 'w', encoding='utf-8').write(json.dumps(manifest, ensure_ascii=False, indent=2))
+        head = (
+            f'<link rel="manifest" href="{base}.webmanifest" />\n'
+            f'  <meta name="theme-color" content="{theme}" />\n'
+            '  <meta name="apple-mobile-web-app-capable" content="yes" />\n'
+            '  <meta name="apple-mobile-web-app-status-bar-style" content="default" />\n'
+            '  <link rel="apple-touch-icon" href="icons/icon-192.png" />\n  <link rel="icon"'
+        )
+        html = html.replace('<link rel="icon"', head, 1)
+        html = html.replace('</body>', "  <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>\n</body>")
     if os.path.dirname(out_path):
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
     open(out_path, 'w', encoding='utf-8').write(html)
     injected = 'BUDGET_CONFIG' in html
-    line = f'  {out_path}: {len(html)} bytes  config_injected={injected if config else "n/a"}'
+    line = f'  {out_path}: {len(html)} bytes  config_injected={injected if config else "n/a"}{"  +PWA" if pwa else ""}'
     print(line.encode('ascii', 'replace').decode('ascii'))
 
 # =====================================================================
@@ -37,30 +79,30 @@ def build(config, out_path):
 # =====================================================================
 CONTACT = "eithan.haletsky@gmail.com"
 
-# --- Protected editions: unguessable token filenames (do not publish these paths) ---
-build(None, 'docs/he-3f9a7k2c8d.html')  # Hebrew (generic)
+# --- Protected editions: unguessable token filenames (installable PWAs) ---
+build(None, 'docs/he-3f9a7k2c8d.html', pwa=True)  # Hebrew (generic)
 
 build({
     "name": "הכסף שלי", "tagline": "לומדים לנהל כסף — בכיף! 🌟", "logo": "🐷",
     "accent": {"primary": "#ec4899", "primary2": "#f59e0b"},
     "preset": "kids", "kids": True, "variant": "kids", "storeKey": "budgetkids",
-}, 'docs/kids-2v8z5b3k7m.html')
+}, 'docs/kids-2v8z5b3k7m.html', pwa=True)
 
 build({
     "name": "התקציב שלי", "tagline": "ניהול פיננסי חכם — בליווי מקצועי", "logo": "📊",
     "accent": {"primary": "#0f766e", "primary2": "#0891b2"},
     "preset": "coach", "variant": "coach", "brandedBy": "דנה כהן · מאמנת פיננסית", "storeKey": "budgetcoach",
-}, 'docs/coach-9r7w4t6y1p.html')
+}, 'docs/coach-9r7w4t6y1p.html', pwa=True)
 
 build({
     "name": "Мой бюджет", "tagline": "Учёт доходов и расходов — просто и удобно", "logo": "💰",
     "lang": "ru", "tableOnly": True, "storeKey": "budgetru",
-}, 'docs/ru-6p4n9m1x5q.html')
+}, 'docs/ru-6p4n9m1x5q.html', pwa=True)
 
 build({
     "name": "My Budget", "tagline": "Income & expense tracker — simple and handy", "logo": "💰",
     "lang": "en", "tableOnly": True, "storeKey": "budgeten",
-}, 'docs/en-8w2q5r7t3v.html')
+}, 'docs/en-8w2q5r7t3v.html', pwa=True)
 
 # --- Locked demo editions (meant for sharing with clients — predictable names OK) ---
 build({
@@ -86,6 +128,8 @@ build({
 import os
 os.makedirs('docs', exist_ok=True)
 open('docs/.nojekyll', 'w').close()
+open('docs/sw.js', 'w', encoding='utf-8').write(SW_JS)
+print('  docs/sw.js: service worker')
 placeholder = ('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
                '<meta name="robots" content="noindex,nofollow">'
                '<title>Private</title><style>body{font-family:system-ui,sans-serif;'
