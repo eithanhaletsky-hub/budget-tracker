@@ -33,6 +33,31 @@
   </header>
 
   <main class="container">
+    <!-- Budget table (RU/EN table-only mode) -->
+    <section class="card budget-table-card" id="budgetTableCard">
+      <div class="bt-top">
+        <label class="bt-budget-label">תקציב חודשי כולל (₪)
+          <input type="number" id="btMonthlyBudget" min="0" step="1" placeholder="0" />
+        </label>
+        <button type="button" class="btn-primary btn-sm" id="btAddCat">+ הוסף קטגוריה</button>
+      </div>
+      <div class="bt-scroll">
+        <table class="budget-table" id="budgetTable">
+          <thead>
+            <tr>
+              <th>קטגוריה</th>
+              <th>תוכנן לחודש</th>
+              <th>הוצא בפועל</th>
+              <th>נשאר</th>
+            </tr>
+          </thead>
+          <tbody id="budgetTableBody"></tbody>
+          <tfoot id="budgetTableFoot"></tfoot>
+        </table>
+      </div>
+      <div class="bt-summary" id="btSummary"></div>
+    </section>
+
     <!-- Summary cards -->
     <section class="summary-grid" aria-label="סיכום החודש">
       <div class="card summary-card income">

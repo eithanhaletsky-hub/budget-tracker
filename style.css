@@ -483,6 +483,43 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .col-total { text-align: center; font-size: 17px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
 .col-total b { font-size: 19px; }
 
+/* ===== Budget table mode (RU/EN) ===== */
+#budgetTableCard { display: none; }
+body.table-only #budgetTableCard { display: block; }
+body.table-only main > *:not(#budgetTableCard) { display: none !important; }
+body.table-only #summaryBtn { display: none; }
+
+.bt-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+.bt-budget-label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 700; color: var(--text-muted); }
+.bt-budget-label input { width: 180px; font-size: 18px; font-weight: 800; padding: 12px 14px; }
+.bt-scroll { overflow-x: auto; }
+
+.budget-table { width: 100%; border-collapse: collapse; font-size: 16px; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; }
+.budget-table th { background: var(--surface-2); border: 1px solid var(--border); text-align: center; color: var(--text); font-weight: 800; padding: 14px 10px; font-size: 14.5px; }
+.budget-table td { border: 1px solid var(--border); padding: 10px 12px; }
+.budget-table tbody tr:nth-child(even) { background: var(--surface-2); }
+.bt-cat { font-weight: 700; white-space: nowrap; }
+.bt-ico { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; margin-inline-end: 10px; vertical-align: middle; font-size: 19px; }
+.budget-table input.bt-plan, .budget-table input.bt-spent { width: 100px; padding: 9px 10px; font-size: 15.5px; text-align: end; font-weight: 700; }
+.bt-spent-cell { display: flex; align-items: center; gap: 6px; }
+.bt-add { background: var(--primary); color: #fff; border: none; width: 34px; height: 34px; border-radius: 9px; font-size: 20px; font-weight: 700; cursor: pointer; flex-shrink: 0; line-height: 1; transition: filter 0.15s; }
+.bt-add:hover { filter: brightness(1.1); }
+.bt-remain { text-align: end; font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bt-remain.pos { color: var(--income); }
+.bt-remain.neg { color: var(--expense); }
+.bt-del { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 15px; margin-inline-start: 6px; }
+.bt-del:hover { color: var(--expense); }
+.budget-table tfoot td { background: var(--surface-2); border: 1px solid var(--border); font-weight: 800; font-size: 16px; padding: 14px 12px; }
+.budget-table tfoot .bt-remain { font-size: 18px; }
+
+.bt-summary { margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.bt-sum-item { padding: 16px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border); text-align: center; }
+.bt-sum-item .l { font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 5px; }
+.bt-sum-item .v { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.bt-sum-item.remain .v.pos { color: var(--income); }
+.bt-sum-item.remain .v.neg { color: var(--expense); }
+@media (max-width: 620px) { .bt-summary { grid-template-columns: 1fr; } }
+
 /* Fullscreen chart modal */
 .chart-modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 96vw; max-width: 1200px; height: 92vh; padding: 22px; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); animation: pop 0.22s cubic-bezier(.34,1.56,.64,1); }
 .chart-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }

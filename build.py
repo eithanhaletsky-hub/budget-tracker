@@ -54,12 +54,12 @@ build({
 
 build({
     "name": "Мой бюджет", "tagline": "Учёт доходов и расходов — просто и удобно", "logo": "💰",
-    "lang": "ru", "compact": True, "storeKey": "budgetru",
+    "lang": "ru", "tableOnly": True, "storeKey": "budgetru",
 }, 'docs/ru-6p4n9m1x5q.html')
 
 build({
     "name": "My Budget", "tagline": "Income & expense tracker — simple and handy", "logo": "💰",
-    "lang": "en", "compact": True, "storeKey": "budgeten",
+    "lang": "en", "tableOnly": True, "storeKey": "budgeten",
 }, 'docs/en-8w2q5r7t3v.html')
 
 # --- Locked demo editions (meant for sharing with clients — predictable names OK) ---

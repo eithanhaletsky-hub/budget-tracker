@@ -25,6 +25,7 @@
     lang: CFG.lang || "he",            // שפת ממשק: he | ru | en
     hideDemo: !!CFG.hideDemo,          // מסתיר את כפתור "טען נתוני הדגמה"
     compact: !!CFG.compact,            // פריסה תמציתית: 2 כרטיסים, בלי תובנות/גרפי מגמה, טבלת קטגוריות
+    tableOnly: !!CFG.tableOnly,         // מצב טבלה בלבד (רוסית/אנגלית): רק טבלת תקציב
   };
 
   /* ---------- i18n (עברית → רוסית) ---------- */
@@ -162,6 +163,9 @@
     "פירוט לפי קטגוריה — ": "Расходы по категориям — ", "פירוט לפי קטגוריה": "Расходы по категориям", "כל התנועות": "Все операции",
     'סה"כ': "Итого", "אין הוצאות בחודש זה": "Нет расходов в этом месяце", "אין תנועות בחודש זה": "Нет операций в этом месяце", "התפלגות": "Доля",
     "⤢ הגדל": "⤢ Увеличить", "הגדל למסך מלא": "На весь экран", "✕ סגור": "✕ Закрыть", "מאזן החודש (תקציב − הוצאות)": "Баланс месяца (бюджет − расходы)",
+    "תקציב חודשי כולל (₪)": "Общий месячный бюджет (₪)", "תקציב חודשי כולל": "Общий месячный бюджет",
+    "תוכנן לחודש": "План на месяц", "הוצא בפועל": "Потрачено", "נשאר החודש": "Остаток на конец месяца", "נשאר": "Остаток",
+    "כמה להוסיף להוצאה?": "Сколько добавить к расходу?", "הוסף הוצאה": "Добавить расход",
     // תוויות כלליות נוספות
     "ערוך": "Изм.",
   };
@@ -276,6 +280,9 @@
     "פירוט לפי קטגוריה — ": "Breakdown by category — ", "פירוט לפי קטגוריה": "Breakdown by category", "כל התנועות": "All transactions",
     'סה"כ': "Total", "אין הוצאות בחודש זה": "No expenses this month", "אין תנועות בחודש זה": "No transactions this month", "התפלגות": "Share",
     "⤢ הגדל": "⤢ Enlarge", "הגדל למסך מלא": "Fullscreen", "✕ סגור": "✕ Close", "מאזן החודש (תקציב − הוצאות)": "Monthly balance (budget − expenses)",
+    "תקציב חודשי כולל (₪)": "Total monthly budget (₪)", "תקציב חודשי כולל": "Total monthly budget",
+    "תוכנן לחודש": "Planned", "הוצא בפועל": "Spent", "נשאר החודש": "Left this month", "נשאר": "Left",
+    "כמה להוסיף להוצאה?": "How much to add?", "הוסף הוצאה": "Add expense",
     "ערוך": "Edit",
   };
   const DICTS = { ru: TR_RU, en: TR_EN };
@@ -470,6 +477,7 @@
     monthlyView: $("monthlyView"), monthlyGrid: $("monthlyGrid"), monthlySave: $("monthlySave"), listCard: $("listCard"),
     catTableCard: $("catTableCard"), catTableBody: $("catTableBody"), balanceLabel: $("balanceLabel"),
     chartExpand: $("chartExpand"), chartModal: $("chartModal"), chartModalBody: $("chartModalBody"), chartModalTitle: $("chartModalTitle"), chartClose: $("chartClose"),
+    btMonthlyBudget: $("btMonthlyBudget"), budgetTableBody: $("budgetTableBody"), budgetTableFoot: $("budgetTableFoot"), btAddCat: $("btAddCat"), btSummary: $("btSummary"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
 
@@ -1075,6 +1083,7 @@
     el.newCatName.value = "";
     renderCatManageList();
     fillCatSelect(el.category, currentType);
+    renderBudgetTable();
     toast("הקטגוריה נוספה 🏷️");
   });
   function deleteCat(id) {
@@ -1186,6 +1195,7 @@
     }
     if (APP.hideDemo) { const dbtn = document.getElementById("demoBtn"); if (dbtn) dbtn.style.display = "none"; }
     if (APP.compact) document.body.classList.add("compact");
+    if (APP.tableOnly) document.body.classList.add("table-only");
     if (APP.variant) document.body.classList.add("variant-" + APP.variant);
     const logoEl = document.querySelector(".brand-logo");
     const h1 = document.querySelector(".brand h1");
@@ -1497,10 +1507,55 @@
   }
   if (el.monthlySave) el.monthlySave.addEventListener("click", saveMonthly);
 
+  /* ---------- מצב טבלת תקציב (רוסית/אנגלית) ---------- */
+  const catSpent = (cat, ym) => sum(transactions.filter((t) => t.type === "expense" && t.category === cat && ymOf(t.date) === ym));
+  function setCatSpent(cat, value) {
+    const ym = currentMonth;
+    transactions = transactions.filter((t) => !(t.type === "expense" && t.category === cat && ymOf(t.date) === ym));
+    if (value > 0) transactions.push({ id: monthlyId(cat, ym), type: "expense", amount: round2(value), category: cat, description: "סכום חודשי", date: `${ym}-15`, monthly: true });
+    save();
+  }
+  function addCatSpent(cat, amt) {
+    transactions.push({ id: uid(), type: "expense", amount: round2(amt), category: cat, description: "הוצאה", date: `${currentMonth}-15` });
+    save();
+  }
+  function renderBudgetTable() {
+    if (!APP.tableOnly || !el.budgetTableBody) return;
+    const ym = currentMonth;
+    if (el.btMonthlyBudget && document.activeElement !== el.btMonthlyBudget) el.btMonthlyBudget.value = budgets[ym] || "";
+    const cats = catsOf("expense");
+    el.budgetTableBody.innerHTML = cats.map((c) => {
+      const planned = catBudgets[c.id] || 0, spent = catSpent(c.id, ym), remaining = planned - spent;
+      const custom = (customCats.expense || []).some((x) => x.id === c.id);
+      return `<tr>
+        <td class="bt-cat"><span class="bt-ico" style="background:${c.color}22">${c.icon}</span>${c.name}${custom ? `<button class="bt-del" data-delcat="${c.id}" title="מחק">🗑️</button>` : ""}</td>
+        <td><input type="number" class="bt-plan" data-cat="${c.id}" value="${planned || ""}" placeholder="0" min="0" /></td>
+        <td><div class="bt-spent-cell"><input type="number" class="bt-spent" data-cat="${c.id}" value="${spent || ""}" placeholder="0" min="0" /><button class="bt-add" data-cat="${c.id}" title="הוסף הוצאה">＋</button></div></td>
+        <td class="bt-remain ${remaining < 0 ? "neg" : "pos"}">${fmt(remaining)}</td>
+      </tr>`;
+    }).join("");
+    const totalPlanned = cats.reduce((s, c) => s + (catBudgets[c.id] || 0), 0);
+    const totalSpent = sum(transactions.filter((t) => t.type === "expense" && ymOf(t.date) === ym));
+    const planRemain = totalPlanned - totalSpent;
+    el.budgetTableFoot.innerHTML = `<tr><td class="bt-cat">סה"כ</td><td class="bt-remain">${fmt(totalPlanned)}</td><td class="bt-remain">${fmt(totalSpent)}</td><td class="bt-remain ${planRemain < 0 ? "neg" : "pos"}">${fmt(planRemain)}</td></tr>`;
+    const budget = budgets[ym] || 0, endRemain = budget - totalSpent;
+    el.btSummary.innerHTML =
+      `<div class="bt-sum-item"><span class="l">תקציב חודשי כולל</span><span class="v">${fmt(budget)}</span></div>` +
+      `<div class="bt-sum-item"><span class="l">סה"כ הוצאות</span><span class="v">${fmt(totalSpent)}</span></div>` +
+      `<div class="bt-sum-item remain"><span class="l">נשאר החודש</span><span class="v ${endRemain < 0 ? "neg" : "pos"}">${fmt(endRemain)}</span></div>`;
+    el.budgetTableBody.querySelectorAll(".bt-plan").forEach((inp) => inp.addEventListener("change", () => { const v = parseFloat(inp.value); if (v > 0) catBudgets[inp.dataset.cat] = Math.round(v); else delete catBudgets[inp.dataset.cat]; save(); renderBudgetTable(); }));
+    el.budgetTableBody.querySelectorAll(".bt-spent").forEach((inp) => inp.addEventListener("change", () => { setCatSpent(inp.dataset.cat, parseFloat(inp.value) || 0); renderBudgetTable(); }));
+    el.budgetTableBody.querySelectorAll(".bt-add").forEach((b) => b.addEventListener("click", () => { const a = parseFloat(prompt(tr("כמה להוסיף להוצאה?"))); if (a > 0) { addCatSpent(b.dataset.cat, a); renderBudgetTable(); } }));
+    el.budgetTableBody.querySelectorAll("[data-delcat]").forEach((b) => b.addEventListener("click", () => deleteCat(b.dataset.delcat)));
+    translateDom(document.getElementById("budgetTableCard"));
+  }
+  if (el.btMonthlyBudget) el.btMonthlyBudget.addEventListener("change", () => { const v = parseFloat(el.btMonthlyBudget.value); if (v > 0) budgets[currentMonth] = Math.round(v); else delete budgets[currentMonth]; save(); renderBudgetTable(); });
+  if (el.btAddCat) el.btAddCat.addEventListener("click", () => openCatModal());
+
   /* ---------- רינדור כללי ---------- */
   function renderAll() {
     renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges();
-    renderCatTableCard();
+    renderCatTableCard(); renderBudgetTable();
     if (el.reviewView && !el.reviewView.hidden) renderReview();
     if (el.monthlyView && !el.monthlyView.hidden) renderMonthlyPanel();
     translateDom(document.body);
