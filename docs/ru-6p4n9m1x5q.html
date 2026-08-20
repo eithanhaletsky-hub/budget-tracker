@@ -479,18 +479,17 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 #catTableCard { overflow-x: auto; grid-column: 1 / -1; }
 #catTableCard > h2 { font-size: 18px; }
 
-/* Excel-style category table: big, clear gridlines, header fill, zebra, data bars */
-.data-table.xls { border: 2px solid var(--border); border-radius: 6px; overflow: hidden; font-size: 15px; }
-.data-table.xls th { background: var(--surface-2); border: 1px solid var(--border); text-align: center; color: var(--text); font-weight: 800; padding: 14px 10px; font-size: 14px; letter-spacing: 0.2px; }
-.data-table.xls td { border: 1px solid var(--border); padding: 14px 12px; }
-.data-table.xls tbody tr:nth-child(even) { background: var(--surface-2); }
-.data-table.xls .xls-cat { font-weight: 700; font-size: 16px; }
-.data-table.xls .xls-cat .tc-ico { width: 32px; height: 32px; font-size: 18px; margin-inline-end: 10px; }
-.data-table.xls .xls-bar { width: 44%; min-width: 130px; }
-.data-table.xls .xls-bar-fill { display: block; height: 28px; border-radius: 6px; min-width: 6px; box-shadow: inset 0 -2px 3px rgba(0,0,0,0.14); }
-.data-table.xls .tc-num { font-size: 16.5px; }
-.data-table.xls .tbl-total { background: var(--surface-2); }
-.data-table.xls .tbl-total td { font-weight: 800; font-size: 17px; border-top: 3px solid var(--text-muted); }
+/* Vertical column chart by category (big & clear) */
+.col-chart { display: flex; align-items: flex-end; gap: 16px; overflow-x: auto; padding: 12px 6px 0; }
+.col-item { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 88px; flex: 1; }
+.col-val { font-weight: 800; font-size: 15.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.col-bar-area { height: 260px; width: 100%; display: flex; align-items: flex-end; border-bottom: 2px solid var(--border); }
+.col-bar { width: 100%; border-radius: 10px 10px 0 0; min-height: 6px; display: flex; align-items: flex-start; justify-content: center; box-shadow: inset 0 -4px 8px rgba(0,0,0,0.14); transition: height 0.5s cubic-bezier(.4,0,.2,1); }
+.col-pct { color: #fff; font-weight: 800; font-size: 14px; margin-top: 8px; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
+.col-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; }
+.col-name { font-size: 13.5px; font-weight: 700; text-align: center; line-height: 1.25; }
+.col-total { text-align: center; font-size: 17px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+.col-total b { font-size: 19px; }
 
 /* Compact layout (RU/EN): 2 cards, no insights, no trend/balance charts */
 .compact #barCard, .compact #lineCard { display: none; }
@@ -2334,31 +2333,28 @@ window.BUDGET_CONFIG = {"name": "Мой бюджет", "tagline": "Учёт до
       `<h3 class="review-h">כל התנועות</h3>${monthTxTableHTML(currentMonth)}`;
     translateDom(el.reviewPanel);
   }
-  // טבלה בסגנון אקסל עם פסי התפלגות (לגרסאות התמציתיות)
-  function categoryTableXLS(ym) {
+  // גרף עמודות אנכי לפי קטגוריה (גדול וברור)
+  function categoryColumnChart(ym) {
     const exp = transactions.filter((t) => t.type === "expense" && ymOf(t.date) === ym);
     const total = sum(exp);
     if (!total) return `<p class="tbl-empty">אין הוצאות בחודש זה</p>`;
     const byCat = {}; exp.forEach((t) => byCat[t.category] = (byCat[t.category] || 0) + t.amount);
     const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
     const max = entries[0][1];
-    const rows = entries.map(([id, v]) => {
-      const c = catById(id), pct = Math.round(v / total * 100), barW = Math.max(4, Math.round(v / max * 100));
-      return `<tr>
-        <td class="xls-cat"><span class="tc-ico" style="background:${c.color}22">${c.icon}</span>${c.name}</td>
-        <td class="xls-bar"><span class="xls-bar-fill" style="width:${barW}%;background:${c.color}"></span></td>
-        <td class="tc-num">${fmt(v)}</td>
-        <td class="tc-num">${pct}%</td>
-      </tr>`;
+    const cols = entries.map(([id, v]) => {
+      const c = catById(id), pct = Math.round(v / total * 100), h = Math.max(6, Math.round(v / max * 100));
+      return `<div class="col-item">
+        <div class="col-val">${fmt(v)}</div>
+        <div class="col-bar-area"><div class="col-bar" style="height:${h}%;background:${c.color}"><span class="col-pct">${pct}%</span></div></div>
+        <div class="col-ico" style="background:${c.color}22">${c.icon}</div>
+        <div class="col-name">${c.name}</div>
+      </div>`;
     }).join("");
-    return `<table class="data-table xls">
-      <thead><tr><th>קטגוריה</th><th>התפלגות</th><th>סכום</th><th>%</th></tr></thead>
-      <tbody>${rows}<tr class="tbl-total"><td>סה"כ</td><td></td><td class="tc-num">${fmt(total)}</td><td class="tc-num">100%</td></tr></tbody>
-    </table>`;
+    return `<div class="col-chart">${cols}</div><div class="col-total">סה"כ: <b>${fmt(total)}</b></div>`;
   }
   function renderCatTableCard() {
     if (!el.catTableBody) return;
-    el.catTableBody.innerHTML = categoryTableXLS(currentMonth);
+    el.catTableBody.innerHTML = categoryColumnChart(currentMonth);
     translateDom(el.catTableCard);
   }
   el.cardTabs.forEach((tab) => tab.addEventListener("click", () => {

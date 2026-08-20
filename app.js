@@ -1407,31 +1407,28 @@
       `<h3 class="review-h">כל התנועות</h3>${monthTxTableHTML(currentMonth)}`;
     translateDom(el.reviewPanel);
   }
-  // טבלה בסגנון אקסל עם פסי התפלגות (לגרסאות התמציתיות)
-  function categoryTableXLS(ym) {
+  // גרף עמודות אנכי לפי קטגוריה (גדול וברור)
+  function categoryColumnChart(ym) {
     const exp = transactions.filter((t) => t.type === "expense" && ymOf(t.date) === ym);
     const total = sum(exp);
     if (!total) return `<p class="tbl-empty">אין הוצאות בחודש זה</p>`;
     const byCat = {}; exp.forEach((t) => byCat[t.category] = (byCat[t.category] || 0) + t.amount);
     const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
     const max = entries[0][1];
-    const rows = entries.map(([id, v]) => {
-      const c = catById(id), pct = Math.round(v / total * 100), barW = Math.max(4, Math.round(v / max * 100));
-      return `<tr>
-        <td class="xls-cat"><span class="tc-ico" style="background:${c.color}22">${c.icon}</span>${c.name}</td>
-        <td class="xls-bar"><span class="xls-bar-fill" style="width:${barW}%;background:${c.color}"></span></td>
-        <td class="tc-num">${fmt(v)}</td>
-        <td class="tc-num">${pct}%</td>
-      </tr>`;
+    const cols = entries.map(([id, v]) => {
+      const c = catById(id), pct = Math.round(v / total * 100), h = Math.max(6, Math.round(v / max * 100));
+      return `<div class="col-item">
+        <div class="col-val">${fmt(v)}</div>
+        <div class="col-bar-area"><div class="col-bar" style="height:${h}%;background:${c.color}"><span class="col-pct">${pct}%</span></div></div>
+        <div class="col-ico" style="background:${c.color}22">${c.icon}</div>
+        <div class="col-name">${c.name}</div>
+      </div>`;
     }).join("");
-    return `<table class="data-table xls">
-      <thead><tr><th>קטגוריה</th><th>התפלגות</th><th>סכום</th><th>%</th></tr></thead>
-      <tbody>${rows}<tr class="tbl-total"><td>סה"כ</td><td></td><td class="tc-num">${fmt(total)}</td><td class="tc-num">100%</td></tr></tbody>
-    </table>`;
+    return `<div class="col-chart">${cols}</div><div class="col-total">סה"כ: <b>${fmt(total)}</b></div>`;
   }
   function renderCatTableCard() {
     if (!el.catTableBody) return;
-    el.catTableBody.innerHTML = categoryTableXLS(currentMonth);
+    el.catTableBody.innerHTML = categoryColumnChart(currentMonth);
     translateDom(el.catTableCard);
   }
   el.cardTabs.forEach((tab) => tab.addEventListener("click", () => {
