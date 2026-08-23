@@ -508,10 +508,23 @@ body.table-only #summaryBtn { display: none; }
 .budget-table tbody tr:nth-child(even) { background: var(--surface-2); }
 .bt-cat { font-weight: 700; white-space: nowrap; }
 .bt-ico { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; margin-inline-end: 10px; vertical-align: middle; font-size: 19px; }
-.budget-table input.bt-plan, .budget-table input.bt-spent { width: 100px; padding: 9px 10px; font-size: 15.5px; text-align: end; font-weight: 700; }
-.bt-spent-cell { display: flex; align-items: center; gap: 6px; }
-.bt-add { background: var(--primary); color: #fff; border: none; width: 34px; height: 34px; border-radius: 9px; font-size: 20px; font-weight: 700; cursor: pointer; flex-shrink: 0; line-height: 1; transition: filter 0.15s; }
-.bt-add:hover { filter: brightness(1.1); }
+.budget-table input.bt-plan { width: 100px; padding: 9px 10px; font-size: 15.5px; text-align: end; font-weight: 700; }
+.bt-spent-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font-family: var(--font); font-size: 15.5px; font-weight: 800; color: var(--text); cursor: pointer; font-variant-numeric: tabular-nums; transition: all 0.15s; }
+.bt-spent-btn:hover { border-color: var(--primary); background: var(--surface-2); }
+.bt-spent-plus { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--primary); color: #fff; font-size: 16px; line-height: 1; }
+
+/* Category transactions modal */
+.cattx-list { display: flex; flex-direction: column; gap: 7px; max-height: 300px; overflow-y: auto; margin: 6px 0 14px; }
+.cattx-item { display: flex; align-items: center; gap: 10px; padding: 9px 11px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; font-size: 13.5px; }
+.cattx-date { color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cattx-desc { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cattx-amt { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--expense); white-space: nowrap; }
+.cattx-del { background: none; border: none; cursor: pointer; font-size: 15px; opacity: 0.6; }
+.cattx-del:hover { opacity: 1; }
+.cattx-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--border); padding-top: 14px; }
+.cattx-add #catTxAmount { width: 110px; }
+.cattx-add #catTxDesc { flex: 1; min-width: 140px; }
+.cattx-add .btn-primary { width: auto; padding: 10px 16px; }
 .bt-remain { text-align: end; font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .bt-remain.pos { color: var(--income); }
 .bt-remain.neg { color: var(--expense); }
@@ -1003,6 +1016,22 @@ body.table-only #summaryBtn { display: none; }
     </div>
   </div>
 
+  <!-- Category transactions modal (budget table) -->
+  <div class="modal-overlay" id="catTxModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="catTxTitle">
+      <h3 id="catTxTitle">קטגוריה</h3>
+      <div class="cattx-list" id="catTxList"></div>
+      <div class="cattx-add">
+        <input type="number" id="catTxAmount" min="0" step="0.01" inputmode="decimal" placeholder="סכום" />
+        <input type="text" id="catTxDesc" maxlength="80" placeholder="תיאור (לא חובה)" />
+        <button type="button" class="btn-primary" id="catTxAdd">+ הוסף</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="catTxClose">סגור</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Fullscreen chart modal -->
   <div class="modal-overlay" id="chartModal" hidden>
     <div class="chart-modal">
@@ -1187,6 +1216,7 @@ body.table-only #summaryBtn { display: none; }
     "תקציב חודשי כולל (₪)": "Общий месячный бюджет (₪)", "תקציב חודשי כולל": "Общий месячный бюджет",
     "תוכנן לחודש": "План на месяц", "הוצא בפועל": "Потрачено", "נשאר החודש": "Остаток на конец месяца", "נשאר": "Остаток",
     "כמה להוסיף להוצאה?": "Сколько добавить к расходу?", "הוסף הוצאה": "Добавить расход",
+    "סכום": "Сумма", "+ הוסף": "+ Добавить", "אין תנועות בקטגוריה זו": "Нет операций в этой категории",
     // תוויות כלליות נוספות
     "ערוך": "Изм.",
   };
@@ -1304,6 +1334,7 @@ body.table-only #summaryBtn { display: none; }
     "תקציב חודשי כולל (₪)": "Total monthly budget (₪)", "תקציב חודשי כולל": "Total monthly budget",
     "תוכנן לחודש": "Planned", "הוצא בפועל": "Spent", "נשאר החודש": "Left this month", "נשאר": "Left",
     "כמה להוסיף להוצאה?": "How much to add?", "הוסף הוצאה": "Add expense",
+    "סכום": "Amount", "+ הוסף": "+ Add", "אין תנועות בקטגוריה זו": "No transactions in this category",
     "ערוך": "Edit",
   };
   const DICTS = { ru: TR_RU, en: TR_EN };
@@ -1499,6 +1530,7 @@ body.table-only #summaryBtn { display: none; }
     catTableCard: $("catTableCard"), catTableBody: $("catTableBody"), balanceLabel: $("balanceLabel"),
     chartExpand: $("chartExpand"), chartModal: $("chartModal"), chartModalBody: $("chartModalBody"), chartModalTitle: $("chartModalTitle"), chartClose: $("chartClose"),
     btMonthlyBudget: $("btMonthlyBudget"), budgetTableBody: $("budgetTableBody"), budgetTableFoot: $("budgetTableFoot"), btAddCat: $("btAddCat"), btSummary: $("btSummary"),
+    catTxModal: $("catTxModal"), catTxTitle: $("catTxTitle"), catTxList: $("catTxList"), catTxAmount: $("catTxAmount"), catTxDesc: $("catTxDesc"), catTxAdd: $("catTxAdd"), catTxClose: $("catTxClose"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
 
@@ -2062,7 +2094,7 @@ body.table-only #summaryBtn { display: none; }
   /* ---------- ESC סוגר מודלים ---------- */
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    [el.budgetModal, el.editModal, el.goalModal, el.contribModal, el.catModal, el.catBudgetModal, el.summaryModal, el.chartModal].forEach((m) => m && (m.hidden = true));
+    [el.budgetModal, el.editModal, el.goalModal, el.contribModal, el.catModal, el.catBudgetModal, el.summaryModal, el.chartModal, el.catTxModal].forEach((m) => m && (m.hidden = true));
   });
 
   /* ---------- קטגוריות מותאמות אישית ---------- */
@@ -2551,7 +2583,7 @@ body.table-only #summaryBtn { display: none; }
       return `<tr>
         <td class="bt-cat"><span class="bt-ico" style="background:${c.color}22">${c.icon}</span>${c.name}${custom ? `<button class="bt-del" data-delcat="${c.id}" title="מחק">🗑️</button>` : ""}</td>
         <td><input type="number" class="bt-plan" data-cat="${c.id}" value="${planned || ""}" placeholder="0" min="0" /></td>
-        <td><div class="bt-spent-cell"><input type="number" class="bt-spent" data-cat="${c.id}" value="${spent || ""}" placeholder="0" min="0" /><button class="bt-add" data-cat="${c.id}" title="הוסף הוצאה">＋</button></div></td>
+        <td><button type="button" class="bt-spent-btn" data-cat="${c.id}">${spent ? fmt(spent) : "0"} <span class="bt-spent-plus">＋</span></button></td>
         <td class="bt-remain ${remaining < 0 ? "neg" : "pos"}">${fmt(remaining)}</td>
       </tr>`;
     }).join("");
@@ -2565,13 +2597,46 @@ body.table-only #summaryBtn { display: none; }
       `<div class="bt-sum-item"><span class="l">סה"כ הוצאות</span><span class="v">${fmt(totalSpent)}</span></div>` +
       `<div class="bt-sum-item remain"><span class="l">נשאר החודש</span><span class="v ${endRemain < 0 ? "neg" : "pos"}">${fmt(endRemain)}</span></div>`;
     el.budgetTableBody.querySelectorAll(".bt-plan").forEach((inp) => inp.addEventListener("change", () => { const v = parseFloat(inp.value); if (v > 0) catBudgets[inp.dataset.cat] = Math.round(v); else delete catBudgets[inp.dataset.cat]; save(); renderBudgetTable(); }));
-    el.budgetTableBody.querySelectorAll(".bt-spent").forEach((inp) => inp.addEventListener("change", () => { setCatSpent(inp.dataset.cat, parseFloat(inp.value) || 0); renderBudgetTable(); }));
-    el.budgetTableBody.querySelectorAll(".bt-add").forEach((b) => b.addEventListener("click", () => { const a = parseFloat(prompt(tr("כמה להוסיף להוצאה?"))); if (a > 0) { addCatSpent(b.dataset.cat, a); renderBudgetTable(); } }));
+    el.budgetTableBody.querySelectorAll(".bt-spent-btn").forEach((b) => b.addEventListener("click", () => openCatTx(b.dataset.cat)));
     el.budgetTableBody.querySelectorAll("[data-delcat]").forEach((b) => b.addEventListener("click", () => deleteCat(b.dataset.delcat)));
     translateDom(document.getElementById("budgetTableCard"));
   }
   if (el.btMonthlyBudget) el.btMonthlyBudget.addEventListener("change", () => { const v = parseFloat(el.btMonthlyBudget.value); if (v > 0) budgets[currentMonth] = Math.round(v); else delete budgets[currentMonth]; save(); renderBudgetTable(); });
   if (el.btAddCat) el.btAddCat.addEventListener("click", () => openCatModal());
+
+  /* ---------- חלון תנועות של קטגוריה (הוספה עם תיאור + צפייה בכל התנועות) ---------- */
+  let catTxCat = null;
+  function openCatTx(cat) {
+    if (!el.catTxModal) return;
+    catTxCat = cat;
+    const c = catById(cat);
+    el.catTxTitle.textContent = `${c.icon} ${c.name}`;
+    el.catTxAmount.value = ""; el.catTxDesc.value = "";
+    renderCatTxList();
+    el.catTxModal.hidden = false; el.catTxAmount.focus();
+  }
+  function renderCatTxList() {
+    const ym = currentMonth;
+    const txs = transactions.filter((t) => t.type === "expense" && t.category === catTxCat && ymOf(t.date) === ym).sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+    if (!txs.length) el.catTxList.innerHTML = `<p class="tbl-empty">אין תנועות בקטגוריה זו</p>`;
+    else el.catTxList.innerHTML = txs.map((t) => `<div class="cattx-item"><span class="cattx-date">${t.date.split("-").reverse().join("/")}</span><span class="cattx-desc">${escapeHtml(t.description || "—")}</span><span class="cattx-amt">${fmt(t.amount)}</span><button class="cattx-del" data-del="${t.id}" title="מחק">🗑️</button></div>`).join("");
+    el.catTxList.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => { transactions = transactions.filter((t) => t.id !== b.dataset.del); save(); renderCatTxList(); renderBudgetTable(); }));
+    translateDom(el.catTxModal);
+  }
+  function closeCatTx() { if (el.catTxModal) el.catTxModal.hidden = true; catTxCat = null; renderBudgetTable(); }
+  function addCatTx() {
+    const a = parseFloat(el.catTxAmount.value);
+    if (!(a > 0)) { toast("נא להזין סכום חוקי"); return; }
+    const day = currentMonth === ymNow() ? String(new Date().getDate()).padStart(2, "0") : "15";
+    transactions.push({ id: uid(), type: "expense", amount: round2(a), category: catTxCat, description: el.catTxDesc.value.trim(), date: `${currentMonth}-${day}` });
+    save();
+    el.catTxAmount.value = ""; el.catTxDesc.value = "";
+    renderCatTxList(); renderBudgetTable(); el.catTxAmount.focus();
+    toast("התנועה נוספה ✅");
+  }
+  if (el.catTxAdd) el.catTxAdd.addEventListener("click", addCatTx);
+  if (el.catTxClose) el.catTxClose.addEventListener("click", closeCatTx);
+  if (el.catTxModal) el.catTxModal.addEventListener("click", (e) => { if (e.target === el.catTxModal) closeCatTx(); });
 
   /* ---------- רינדור כללי ---------- */
   function renderAll() {

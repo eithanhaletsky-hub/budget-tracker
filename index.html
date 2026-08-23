@@ -383,6 +383,22 @@
     </div>
   </div>
 
+  <!-- Category transactions modal (budget table) -->
+  <div class="modal-overlay" id="catTxModal" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="catTxTitle">
+      <h3 id="catTxTitle">קטגוריה</h3>
+      <div class="cattx-list" id="catTxList"></div>
+      <div class="cattx-add">
+        <input type="number" id="catTxAmount" min="0" step="0.01" inputmode="decimal" placeholder="סכום" />
+        <input type="text" id="catTxDesc" maxlength="80" placeholder="תיאור (לא חובה)" />
+        <button type="button" class="btn-primary" id="catTxAdd">+ הוסף</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="catTxClose">סגור</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Fullscreen chart modal -->
   <div class="modal-overlay" id="chartModal" hidden>
     <div class="chart-modal">

@@ -500,10 +500,23 @@ body.table-only #summaryBtn { display: none; }
 .budget-table tbody tr:nth-child(even) { background: var(--surface-2); }
 .bt-cat { font-weight: 700; white-space: nowrap; }
 .bt-ico { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; margin-inline-end: 10px; vertical-align: middle; font-size: 19px; }
-.budget-table input.bt-plan, .budget-table input.bt-spent { width: 100px; padding: 9px 10px; font-size: 15.5px; text-align: end; font-weight: 700; }
-.bt-spent-cell { display: flex; align-items: center; gap: 6px; }
-.bt-add { background: var(--primary); color: #fff; border: none; width: 34px; height: 34px; border-radius: 9px; font-size: 20px; font-weight: 700; cursor: pointer; flex-shrink: 0; line-height: 1; transition: filter 0.15s; }
-.bt-add:hover { filter: brightness(1.1); }
+.budget-table input.bt-plan { width: 100px; padding: 9px 10px; font-size: 15.5px; text-align: end; font-weight: 700; }
+.bt-spent-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font-family: var(--font); font-size: 15.5px; font-weight: 800; color: var(--text); cursor: pointer; font-variant-numeric: tabular-nums; transition: all 0.15s; }
+.bt-spent-btn:hover { border-color: var(--primary); background: var(--surface-2); }
+.bt-spent-plus { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--primary); color: #fff; font-size: 16px; line-height: 1; }
+
+/* Category transactions modal */
+.cattx-list { display: flex; flex-direction: column; gap: 7px; max-height: 300px; overflow-y: auto; margin: 6px 0 14px; }
+.cattx-item { display: flex; align-items: center; gap: 10px; padding: 9px 11px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; font-size: 13.5px; }
+.cattx-date { color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cattx-desc { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cattx-amt { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--expense); white-space: nowrap; }
+.cattx-del { background: none; border: none; cursor: pointer; font-size: 15px; opacity: 0.6; }
+.cattx-del:hover { opacity: 1; }
+.cattx-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--border); padding-top: 14px; }
+.cattx-add #catTxAmount { width: 110px; }
+.cattx-add #catTxDesc { flex: 1; min-width: 140px; }
+.cattx-add .btn-primary { width: auto; padding: 10px 16px; }
 .bt-remain { text-align: end; font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .bt-remain.pos { color: var(--income); }
 .bt-remain.neg { color: var(--expense); }
