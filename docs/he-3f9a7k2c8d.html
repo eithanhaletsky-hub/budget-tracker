@@ -501,9 +501,17 @@ body[data-page="planning"] #pageMain { display: none; }
 /* Smart insights removed */
 .insights-card { display: none; }
 
+/* ===== Tracking method toggle (Hebrew): table vs transactions ===== */
+.method-toggle { display: none; align-items: center; gap: 6px; background: var(--surface-2); padding: 5px 5px 5px 12px; border-radius: 12px; margin-bottom: 20px; width: fit-content; }
+body.show-table:not(.table-only) .method-toggle { display: inline-flex; }
+.method-label { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-inline-end: 4px; }
+.method-btn { border: none; background: transparent; color: var(--text-muted); font-family: var(--font); font-size: 13.5px; font-weight: 700; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+.method-btn.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+
 /* ===== Budget table visibility ===== */
 #budgetTableCard { display: none; }
-body.table-only #budgetTableCard, body.show-table #budgetTableCard { display: block; }
+body.table-only #budgetTableCard, body.method-table #budgetTableCard { display: block; }
+body.method-table .layout, body.method-table #listCard { display: none; }
 body.table-only .page-nav, body.table-only #pagePlanning, body.table-only #summaryBtn { display: none; }
 body.table-only #pageMain > *:not(#budgetTableCard) { display: none !important; }
 
@@ -682,6 +690,11 @@ body.table-only #pageMain > *:not(#budgetTableCard) { display: none !important; 
     </nav>
 
     <div class="page" id="pageMain">
+    <div class="method-toggle" id="methodToggle">
+      <span class="method-label">שיטת מעקב:</span>
+      <button type="button" class="method-btn" data-method="tx">📝 תנועות</button>
+      <button type="button" class="method-btn" data-method="table">📊 טבלה</button>
+    </div>
     <!-- Budget table (Hebrew tracking table / RU-EN table-only) -->
     <section class="card budget-table-card" id="budgetTableCard">
       <div class="bt-top">
@@ -1406,6 +1419,7 @@ window.BUDGET_CONFIG = {"showTable": true};
     theme: `${NS}.theme`,
     demoActive: `${NS}.demoActive`,
     demoBackup: `${NS}.demoBackup`,
+    method: `${NS}.method`,
   };
 
   /* ---------- קטגוריות (מובנות לפי preset) ---------- */
@@ -2271,7 +2285,12 @@ window.BUDGET_CONFIG = {"showTable": true};
     if (APP.hideDemo) { const dbtn = document.getElementById("demoBtn"); if (dbtn) dbtn.style.display = "none"; }
     if (APP.compact) document.body.classList.add("compact");
     if (APP.tableOnly) document.body.classList.add("table-only");
-    if (APP.showTable) document.body.classList.add("show-table");
+    if (APP.showTable) {
+      document.body.classList.add("show-table");
+      const m = (localStorage.getItem(K.method) === "table") ? "table" : "tx";
+      document.body.classList.add("method-" + m);
+      document.querySelectorAll(".method-btn").forEach((b) => b.classList.toggle("active", b.dataset.method === m));
+    }
     document.body.dataset.page = "main";
     if (APP.variant) document.body.classList.add("variant-" + APP.variant);
     const logoEl = document.querySelector(".brand-logo");
@@ -2627,6 +2646,16 @@ window.BUDGET_CONFIG = {"showTable": true};
   }
   if (el.btMonthlyBudget) el.btMonthlyBudget.addEventListener("change", () => { const v = parseFloat(el.btMonthlyBudget.value); if (v > 0) budgets[currentMonth] = Math.round(v); else delete budgets[currentMonth]; save(); renderBudgetTable(); });
   if (el.btAddCat) el.btAddCat.addEventListener("click", () => openCatModal());
+
+  /* ---------- בחירת שיטת מעקב (טבלה / תנועות) ---------- */
+  document.querySelectorAll(".method-btn").forEach((btn) => btn.addEventListener("click", () => {
+    const m = btn.dataset.method;
+    document.body.classList.toggle("method-table", m === "table");
+    document.body.classList.toggle("method-tx", m === "tx");
+    document.querySelectorAll(".method-btn").forEach((b) => b.classList.toggle("active", b === btn));
+    localStorage.setItem(K.method, m);
+    renderAll();
+  }));
 
   /* ---------- ניווט בין דפים (מעקב / תכנון) ---------- */
   document.querySelectorAll(".page-tab").forEach((tab) => tab.addEventListener("click", () => {

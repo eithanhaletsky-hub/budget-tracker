@@ -337,6 +337,7 @@
     theme: `${NS}.theme`,
     demoActive: `${NS}.demoActive`,
     demoBackup: `${NS}.demoBackup`,
+    method: `${NS}.method`,
   };
 
   /* ---------- קטגוריות (מובנות לפי preset) ---------- */
@@ -1202,7 +1203,12 @@
     if (APP.hideDemo) { const dbtn = document.getElementById("demoBtn"); if (dbtn) dbtn.style.display = "none"; }
     if (APP.compact) document.body.classList.add("compact");
     if (APP.tableOnly) document.body.classList.add("table-only");
-    if (APP.showTable) document.body.classList.add("show-table");
+    if (APP.showTable) {
+      document.body.classList.add("show-table");
+      const m = (localStorage.getItem(K.method) === "table") ? "table" : "tx";
+      document.body.classList.add("method-" + m);
+      document.querySelectorAll(".method-btn").forEach((b) => b.classList.toggle("active", b.dataset.method === m));
+    }
     document.body.dataset.page = "main";
     if (APP.variant) document.body.classList.add("variant-" + APP.variant);
     const logoEl = document.querySelector(".brand-logo");
@@ -1558,6 +1564,16 @@
   }
   if (el.btMonthlyBudget) el.btMonthlyBudget.addEventListener("change", () => { const v = parseFloat(el.btMonthlyBudget.value); if (v > 0) budgets[currentMonth] = Math.round(v); else delete budgets[currentMonth]; save(); renderBudgetTable(); });
   if (el.btAddCat) el.btAddCat.addEventListener("click", () => openCatModal());
+
+  /* ---------- בחירת שיטת מעקב (טבלה / תנועות) ---------- */
+  document.querySelectorAll(".method-btn").forEach((btn) => btn.addEventListener("click", () => {
+    const m = btn.dataset.method;
+    document.body.classList.toggle("method-table", m === "table");
+    document.body.classList.toggle("method-tx", m === "tx");
+    document.querySelectorAll(".method-btn").forEach((b) => b.classList.toggle("active", b === btn));
+    localStorage.setItem(K.method, m);
+    renderAll();
+  }));
 
   /* ---------- ניווט בין דפים (מעקב / תכנון) ---------- */
   document.querySelectorAll(".page-tab").forEach((tab) => tab.addEventListener("click", () => {
