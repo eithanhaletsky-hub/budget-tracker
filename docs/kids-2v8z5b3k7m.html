@@ -491,11 +491,21 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .col-total { text-align: center; font-size: 17px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
 .col-total b { font-size: 19px; }
 
-/* ===== Budget table mode (RU/EN) ===== */
+/* ===== Pages (מעקב / תכנון) ===== */
+.page-nav { display: flex; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 6px; margin-bottom: 22px; box-shadow: var(--shadow-sm); width: fit-content; }
+.page-tab { border: none; background: transparent; color: var(--text-muted); font-family: var(--font); font-size: 14.5px; font-weight: 700; padding: 9px 20px; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.page-tab.active { background: var(--grad); color: #fff; box-shadow: 0 3px 10px rgba(99,102,241,0.3); }
+body[data-page="main"] #pagePlanning { display: none; }
+body[data-page="planning"] #pageMain { display: none; }
+
+/* Smart insights removed */
+.insights-card { display: none; }
+
+/* ===== Budget table visibility ===== */
 #budgetTableCard { display: none; }
-body.table-only #budgetTableCard { display: block; }
-body.table-only main > *:not(#budgetTableCard) { display: none !important; }
-body.table-only #summaryBtn { display: none; }
+body.table-only #budgetTableCard, body.show-table #budgetTableCard { display: block; }
+body.table-only .page-nav, body.table-only #pagePlanning, body.table-only #summaryBtn { display: none; }
+body.table-only #pageMain > *:not(#budgetTableCard) { display: none !important; }
 
 .bt-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
 .bt-budget-label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 700; color: var(--text-muted); }
@@ -666,7 +676,13 @@ body.table-only #summaryBtn { display: none; }
   </header>
 
   <main class="container">
-    <!-- Budget table (RU/EN table-only mode) -->
+    <nav class="page-nav" id="pageNav">
+      <button type="button" class="page-tab active" data-page="main">📊 מעקב</button>
+      <button type="button" class="page-tab" data-page="planning">🎯 תכנון</button>
+    </nav>
+
+    <div class="page" id="pageMain">
+    <!-- Budget table (Hebrew tracking table / RU-EN table-only) -->
     <section class="card budget-table-card" id="budgetTableCard">
       <div class="bt-top">
         <label class="bt-budget-label">תקציב חודשי כולל (₪)
@@ -828,28 +844,43 @@ body.table-only #summaryBtn { display: none; }
       <div class="badges-grid" id="badgesGrid"></div>
     </section>
 
-    <!-- Bottom: transactions + goals + category budgets + recurring (compact grid) -->
-    <section class="bottom-grid">
-      <section class="card list-card" id="listCard">
-        <div class="list-header">
-          <h2>התנועות שלי</h2>
-          <div class="list-tools">
-            <input type="search" id="searchInput" placeholder="🔍 חיפוש..." aria-label="חיפוש תנועות" />
-            <select id="filterType" aria-label="סינון לפי סוג">
-              <option value="all">הכל</option>
-              <option value="income">הכנסות</option>
-              <option value="expense">הוצאות</option>
-            </select>
-            <select id="filterCategory" aria-label="סינון לפי קטגוריה">
-              <option value="all">כל הקטגוריות</option>
-            </select>
-          </div>
+    <!-- Transactions (main page) -->
+    <section class="card list-card" id="listCard">
+      <div class="list-header">
+        <h2>התנועות שלי</h2>
+        <div class="list-tools">
+          <input type="search" id="searchInput" placeholder="🔍 חיפוש..." aria-label="חיפוש תנועות" />
+          <select id="filterType" aria-label="סינון לפי סוג">
+            <option value="all">הכל</option>
+            <option value="income">הכנסות</option>
+            <option value="expense">הוצאות</option>
+          </select>
+          <select id="filterCategory" aria-label="סינון לפי קטגוריה">
+            <option value="all">כל הקטגוריות</option>
+          </select>
         </div>
-        <p class="list-hint" id="listHint" hidden>💡 לחיצה על תנועה פותחת עריכה</p>
-        <div class="tx-list" id="txList"></div>
-        <p class="empty-note" id="listEmpty">עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👈</p>
-      </section>
+      </div>
+      <p class="list-hint" id="listHint" hidden>💡 לחיצה על תנועה פותחת עריכה</p>
+      <div class="tx-list" id="txList"></div>
+      <p class="empty-note" id="listEmpty">עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👈</p>
+    </section>
 
+    <section class="card data-card">
+      <h2>ניהול נתונים</h2>
+      <p class="muted">הנתונים שלך נשמרים אך ורק בדפדפן הזה, במכשיר שלך. מומלץ לגבות מדי פעם.</p>
+      <div class="data-actions">
+        <button class="btn-ghost" id="printReport">🖨️ דוח חודשי (הדפסה/PDF)</button>
+        <button class="btn-ghost" id="exportJson">📤 ייצוא (JSON)</button>
+        <button class="btn-ghost" id="exportCsv">📊 ייצוא (CSV)</button>
+        <button class="btn-ghost" id="importBtn">📥 ייבוא מקובץ</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden />
+        <button class="btn-danger" id="clearAll">🗑️ מחיקת הכל</button>
+      </div>
+    </section>
+    </div><!-- /pageMain -->
+
+    <!-- PLANNING PAGE -->
+    <div class="page" id="pagePlanning">
       <section class="card goals-card">
         <div class="section-head">
           <h2>🎯 יעדי חיסכון</h2>
@@ -876,20 +907,7 @@ body.table-only #summaryBtn { display: none; }
         <div class="recurring-list" id="recurringList"></div>
         <p class="empty-note" id="recurringEmpty">אין תנועות קבועות. סמן "הפוך לתנועה קבועה" בעת הוספת תנועה. 🔁</p>
       </section>
-    </section>
-
-    <section class="card data-card">
-      <h2>ניהול נתונים</h2>
-      <p class="muted">הנתונים שלך נשמרים אך ורק בדפדפן הזה, במכשיר שלך. מומלץ לגבות מדי פעם.</p>
-      <div class="data-actions">
-        <button class="btn-ghost" id="printReport">🖨️ דוח חודשי (הדפסה/PDF)</button>
-        <button class="btn-ghost" id="exportJson">📤 ייצוא (JSON)</button>
-        <button class="btn-ghost" id="exportCsv">📊 ייצוא (CSV)</button>
-        <button class="btn-ghost" id="importBtn">📥 ייבוא מקובץ</button>
-        <input type="file" id="importFile" accept=".json,application/json" hidden />
-        <button class="btn-danger" id="clearAll">🗑️ מחיקת הכל</button>
-      </div>
-    </section>
+    </div>
   </main>
 
   <footer class="app-footer">
@@ -1077,6 +1095,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     hideDemo: !!CFG.hideDemo,          // מסתיר את כפתור "טען נתוני הדגמה"
     compact: !!CFG.compact,            // פריסה תמציתית: 2 כרטיסים, בלי תובנות/גרפי מגמה, טבלת קטגוריות
     tableOnly: !!CFG.tableOnly,         // מצב טבלה בלבד (רוסית/אנגלית): רק טבלת תקציב
+    showTable: !!CFG.showTable,         // הצגת טבלת המעקב גם בגרסה העברית (בעמוד הראשי)
   };
 
   /* ---------- i18n (עברית → רוסית) ---------- */
@@ -1218,6 +1237,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     "תוכנן לחודש": "План на месяц", "הוצא בפועל": "Потрачено", "נשאר החודש": "Остаток на конец месяца", "נשאר": "Остаток",
     "כמה להוסיף להוצאה?": "Сколько добавить к расходу?", "הוסף הוצאה": "Добавить расход",
     "סכום": "Сумма", "+ הוסף": "+ Добавить", "אין תנועות בקטגוריה זו": "Нет операций в этой категории",
+    "📊 מעקב": "📊 Учёт", "🎯 תכנון": "🎯 Планирование",
     // תוויות כלליות נוספות
     "ערוך": "Изм.",
   };
@@ -1336,6 +1356,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     "תוכנן לחודש": "Planned", "הוצא בפועל": "Spent", "נשאר החודש": "Left this month", "נשאר": "Left",
     "כמה להוסיף להוצאה?": "How much to add?", "הוסף הוצאה": "Add expense",
     "סכום": "Amount", "+ הוסף": "+ Add", "אין תנועות בקטגוריה זו": "No transactions in this category",
+    "📊 מעקב": "📊 Tracking", "🎯 תכנון": "🎯 Planning",
     "ערוך": "Edit",
   };
   const DICTS = { ru: TR_RU, en: TR_EN };
@@ -2250,6 +2271,8 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     if (APP.hideDemo) { const dbtn = document.getElementById("demoBtn"); if (dbtn) dbtn.style.display = "none"; }
     if (APP.compact) document.body.classList.add("compact");
     if (APP.tableOnly) document.body.classList.add("table-only");
+    if (APP.showTable) document.body.classList.add("show-table");
+    document.body.dataset.page = "main";
     if (APP.variant) document.body.classList.add("variant-" + APP.variant);
     const logoEl = document.querySelector(".brand-logo");
     const h1 = document.querySelector(".brand h1");
@@ -2574,7 +2597,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     save();
   }
   function renderBudgetTable() {
-    if (!APP.tableOnly || !el.budgetTableBody) return;
+    if ((!APP.tableOnly && !APP.showTable) || !el.budgetTableBody) return;
     const ym = currentMonth;
     if (el.btMonthlyBudget && document.activeElement !== el.btMonthlyBudget) el.btMonthlyBudget.value = budgets[ym] || "";
     const cats = catsOf("expense");
@@ -2605,6 +2628,14 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
   if (el.btMonthlyBudget) el.btMonthlyBudget.addEventListener("change", () => { const v = parseFloat(el.btMonthlyBudget.value); if (v > 0) budgets[currentMonth] = Math.round(v); else delete budgets[currentMonth]; save(); renderBudgetTable(); });
   if (el.btAddCat) el.btAddCat.addEventListener("click", () => openCatModal());
 
+  /* ---------- ניווט בין דפים (מעקב / תכנון) ---------- */
+  document.querySelectorAll(".page-tab").forEach((tab) => tab.addEventListener("click", () => {
+    document.querySelectorAll(".page-tab").forEach((t) => t.classList.toggle("active", t === tab));
+    document.body.dataset.page = tab.dataset.page;
+    renderAll();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }));
+
   /* ---------- חלון תנועות של קטגוריה (הוספה עם תיאור + צפייה בכל התנועות) ---------- */
   let catTxCat = null;
   function openCatTx(cat) {
@@ -2621,10 +2652,10 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     const txs = transactions.filter((t) => t.type === "expense" && t.category === catTxCat && ymOf(t.date) === ym).sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
     if (!txs.length) el.catTxList.innerHTML = `<p class="tbl-empty">אין תנועות בקטגוריה זו</p>`;
     else el.catTxList.innerHTML = txs.map((t) => `<div class="cattx-item"><span class="cattx-date">${t.date.split("-").reverse().join("/")}</span><span class="cattx-desc">${escapeHtml(t.description || "—")}</span><span class="cattx-amt">${fmt(t.amount)}</span><button class="cattx-del" data-del="${t.id}" title="מחק">🗑️</button></div>`).join("");
-    el.catTxList.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => { transactions = transactions.filter((t) => t.id !== b.dataset.del); save(); renderCatTxList(); renderBudgetTable(); }));
+    el.catTxList.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => { transactions = transactions.filter((t) => t.id !== b.dataset.del); save(); renderCatTxList(); renderAll(); }));
     translateDom(el.catTxModal);
   }
-  function closeCatTx() { if (el.catTxModal) el.catTxModal.hidden = true; catTxCat = null; renderBudgetTable(); }
+  function closeCatTx() { if (el.catTxModal) el.catTxModal.hidden = true; catTxCat = null; renderAll(); }
   function addCatTx() {
     const a = parseFloat(el.catTxAmount.value);
     if (!(a > 0)) { toast("נא להזין סכום חוקי"); return; }
@@ -2632,7 +2663,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     transactions.push({ id: uid(), type: "expense", amount: round2(a), category: catTxCat, description: el.catTxDesc.value.trim(), date: `${currentMonth}-${day}` });
     save();
     el.catTxAmount.value = ""; el.catTxDesc.value = "";
-    renderCatTxList(); renderBudgetTable(); el.catTxAmount.focus();
+    renderCatTxList(); renderAll(); el.catTxAmount.focus();
     toast("התנועה נוספה ✅");
   }
   if (el.catTxAdd) el.catTxAdd.addEventListener("click", addCatTx);

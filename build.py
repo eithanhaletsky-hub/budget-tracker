@@ -85,7 +85,7 @@ def build(config, out_path, pwa=False):
 CONTACT = "eithan.haletsky@gmail.com"
 
 # --- Protected editions: unguessable token filenames (installable PWAs) ---
-build(None, 'docs/he-3f9a7k2c8d.html', pwa=True)  # Hebrew (generic)
+build({"showTable": True}, 'docs/he-3f9a7k2c8d.html', pwa=True)  # Hebrew (with tracking table)
 
 build({
     "name": "הכסף שלי", "tagline": "לומדים לנהל כסף — בכיף! 🌟", "logo": "🐷",

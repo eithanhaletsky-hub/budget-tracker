@@ -26,6 +26,7 @@
     hideDemo: !!CFG.hideDemo,          // מסתיר את כפתור "טען נתוני הדגמה"
     compact: !!CFG.compact,            // פריסה תמציתית: 2 כרטיסים, בלי תובנות/גרפי מגמה, טבלת קטגוריות
     tableOnly: !!CFG.tableOnly,         // מצב טבלה בלבד (רוסית/אנגלית): רק טבלת תקציב
+    showTable: !!CFG.showTable,         // הצגת טבלת המעקב גם בגרסה העברית (בעמוד הראשי)
   };
 
   /* ---------- i18n (עברית → רוסית) ---------- */
@@ -167,6 +168,7 @@
     "תוכנן לחודש": "План на месяц", "הוצא בפועל": "Потрачено", "נשאר החודש": "Остаток на конец месяца", "נשאר": "Остаток",
     "כמה להוסיף להוצאה?": "Сколько добавить к расходу?", "הוסף הוצאה": "Добавить расход",
     "סכום": "Сумма", "+ הוסף": "+ Добавить", "אין תנועות בקטגוריה זו": "Нет операций в этой категории",
+    "📊 מעקב": "📊 Учёт", "🎯 תכנון": "🎯 Планирование",
     // תוויות כלליות נוספות
     "ערוך": "Изм.",
   };
@@ -285,6 +287,7 @@
     "תוכנן לחודש": "Planned", "הוצא בפועל": "Spent", "נשאר החודש": "Left this month", "נשאר": "Left",
     "כמה להוסיף להוצאה?": "How much to add?", "הוסף הוצאה": "Add expense",
     "סכום": "Amount", "+ הוסף": "+ Add", "אין תנועות בקטגוריה זו": "No transactions in this category",
+    "📊 מעקב": "📊 Tracking", "🎯 תכנון": "🎯 Planning",
     "ערוך": "Edit",
   };
   const DICTS = { ru: TR_RU, en: TR_EN };
@@ -1199,6 +1202,8 @@
     if (APP.hideDemo) { const dbtn = document.getElementById("demoBtn"); if (dbtn) dbtn.style.display = "none"; }
     if (APP.compact) document.body.classList.add("compact");
     if (APP.tableOnly) document.body.classList.add("table-only");
+    if (APP.showTable) document.body.classList.add("show-table");
+    document.body.dataset.page = "main";
     if (APP.variant) document.body.classList.add("variant-" + APP.variant);
     const logoEl = document.querySelector(".brand-logo");
     const h1 = document.querySelector(".brand h1");
@@ -1523,7 +1528,7 @@
     save();
   }
   function renderBudgetTable() {
-    if (!APP.tableOnly || !el.budgetTableBody) return;
+    if ((!APP.tableOnly && !APP.showTable) || !el.budgetTableBody) return;
     const ym = currentMonth;
     if (el.btMonthlyBudget && document.activeElement !== el.btMonthlyBudget) el.btMonthlyBudget.value = budgets[ym] || "";
     const cats = catsOf("expense");
@@ -1554,6 +1559,14 @@
   if (el.btMonthlyBudget) el.btMonthlyBudget.addEventListener("change", () => { const v = parseFloat(el.btMonthlyBudget.value); if (v > 0) budgets[currentMonth] = Math.round(v); else delete budgets[currentMonth]; save(); renderBudgetTable(); });
   if (el.btAddCat) el.btAddCat.addEventListener("click", () => openCatModal());
 
+  /* ---------- ניווט בין דפים (מעקב / תכנון) ---------- */
+  document.querySelectorAll(".page-tab").forEach((tab) => tab.addEventListener("click", () => {
+    document.querySelectorAll(".page-tab").forEach((t) => t.classList.toggle("active", t === tab));
+    document.body.dataset.page = tab.dataset.page;
+    renderAll();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }));
+
   /* ---------- חלון תנועות של קטגוריה (הוספה עם תיאור + צפייה בכל התנועות) ---------- */
   let catTxCat = null;
   function openCatTx(cat) {
@@ -1570,10 +1583,10 @@
     const txs = transactions.filter((t) => t.type === "expense" && t.category === catTxCat && ymOf(t.date) === ym).sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
     if (!txs.length) el.catTxList.innerHTML = `<p class="tbl-empty">אין תנועות בקטגוריה זו</p>`;
     else el.catTxList.innerHTML = txs.map((t) => `<div class="cattx-item"><span class="cattx-date">${t.date.split("-").reverse().join("/")}</span><span class="cattx-desc">${escapeHtml(t.description || "—")}</span><span class="cattx-amt">${fmt(t.amount)}</span><button class="cattx-del" data-del="${t.id}" title="מחק">🗑️</button></div>`).join("");
-    el.catTxList.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => { transactions = transactions.filter((t) => t.id !== b.dataset.del); save(); renderCatTxList(); renderBudgetTable(); }));
+    el.catTxList.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => { transactions = transactions.filter((t) => t.id !== b.dataset.del); save(); renderCatTxList(); renderAll(); }));
     translateDom(el.catTxModal);
   }
-  function closeCatTx() { if (el.catTxModal) el.catTxModal.hidden = true; catTxCat = null; renderBudgetTable(); }
+  function closeCatTx() { if (el.catTxModal) el.catTxModal.hidden = true; catTxCat = null; renderAll(); }
   function addCatTx() {
     const a = parseFloat(el.catTxAmount.value);
     if (!(a > 0)) { toast("נא להזין סכום חוקי"); return; }
@@ -1581,7 +1594,7 @@
     transactions.push({ id: uid(), type: "expense", amount: round2(a), category: catTxCat, description: el.catTxDesc.value.trim(), date: `${currentMonth}-${day}` });
     save();
     el.catTxAmount.value = ""; el.catTxDesc.value = "";
-    renderCatTxList(); renderBudgetTable(); el.catTxAmount.focus();
+    renderCatTxList(); renderAll(); el.catTxAmount.focus();
     toast("התנועה נוספה ✅");
   }
   if (el.catTxAdd) el.catTxAdd.addEventListener("click", addCatTx);

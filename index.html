@@ -33,7 +33,13 @@
   </header>
 
   <main class="container">
-    <!-- Budget table (RU/EN table-only mode) -->
+    <nav class="page-nav" id="pageNav">
+      <button type="button" class="page-tab active" data-page="main">📊 מעקב</button>
+      <button type="button" class="page-tab" data-page="planning">🎯 תכנון</button>
+    </nav>
+
+    <div class="page" id="pageMain">
+    <!-- Budget table (Hebrew tracking table / RU-EN table-only) -->
     <section class="card budget-table-card" id="budgetTableCard">
       <div class="bt-top">
         <label class="bt-budget-label">תקציב חודשי כולל (₪)
@@ -195,28 +201,43 @@
       <div class="badges-grid" id="badgesGrid"></div>
     </section>
 
-    <!-- Bottom: transactions + goals + category budgets + recurring (compact grid) -->
-    <section class="bottom-grid">
-      <section class="card list-card" id="listCard">
-        <div class="list-header">
-          <h2>התנועות שלי</h2>
-          <div class="list-tools">
-            <input type="search" id="searchInput" placeholder="🔍 חיפוש..." aria-label="חיפוש תנועות" />
-            <select id="filterType" aria-label="סינון לפי סוג">
-              <option value="all">הכל</option>
-              <option value="income">הכנסות</option>
-              <option value="expense">הוצאות</option>
-            </select>
-            <select id="filterCategory" aria-label="סינון לפי קטגוריה">
-              <option value="all">כל הקטגוריות</option>
-            </select>
-          </div>
+    <!-- Transactions (main page) -->
+    <section class="card list-card" id="listCard">
+      <div class="list-header">
+        <h2>התנועות שלי</h2>
+        <div class="list-tools">
+          <input type="search" id="searchInput" placeholder="🔍 חיפוש..." aria-label="חיפוש תנועות" />
+          <select id="filterType" aria-label="סינון לפי סוג">
+            <option value="all">הכל</option>
+            <option value="income">הכנסות</option>
+            <option value="expense">הוצאות</option>
+          </select>
+          <select id="filterCategory" aria-label="סינון לפי קטגוריה">
+            <option value="all">כל הקטגוריות</option>
+          </select>
         </div>
-        <p class="list-hint" id="listHint" hidden>💡 לחיצה על תנועה פותחת עריכה</p>
-        <div class="tx-list" id="txList"></div>
-        <p class="empty-note" id="listEmpty">עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👈</p>
-      </section>
+      </div>
+      <p class="list-hint" id="listHint" hidden>💡 לחיצה על תנועה פותחת עריכה</p>
+      <div class="tx-list" id="txList"></div>
+      <p class="empty-note" id="listEmpty">עדיין אין תנועות בחודש זה. הוסף את הראשונה! 👈</p>
+    </section>
 
+    <section class="card data-card">
+      <h2>ניהול נתונים</h2>
+      <p class="muted">הנתונים שלך נשמרים אך ורק בדפדפן הזה, במכשיר שלך. מומלץ לגבות מדי פעם.</p>
+      <div class="data-actions">
+        <button class="btn-ghost" id="printReport">🖨️ דוח חודשי (הדפסה/PDF)</button>
+        <button class="btn-ghost" id="exportJson">📤 ייצוא (JSON)</button>
+        <button class="btn-ghost" id="exportCsv">📊 ייצוא (CSV)</button>
+        <button class="btn-ghost" id="importBtn">📥 ייבוא מקובץ</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden />
+        <button class="btn-danger" id="clearAll">🗑️ מחיקת הכל</button>
+      </div>
+    </section>
+    </div><!-- /pageMain -->
+
+    <!-- PLANNING PAGE -->
+    <div class="page" id="pagePlanning">
       <section class="card goals-card">
         <div class="section-head">
           <h2>🎯 יעדי חיסכון</h2>
@@ -243,20 +264,7 @@
         <div class="recurring-list" id="recurringList"></div>
         <p class="empty-note" id="recurringEmpty">אין תנועות קבועות. סמן "הפוך לתנועה קבועה" בעת הוספת תנועה. 🔁</p>
       </section>
-    </section>
-
-    <section class="card data-card">
-      <h2>ניהול נתונים</h2>
-      <p class="muted">הנתונים שלך נשמרים אך ורק בדפדפן הזה, במכשיר שלך. מומלץ לגבות מדי פעם.</p>
-      <div class="data-actions">
-        <button class="btn-ghost" id="printReport">🖨️ דוח חודשי (הדפסה/PDF)</button>
-        <button class="btn-ghost" id="exportJson">📤 ייצוא (JSON)</button>
-        <button class="btn-ghost" id="exportCsv">📊 ייצוא (CSV)</button>
-        <button class="btn-ghost" id="importBtn">📥 ייבוא מקובץ</button>
-        <input type="file" id="importFile" accept=".json,application/json" hidden />
-        <button class="btn-danger" id="clearAll">🗑️ מחיקת הכל</button>
-      </div>
-    </section>
+    </div>
   </main>
 
   <footer class="app-footer">
