@@ -493,6 +493,29 @@ body[data-page="planning"] #pageMain { display: none; }
 /* Smart insights removed */
 .insights-card { display: none; }
 
+/* Month-over-month comparison */
+.bt-compare { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; }
+.cmp-item { flex: 1; min-width: 190px; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border); font-size: 13.5px; }
+.cmp-ico { font-size: 20px; }
+.cmp-body { min-width: 0; }
+.cmp-l { color: var(--text-muted); font-size: 12.5px; }
+.cmp-v { font-weight: 800; font-size: 15.5px; }
+.cmp-v.up { color: var(--expense); }
+.cmp-v.down { color: var(--income); }
+
+/* Monthly history table (Excel-like) */
+#historyCard { display: none; }
+body.table-only #historyCard, body.method-table #historyCard { display: block; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 15px; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; }
+.history-table th { background: var(--surface-2); border: 1px solid var(--border); padding: 12px 10px; font-size: 13.5px; font-weight: 800; text-align: center; white-space: nowrap; }
+.history-table td { border: 1px solid var(--border); padding: 11px 12px; text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.history-table td.h-month { text-align: start; font-weight: 700; }
+.history-table tbody tr:nth-child(even) { background: var(--surface-2); }
+.history-table tbody tr.is-current { outline: 2px solid var(--primary); outline-offset: -2px; }
+.history-table .h-pos { color: var(--income); font-weight: 800; }
+.history-table .h-neg { color: var(--expense); font-weight: 800; }
+.history-table tfoot td { background: var(--surface-2); font-weight: 800; border-top: 2px solid var(--text-muted); }
+
 /* ===== Tracking method toggle (Hebrew): table vs transactions ===== */
 .method-toggle { display: none; align-items: center; gap: 6px; background: var(--surface-2); padding: 5px 5px 5px 12px; border-radius: 12px; margin-bottom: 20px; width: fit-content; }
 body.show-table:not(.table-only) .method-toggle { display: inline-flex; }
@@ -505,7 +528,7 @@ body.show-table:not(.table-only) .method-toggle { display: inline-flex; }
 body.table-only #budgetTableCard, body.method-table #budgetTableCard { display: block; }
 body.method-table .layout, body.method-table #listCard { display: none; }
 body.table-only .page-nav, body.table-only #pagePlanning, body.table-only #summaryBtn { display: none; }
-body.table-only #pageMain > *:not(#budgetTableCard) { display: none !important; }
+body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display: none !important; }
 
 .bt-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
 .bt-budget-label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 700; color: var(--text-muted); }

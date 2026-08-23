@@ -67,6 +67,16 @@
         </table>
       </div>
       <div class="bt-summary" id="btSummary"></div>
+      <div class="bt-compare" id="btCompare"></div>
+    </section>
+
+    <!-- Monthly history (Excel-like) -->
+    <section class="card history-card" id="historyCard">
+      <div class="section-head">
+        <h2>📅 תוצאות לפי חודש</h2>
+        <span class="muted-inline">כל החודשים במבט אחד</span>
+      </div>
+      <div class="bt-scroll"><div id="historyBody"></div></div>
     </section>
 
     <!-- Summary cards -->
@@ -403,6 +413,7 @@
       <div class="cattx-list" id="catTxList"></div>
       <div class="cattx-add">
         <input type="number" id="catTxAmount" min="0" step="0.01" inputmode="decimal" placeholder="סכום" />
+        <input type="date" id="catTxDate" title="תאריך ההוצאה" />
         <input type="text" id="catTxDesc" maxlength="80" placeholder="תיאור (לא חובה)" />
         <button type="button" class="btn-primary" id="catTxAdd">+ הוסף</button>
       </div>

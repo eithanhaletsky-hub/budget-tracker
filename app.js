@@ -169,6 +169,10 @@
     "כמה להוסיף להוצאה?": "Сколько добавить к расходу?", "הוסף הוצאה": "Добавить расход",
     "סכום": "Сумма", "+ הוסף": "+ Добавить", "אין תנועות בקטגוריה זו": "Нет операций в этой категории",
     "📊 מעקב": "📊 Учёт", "🎯 תכנון": "🎯 Планирование",
+    "📅 תוצאות לפי חודש": "📅 Итоги по месяцам", "כל החודשים במבט אחד": "Все месяцы в одной таблице",
+    "חודש": "Месяц", "תקציב": "Бюджет", "שינוי": "Изменение", "אין נתונים עדיין": "Пока нет данных",
+    "נשאר בחודש הקודם": "Остаток за прошлый месяц", "תאריך ההוצאה": "Дата расхода",
+    "מחק קטגוריה": "Удалить категорию", "עברנו לחודש חדש — ": "Начался новый месяц — ",
     // תוויות כלליות נוספות
     "ערוך": "Изм.",
   };
@@ -288,6 +292,10 @@
     "כמה להוסיף להוצאה?": "How much to add?", "הוסף הוצאה": "Add expense",
     "סכום": "Amount", "+ הוסף": "+ Add", "אין תנועות בקטגוריה זו": "No transactions in this category",
     "📊 מעקב": "📊 Tracking", "🎯 תכנון": "🎯 Planning",
+    "📅 תוצאות לפי חודש": "📅 Results by month", "כל החודשים במבט אחד": "All months at a glance",
+    "חודש": "Month", "תקציב": "Budget", "שינוי": "Change", "אין נתונים עדיין": "No data yet",
+    "נשאר בחודש הקודם": "Left last month", "תאריך ההוצאה": "Expense date",
+    "מחק קטגוריה": "Delete category", "עברנו לחודש חדש — ": "New month started — ",
     "ערוך": "Edit",
   };
   const DICTS = { ru: TR_RU, en: TR_EN };
@@ -333,6 +341,7 @@
     recurring: `${NS}.recurring.v1`,
     recApplied: `${NS}.recApplied.v1`,
     customCats: `${NS}.customCats.v1`,
+    hiddenCats: `${NS}.hiddenCats.v1`,
     catBudgets: `${NS}.catBudgets.v1`,
     theme: `${NS}.theme`,
     demoActive: `${NS}.demoActive`,
@@ -409,7 +418,9 @@
   // קטגוריות מותאמות אישית (נטענות מ-localStorage) ממוזגות עם המובנות
   let customCats = load(K.customCats, { expense: [], income: [] });
   if (!customCats.expense) customCats = { expense: [], income: [] };
-  const catsOf = (type) => [...BUILTIN[type], ...(customCats[type] || [])];
+  let hiddenCats = load(`${CFG.storeKey || "budgethelper"}.hiddenCats.v1`, []); // קטגוריות מובנות שהוסתרו
+  if (!Array.isArray(hiddenCats)) hiddenCats = [];
+  const catsOf = (type) => [...BUILTIN[type], ...(customCats[type] || [])].filter((c) => !hiddenCats.includes(c.id));
   const allCats = () => [...catsOf("expense"), ...catsOf("income")];
   const catById = (id) => allCats().find((c) => c.id === id) || { name: "לא ידוע", icon: "❓", color: "#94a3b8" };
 
@@ -438,6 +449,7 @@
     localStorage.setItem(K.recurring, JSON.stringify(recurring));
     localStorage.setItem(K.recApplied, JSON.stringify(recApplied));
     localStorage.setItem(K.customCats, JSON.stringify(customCats));
+    localStorage.setItem(K.hiddenCats, JSON.stringify(hiddenCats));
     localStorage.setItem(K.catBudgets, JSON.stringify(catBudgets));
   }
 
@@ -484,7 +496,8 @@
     catTableCard: $("catTableCard"), catTableBody: $("catTableBody"), balanceLabel: $("balanceLabel"),
     chartExpand: $("chartExpand"), chartModal: $("chartModal"), chartModalBody: $("chartModalBody"), chartModalTitle: $("chartModalTitle"), chartClose: $("chartClose"),
     btMonthlyBudget: $("btMonthlyBudget"), budgetTableBody: $("budgetTableBody"), budgetTableFoot: $("budgetTableFoot"), btAddCat: $("btAddCat"), btSummary: $("btSummary"),
-    catTxModal: $("catTxModal"), catTxTitle: $("catTxTitle"), catTxList: $("catTxList"), catTxAmount: $("catTxAmount"), catTxDesc: $("catTxDesc"), catTxAdd: $("catTxAdd"), catTxClose: $("catTxClose"),
+    catTxModal: $("catTxModal"), catTxTitle: $("catTxTitle"), catTxList: $("catTxList"), catTxAmount: $("catTxAmount"), catTxDesc: $("catTxDesc"), catTxDate: $("catTxDate"), catTxAdd: $("catTxAdd"), catTxClose: $("catTxClose"),
+    btCompare: $("btCompare"), historyBody: $("historyBody"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
 
@@ -1097,7 +1110,9 @@
     const used = transactions.some((t) => t.category === id);
     if (used && !confirm("קטגוריה זו בשימוש בתנועות קיימות. למחוק בכל זאת? התנועות יישארו אך ללא קטגוריה מזוהה.")) return;
     else if (!used && !confirm("למחוק את הקטגוריה?")) return;
-    ["expense", "income"].forEach((type) => { customCats[type] = (customCats[type] || []).filter((c) => c.id !== id); });
+    const isCustom = ["expense", "income"].some((type) => (customCats[type] || []).some((c) => c.id === id));
+    if (isCustom) ["expense", "income"].forEach((type) => { customCats[type] = (customCats[type] || []).filter((c) => c.id !== id); });
+    else { if (!hiddenCats.includes(id)) hiddenCats.push(id); } // קטגוריה מובנית — מוסתרת
     delete catBudgets[id];
     save(); renderCatManageList(); fillCatSelect(el.category, currentType); renderAll();
     toast("הקטגוריה נמחקה");
@@ -1540,9 +1555,8 @@
     const cats = catsOf("expense");
     el.budgetTableBody.innerHTML = cats.map((c) => {
       const planned = catBudgets[c.id] || 0, spent = catSpent(c.id, ym), remaining = planned - spent;
-      const custom = (customCats.expense || []).some((x) => x.id === c.id);
       return `<tr>
-        <td class="bt-cat"><span class="bt-ico" style="background:${c.color}22">${c.icon}</span>${c.name}${custom ? `<button class="bt-del" data-delcat="${c.id}" title="מחק">🗑️</button>` : ""}</td>
+        <td class="bt-cat"><span class="bt-ico" style="background:${c.color}22">${c.icon}</span>${c.name}<button class="bt-del" data-delcat="${c.id}" title="מחק קטגוריה">🗑️</button></td>
         <td><input type="number" class="bt-plan" data-cat="${c.id}" value="${planned || ""}" placeholder="0" min="0" /></td>
         <td><button type="button" class="bt-spent-btn" data-cat="${c.id}">${spent ? fmt(spent) : "0"} <span class="bt-spent-plus">＋</span></button></td>
         <td class="bt-remain ${remaining < 0 ? "neg" : "pos"}">${fmt(remaining)}</td>
@@ -1575,6 +1589,75 @@
     renderAll();
   }));
 
+  /* ---------- השוואה לחודש קודם + היסטוריית חודשים (אקסל) ---------- */
+  function monthTotals(ym) {
+    const txs = transactions.filter((t) => ymOf(t.date) === ym);
+    const income = sum(txs.filter((t) => t.type === "income"));
+    const expense = sum(txs.filter((t) => t.type === "expense"));
+    const budget = budgets[ym] || 0;
+    const available = income > 0 ? income : budget;
+    return { ym, income, expense, budget, left: available - expense, count: txs.length };
+  }
+  function renderCompare() {
+    if (!el.btCompare) return;
+    const cur = monthTotals(currentMonth), prev = monthTotals(prevMonthOf(currentMonth));
+    if (!prev.expense && !prev.income) { el.btCompare.innerHTML = ""; return; }
+    const diff = cur.expense - prev.expense;
+    const pct = prev.expense > 0 ? Math.round(Math.abs(diff) / prev.expense * 100) : 0;
+    const up = diff > 0;
+    el.btCompare.innerHTML =
+      `<div class="cmp-item"><span class="cmp-ico">${up ? "📈" : "📉"}</span><span class="cmp-body"><span class="cmp-l">לעומת החודש הקודם</span><span class="cmp-v ${up ? "up" : "down"}">${up ? "+" : "−"}${fmt(Math.abs(diff))} (${pct}%)</span></span></div>` +
+      `<div class="cmp-item"><span class="cmp-ico">🗓️</span><span class="cmp-body"><span class="cmp-l">${monthLabel(prev.ym)}</span><span class="cmp-v">${fmt(prev.expense)}</span></span></div>` +
+      `<div class="cmp-item"><span class="cmp-ico">💰</span><span class="cmp-body"><span class="cmp-l">נשאר בחודש הקודם</span><span class="cmp-v ${prev.left < 0 ? "up" : "down"}">${fmt(prev.left)}</span></span></div>`;
+    translateDom(el.btCompare);
+  }
+  function renderHistory() {
+    if (!el.historyBody) return;
+    const months = [...new Set(transactions.map((t) => ymOf(t.date)).concat(Object.keys(budgets)))].filter(Boolean).sort();
+    if (!months.includes(ymNow())) months.push(ymNow());
+    months.sort();
+    if (!months.length) { el.historyBody.innerHTML = `<p class="tbl-empty">אין נתונים עדיין</p>`; return; }
+    const rows = months.slice().reverse().map((ym) => {
+      const t = monthTotals(ym);
+      const prev = monthTotals(prevMonthOf(ym));
+      const d = prev.expense > 0 ? Math.round((t.expense - prev.expense) / prev.expense * 100) : null;
+      const dTxt = d === null ? "—" : `${d > 0 ? "+" : d < 0 ? "−" : ""}${Math.abs(d)}%`;
+      return `<tr class="${ym === ymNow() ? "is-current" : ""}">
+        <td class="h-month">${monthLabel(ym)}</td>
+        <td>${fmt(t.budget)}</td>
+        <td>${fmt(t.income)}</td>
+        <td>${fmt(t.expense)}</td>
+        <td class="${t.left < 0 ? "h-neg" : "h-pos"}">${fmt(t.left)}</td>
+        <td class="${d > 0 ? "h-neg" : d < 0 ? "h-pos" : ""}">${dTxt}</td>
+      </tr>`;
+    }).join("");
+    const tot = months.reduce((a, ym) => { const t = monthTotals(ym); a.income += t.income; a.expense += t.expense; a.left += t.left; return a; }, { income: 0, expense: 0, left: 0 });
+    el.historyBody.innerHTML = `<table class="history-table">
+      <thead><tr><th>חודש</th><th>תקציב</th><th>הכנסות</th><th>הוצאות</th><th>נשאר</th><th>שינוי</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td class="h-month">סה"כ</td><td>—</td><td>${fmt(tot.income)}</td><td>${fmt(tot.expense)}</td><td class="${tot.left < 0 ? "h-neg" : "h-pos"}">${fmt(tot.left)}</td><td>—</td></tr></tfoot>
+    </table>`;
+    translateDom(document.getElementById("historyCard"));
+  }
+
+  /* ---------- מעבר אוטומטי לחודש חדש ---------- */
+  let lastSeenMonth = ymNow();
+  function checkMonthRollover() {
+    const now = ymNow();
+    if (now === lastSeenMonth) return;
+    const wasOnPrev = currentMonth === lastSeenMonth;
+    lastSeenMonth = now;
+    if (wasOnPrev) { // המשתמש צפה בחודש שהסתיים — מעבירים אותו לחודש החדש
+      currentMonth = now;
+      if (el.monthSelect) el.monthSelect.value = now;
+      applyRecurring();
+      renderAll();
+      toast(`עברנו לחודש חדש — ${monthLabel(now)} 🗓️`);
+    }
+  }
+  setInterval(checkMonthRollover, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) checkMonthRollover(); });
+
   /* ---------- ניווט בין דפים (מעקב / תכנון) ---------- */
   document.querySelectorAll(".page-tab").forEach((tab) => tab.addEventListener("click", () => {
     document.querySelectorAll(".page-tab").forEach((t) => t.classList.toggle("active", t === tab));
@@ -1591,6 +1674,7 @@
     const c = catById(cat);
     el.catTxTitle.textContent = `${c.icon} ${c.name}`;
     el.catTxAmount.value = ""; el.catTxDesc.value = "";
+    if (el.catTxDate) el.catTxDate.value = defaultDateForMonth();
     renderCatTxList();
     el.catTxModal.hidden = false; el.catTxAmount.focus();
   }
@@ -1603,13 +1687,21 @@
     translateDom(el.catTxModal);
   }
   function closeCatTx() { if (el.catTxModal) el.catTxModal.hidden = true; catTxCat = null; renderAll(); }
+  function defaultDateForMonth() {
+    const [y, m] = currentMonth.split("-").map(Number);
+    const dim = new Date(y, m, 0).getDate();
+    const d = currentMonth === ymNow() ? Math.min(new Date().getDate(), dim) : Math.min(15, dim);
+    return `${currentMonth}-${String(d).padStart(2, "0")}`;
+  }
   function addCatTx() {
     const a = parseFloat(el.catTxAmount.value);
     if (!(a > 0)) { toast("נא להזין סכום חוקי"); return; }
-    const day = currentMonth === ymNow() ? String(new Date().getDate()).padStart(2, "0") : "15";
-    transactions.push({ id: uid(), type: "expense", amount: round2(a), category: catTxCat, description: el.catTxDesc.value.trim(), date: `${currentMonth}-${day}` });
+    let date = (el.catTxDate && el.catTxDate.value) || defaultDateForMonth();
+    if (ymOf(date) !== currentMonth) date = defaultDateForMonth(); // שומר על החודש הנבחר
+    transactions.push({ id: uid(), type: "expense", amount: round2(a), category: catTxCat, description: el.catTxDesc.value.trim(), date });
     save();
     el.catTxAmount.value = ""; el.catTxDesc.value = "";
+    if (el.catTxDate) el.catTxDate.value = defaultDateForMonth();
     renderCatTxList(); renderAll(); el.catTxAmount.focus();
     toast("התנועה נוספה ✅");
   }
@@ -1620,7 +1712,7 @@
   /* ---------- רינדור כללי ---------- */
   function renderAll() {
     renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges();
-    renderCatTableCard(); renderBudgetTable();
+    renderCatTableCard(); renderBudgetTable(); renderCompare(); renderHistory();
     if (el.reviewView && !el.reviewView.hidden) renderReview();
     if (el.monthlyView && !el.monthlyView.hidden) renderMonthlyPanel();
     translateDom(document.body);
