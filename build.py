@@ -4,16 +4,21 @@
    כל גרסה = אותו קוד עם window.BUDGET_CONFIG שונה שמוזרק לפני האפליקציה."""
 import json, os
 
-SW_JS = """/* BudgetHelper service worker — offline + installable */
-const CACHE = 'bh-v1';
+SW_JS = """/* BudgetHelper service worker — offline + installable (always-fresh) */
+const CACHE = 'bh-v3';
 self.addEventListener('install', e => self.skipWaiting());
-self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+self.addEventListener('activate', e => e.waitUntil((async () => {
+  const keys = await caches.keys();
+  await Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)));
+  await self.clients.claim();
+})()));
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  const isNav = e.request.mode === 'navigate';
   e.respondWith(
-    fetch(e.request).then(res => {
+    fetch(e.request, isNav ? { cache: 'no-store' } : {}).then(res => {
       const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(()=>{});
+      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
       return res;
     }).catch(() => caches.match(e.request))
   );
