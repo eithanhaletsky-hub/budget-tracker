@@ -564,18 +564,29 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
 .bt-spent-plus { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--primary); color: #fff; font-size: 16px; line-height: 1; }
 
 /* Category transactions modal */
-.cattx-list { max-height: 320px; overflow-y: auto; margin: 6px 0 14px; }
-.cattx-table { width: 100%; border-collapse: collapse; font-size: 14.5px; border: 2px solid var(--border); border-radius: 6px; overflow: hidden; }
-.cattx-table th { background: var(--surface-2); border: 1px solid var(--border); padding: 10px 8px; font-size: 13px; font-weight: 800; text-align: center; color: var(--text); }
-.cattx-table td { border: 1px solid var(--border); padding: 10px 10px; }
+/* Category expenses modal — large, readable table */
+#catTxModal .modal { max-width: 820px; }
+#catTxModal h3 { font-size: 22px; }
+.cattx-list { max-height: min(56vh, 520px); overflow-y: auto; margin: 10px 0 18px; }
+.cattx-table { width: 100%; border-collapse: collapse; font-size: 17px; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; }
+.cattx-table th { background: var(--surface-2); border: 1px solid var(--border); padding: 15px 12px; font-size: 15px; font-weight: 800; text-align: center; color: var(--text); letter-spacing: 0.2px; }
+.cattx-table td { border: 1px solid var(--border); padding: 15px 14px; }
 .cattx-table tbody tr:nth-child(even) { background: var(--surface-2); }
-.cattx-table .ct-topic { font-weight: 600; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cattx-table .ct-amt { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--expense); white-space: nowrap; text-align: end; }
-.cattx-table .ct-when { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; }
-.cattx-table .ct-act { width: 34px; text-align: center; }
-.cattx-table tfoot td { background: var(--surface-2); font-weight: 800; border-top: 2px solid var(--text-muted); }
-.cattx-del { background: none; border: none; cursor: pointer; font-size: 15px; opacity: 0.6; }
+.cattx-table .ct-topic { font-weight: 700; font-size: 17px; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cattx-table .ct-amt { font-weight: 800; font-size: 18.5px; font-variant-numeric: tabular-nums; color: var(--expense); white-space: nowrap; text-align: end; }
+.cattx-table .ct-when { font-size: 17px; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; }
+.cattx-table .ct-act { width: 44px; text-align: center; }
+.cattx-table tfoot td { background: var(--surface-2); font-weight: 800; font-size: 18.5px; border-top: 3px solid var(--text-muted); padding: 16px 14px; }
+.cattx-del { background: none; border: none; cursor: pointer; font-size: 18px; opacity: 0.6; }
 .cattx-del:hover { opacity: 1; }
+#catTxModal .cattx-add input { font-size: 15.5px; padding: 12px 14px; }
+#catTxModal .cattx-add #catTxAmount { width: 130px; }
+#catTxModal .cattx-add .btn-primary { padding: 12px 22px; font-size: 15.5px; }
+@media (max-width: 700px) {
+  .cattx-table, .cattx-table .ct-topic, .cattx-table .ct-when { font-size: 15px; }
+  .cattx-table td, .cattx-table th { padding: 11px 9px; }
+  .cattx-table .ct-amt, .cattx-table tfoot td { font-size: 16px; }
+}
 .cattx-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--border); padding-top: 14px; }
 .cattx-add #catTxAmount { width: 110px; }
 .cattx-add #catTxDesc { flex: 1; min-width: 140px; }
