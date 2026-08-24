@@ -170,6 +170,8 @@
     "סכום": "Сумма", "+ הוסף": "+ Добавить", "אין תנועות בקטגוריה זו": "Нет операций в этой категории",
     "📊 מעקב": "📊 Учёт", "🎯 תכנון": "🎯 Планирование",
     "שיטת מעקב:": "Способ учёта:", "📝 תנועות": "📝 Операции", "📊 טבלה": "📊 Таблица",
+    "הצג את כל ההוצאות בקטגוריה": "Показать все расходы категории", "📊 ייצוא לאקסל (CSV)": "📊 Экспорт в Excel (CSV)", "אין תנועות לייצוא": "Нет операций для экспорта",
+    "נושא": "Тема", "כמה": "Сколько", "מתי": "Когда",
     "📅 תוצאות לפי חודש": "📅 Итоги по месяцам", "כל החודשים במבט אחד": "Все месяцы в одной таблице",
     "חודש": "Месяц", "תקציב": "Бюджет", "שינוי": "Изменение", "אין נתונים עדיין": "Пока нет данных",
     "נשאר בחודש הקודם": "Остаток за прошлый месяц", "תאריך ההוצאה": "Дата расхода",
@@ -294,6 +296,8 @@
     "סכום": "Amount", "+ הוסף": "+ Add", "אין תנועות בקטגוריה זו": "No transactions in this category",
     "📊 מעקב": "📊 Tracking", "🎯 תכנון": "🎯 Planning",
     "שיטת מעקב:": "Tracking method:", "📝 תנועות": "📝 Transactions", "📊 טבלה": "📊 Table",
+    "הצג את כל ההוצאות בקטגוריה": "Show all expenses in this category", "📊 ייצוא לאקסל (CSV)": "📊 Export to Excel (CSV)", "אין תנועות לייצוא": "No transactions to export",
+    "נושא": "Topic", "כמה": "Amount", "מתי": "When",
     "📅 תוצאות לפי חודש": "📅 Results by month", "כל החודשים במבט אחד": "All months at a glance",
     "חודש": "Month", "תקציב": "Budget", "שינוי": "Change", "אין נתונים עדיין": "No data yet",
     "נשאר בחודש הקודם": "Left last month", "תאריך ההוצאה": "Expense date",
@@ -498,7 +502,7 @@
     catTableCard: $("catTableCard"), catTableBody: $("catTableBody"), balanceLabel: $("balanceLabel"),
     chartExpand: $("chartExpand"), chartModal: $("chartModal"), chartModalBody: $("chartModalBody"), chartModalTitle: $("chartModalTitle"), chartClose: $("chartClose"),
     btMonthlyBudget: $("btMonthlyBudget"), budgetTableBody: $("budgetTableBody"), budgetTableFoot: $("budgetTableFoot"), btAddCat: $("btAddCat"), btSummary: $("btSummary"),
-    catTxModal: $("catTxModal"), catTxTitle: $("catTxTitle"), catTxList: $("catTxList"), catTxAmount: $("catTxAmount"), catTxDesc: $("catTxDesc"), catTxDate: $("catTxDate"), catTxAdd: $("catTxAdd"), catTxClose: $("catTxClose"),
+    catTxModal: $("catTxModal"), catTxTitle: $("catTxTitle"), catTxList: $("catTxList"), catTxAmount: $("catTxAmount"), catTxDesc: $("catTxDesc"), catTxDate: $("catTxDate"), catTxAdd: $("catTxAdd"), catTxClose: $("catTxClose"), catTxExport: $("catTxExport"),
     btCompare: $("btCompare"), historyBody: $("historyBody"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
@@ -1558,7 +1562,7 @@
     el.budgetTableBody.innerHTML = cats.map((c) => {
       const planned = catBudgets[c.id] || 0, spent = catSpent(c.id, ym), remaining = planned - spent;
       return `<tr>
-        <td class="bt-cat"><span class="bt-ico" style="background:${c.color}22">${c.icon}</span>${c.name}<button class="bt-del" data-delcat="${c.id}" title="מחק קטגוריה">🗑️</button></td>
+        <td class="bt-cat"><button type="button" class="bt-cat-btn" data-cat="${c.id}" title="הצג את כל ההוצאות בקטגוריה"><span class="bt-ico" style="background:${c.color}22">${c.icon}</span><span class="bt-cat-name">${c.name}</span><span class="bt-cat-hint">👁️</span></button><button class="bt-del" data-delcat="${c.id}" title="מחק קטגוריה">🗑️</button></td>
         <td><input type="number" class="bt-plan" data-cat="${c.id}" value="${planned || ""}" placeholder="0" min="0" /></td>
         <td><button type="button" class="bt-spent-btn" data-cat="${c.id}">${spent ? fmt(spent) : "0"} <span class="bt-spent-plus">＋</span></button></td>
         <td class="bt-remain ${remaining < 0 ? "neg" : "pos"}">${fmt(remaining)}</td>
@@ -1574,7 +1578,7 @@
       `<div class="bt-sum-item"><span class="l">סה"כ הוצאות</span><span class="v">${fmt(totalSpent)}</span></div>` +
       `<div class="bt-sum-item remain"><span class="l">נשאר החודש</span><span class="v ${endRemain < 0 ? "neg" : "pos"}">${fmt(endRemain)}</span></div>`;
     el.budgetTableBody.querySelectorAll(".bt-plan").forEach((inp) => inp.addEventListener("change", () => { const v = parseFloat(inp.value); if (v > 0) catBudgets[inp.dataset.cat] = Math.round(v); else delete catBudgets[inp.dataset.cat]; save(); renderBudgetTable(); }));
-    el.budgetTableBody.querySelectorAll(".bt-spent-btn").forEach((b) => b.addEventListener("click", () => openCatTx(b.dataset.cat)));
+    el.budgetTableBody.querySelectorAll(".bt-spent-btn, .bt-cat-btn").forEach((b) => b.addEventListener("click", () => openCatTx(b.dataset.cat)));
     el.budgetTableBody.querySelectorAll("[data-delcat]").forEach((b) => b.addEventListener("click", () => deleteCat(b.dataset.delcat)));
     translateDom(document.getElementById("budgetTableCard"));
   }
@@ -1684,7 +1688,22 @@
     const ym = currentMonth;
     const txs = transactions.filter((t) => t.type === "expense" && t.category === catTxCat && ymOf(t.date) === ym).sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
     if (!txs.length) el.catTxList.innerHTML = `<p class="tbl-empty">אין תנועות בקטגוריה זו</p>`;
-    else el.catTxList.innerHTML = txs.map((t) => `<div class="cattx-item"><span class="cattx-date">${t.date.split("-").reverse().join("/")}</span><span class="cattx-desc">${escapeHtml(t.description || "—")}</span><span class="cattx-amt">${fmt(t.amount)}</span><button class="cattx-del" data-del="${t.id}" title="מחק">🗑️</button></div>`).join("");
+    else {
+      const rows = txs.map((t) => {
+        const [, mo, da] = t.date.split("-");
+        return `<tr>
+          <td class="ct-topic">${escapeHtml(t.description || "—")}</td>
+          <td class="ct-amt">${fmt(t.amount)}</td>
+          <td class="ct-when">${+da}/${+mo}</td>
+          <td class="ct-act"><button class="cattx-del" data-del="${t.id}" title="מחק">🗑️</button></td>
+        </tr>`;
+      }).join("");
+      el.catTxList.innerHTML = `<table class="cattx-table">
+        <thead><tr><th>נושא</th><th>כמה</th><th>מתי</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td>סה"כ</td><td class="ct-amt">${fmt(sum(txs))}</td><td colspan="2"></td></tr></tfoot>
+      </table>`;
+    }
     el.catTxList.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => { transactions = transactions.filter((t) => t.id !== b.dataset.del); save(); renderCatTxList(); renderAll(); }));
     translateDom(el.catTxModal);
   }
@@ -1709,6 +1728,16 @@
   }
   if (el.catTxAdd) el.catTxAdd.addEventListener("click", addCatTx);
   if (el.catTxClose) el.catTxClose.addEventListener("click", closeCatTx);
+  if (el.catTxExport) el.catTxExport.addEventListener("click", () => {
+    const c = catById(catTxCat);
+    const txs = transactions.filter((t) => t.type === "expense" && t.category === catTxCat && ymOf(t.date) === currentMonth).sort((a, b) => a.date.localeCompare(b.date));
+    if (!txs.length) { toast("אין תנועות לייצוא"); return; }
+    const rows = [[tr("תאריך"), tr("קטגוריה"), tr("תיאור"), tr("סכום")]];
+    txs.forEach((t) => rows.push([t.date, tr(c.name), t.description || "", t.amount]));
+    rows.push([tr('סה"כ'), "", "", sum(txs)]);
+    downloadFile("﻿" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n"), `${c.id}-${currentMonth}.csv`, "text/csv");
+    toast("הנתונים יוצאו לקובץ CSV");
+  });
   if (el.catTxModal) el.catTxModal.addEventListener("click", (e) => { if (e.target === el.catTxModal) closeCatTx(); });
 
   /* ---------- רינדור כללי ---------- */

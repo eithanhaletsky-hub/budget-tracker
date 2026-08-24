@@ -548,6 +548,15 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
 .budget-table td { border: 1px solid var(--border); padding: 10px 12px; }
 .budget-table tbody tr:nth-child(even) { background: var(--surface-2); }
 .bt-cat { font-weight: 700; white-space: nowrap; }
+.bt-cat-btn {
+  display: inline-flex; align-items: center; gap: 4px; background: transparent; border: 1px solid transparent;
+  border-radius: 10px; padding: 6px 10px 6px 6px; font-family: var(--font); font-size: 16px; font-weight: 700;
+  color: var(--text); cursor: pointer; transition: all 0.15s;
+}
+.bt-cat-btn:hover { background: var(--surface); border-color: var(--primary); }
+.bt-cat-btn .bt-cat-name { text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+.bt-cat-hint { font-size: 13px; opacity: 0; transition: opacity 0.15s; }
+.bt-cat-btn:hover .bt-cat-hint { opacity: 0.75; }
 .bt-ico { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; margin-inline-end: 10px; vertical-align: middle; font-size: 19px; }
 .budget-table input.bt-plan { width: 100px; padding: 9px 10px; font-size: 15.5px; text-align: end; font-weight: 700; }
 .bt-spent-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font-family: var(--font); font-size: 15.5px; font-weight: 800; color: var(--text); cursor: pointer; font-variant-numeric: tabular-nums; transition: all 0.15s; }
@@ -555,11 +564,16 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
 .bt-spent-plus { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--primary); color: #fff; font-size: 16px; line-height: 1; }
 
 /* Category transactions modal */
-.cattx-list { display: flex; flex-direction: column; gap: 7px; max-height: 300px; overflow-y: auto; margin: 6px 0 14px; }
-.cattx-item { display: flex; align-items: center; gap: 10px; padding: 9px 11px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; font-size: 13.5px; }
-.cattx-date { color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.cattx-desc { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cattx-amt { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--expense); white-space: nowrap; }
+.cattx-list { max-height: 320px; overflow-y: auto; margin: 6px 0 14px; }
+.cattx-table { width: 100%; border-collapse: collapse; font-size: 14.5px; border: 2px solid var(--border); border-radius: 6px; overflow: hidden; }
+.cattx-table th { background: var(--surface-2); border: 1px solid var(--border); padding: 10px 8px; font-size: 13px; font-weight: 800; text-align: center; color: var(--text); }
+.cattx-table td { border: 1px solid var(--border); padding: 10px 10px; }
+.cattx-table tbody tr:nth-child(even) { background: var(--surface-2); }
+.cattx-table .ct-topic { font-weight: 600; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cattx-table .ct-amt { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--expense); white-space: nowrap; text-align: end; }
+.cattx-table .ct-when { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; }
+.cattx-table .ct-act { width: 34px; text-align: center; }
+.cattx-table tfoot td { background: var(--surface-2); font-weight: 800; border-top: 2px solid var(--text-muted); }
 .cattx-del { background: none; border: none; cursor: pointer; font-size: 15px; opacity: 0.6; }
 .cattx-del:hover { opacity: 1; }
 .cattx-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--border); padding-top: 14px; }
@@ -1087,6 +1101,7 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
         <button type="button" class="btn-primary" id="catTxAdd">+ הוסף</button>
       </div>
       <div class="modal-actions">
+        <button class="btn-ghost" id="catTxExport">📊 ייצוא לאקסל (CSV)</button>
         <button class="btn-ghost" id="catTxClose">סגור</button>
       </div>
     </div>
@@ -1281,6 +1296,8 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     "סכום": "Сумма", "+ הוסף": "+ Добавить", "אין תנועות בקטגוריה זו": "Нет операций в этой категории",
     "📊 מעקב": "📊 Учёт", "🎯 תכנון": "🎯 Планирование",
     "שיטת מעקב:": "Способ учёта:", "📝 תנועות": "📝 Операции", "📊 טבלה": "📊 Таблица",
+    "הצג את כל ההוצאות בקטגוריה": "Показать все расходы категории", "📊 ייצוא לאקסל (CSV)": "📊 Экспорт в Excel (CSV)", "אין תנועות לייצוא": "Нет операций для экспорта",
+    "נושא": "Тема", "כמה": "Сколько", "מתי": "Когда",
     "📅 תוצאות לפי חודש": "📅 Итоги по месяцам", "כל החודשים במבט אחד": "Все месяцы в одной таблице",
     "חודש": "Месяц", "תקציב": "Бюджет", "שינוי": "Изменение", "אין נתונים עדיין": "Пока нет данных",
     "נשאר בחודש הקודם": "Остаток за прошлый месяц", "תאריך ההוצאה": "Дата расхода",
@@ -1405,6 +1422,8 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     "סכום": "Amount", "+ הוסף": "+ Add", "אין תנועות בקטגוריה זו": "No transactions in this category",
     "📊 מעקב": "📊 Tracking", "🎯 תכנון": "🎯 Planning",
     "שיטת מעקב:": "Tracking method:", "📝 תנועות": "📝 Transactions", "📊 טבלה": "📊 Table",
+    "הצג את כל ההוצאות בקטגוריה": "Show all expenses in this category", "📊 ייצוא לאקסל (CSV)": "📊 Export to Excel (CSV)", "אין תנועות לייצוא": "No transactions to export",
+    "נושא": "Topic", "כמה": "Amount", "מתי": "When",
     "📅 תוצאות לפי חודש": "📅 Results by month", "כל החודשים במבט אחד": "All months at a glance",
     "חודש": "Month", "תקציב": "Budget", "שינוי": "Change", "אין נתונים עדיין": "No data yet",
     "נשאר בחודש הקודם": "Left last month", "תאריך ההוצאה": "Expense date",
@@ -1609,7 +1628,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     catTableCard: $("catTableCard"), catTableBody: $("catTableBody"), balanceLabel: $("balanceLabel"),
     chartExpand: $("chartExpand"), chartModal: $("chartModal"), chartModalBody: $("chartModalBody"), chartModalTitle: $("chartModalTitle"), chartClose: $("chartClose"),
     btMonthlyBudget: $("btMonthlyBudget"), budgetTableBody: $("budgetTableBody"), budgetTableFoot: $("budgetTableFoot"), btAddCat: $("btAddCat"), btSummary: $("btSummary"),
-    catTxModal: $("catTxModal"), catTxTitle: $("catTxTitle"), catTxList: $("catTxList"), catTxAmount: $("catTxAmount"), catTxDesc: $("catTxDesc"), catTxDate: $("catTxDate"), catTxAdd: $("catTxAdd"), catTxClose: $("catTxClose"),
+    catTxModal: $("catTxModal"), catTxTitle: $("catTxTitle"), catTxList: $("catTxList"), catTxAmount: $("catTxAmount"), catTxDesc: $("catTxDesc"), catTxDate: $("catTxDate"), catTxAdd: $("catTxAdd"), catTxClose: $("catTxClose"), catTxExport: $("catTxExport"),
     btCompare: $("btCompare"), historyBody: $("historyBody"),
     toast: $("toast"), confetti: $("confettiCanvas"),
   };
@@ -2669,7 +2688,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     el.budgetTableBody.innerHTML = cats.map((c) => {
       const planned = catBudgets[c.id] || 0, spent = catSpent(c.id, ym), remaining = planned - spent;
       return `<tr>
-        <td class="bt-cat"><span class="bt-ico" style="background:${c.color}22">${c.icon}</span>${c.name}<button class="bt-del" data-delcat="${c.id}" title="מחק קטגוריה">🗑️</button></td>
+        <td class="bt-cat"><button type="button" class="bt-cat-btn" data-cat="${c.id}" title="הצג את כל ההוצאות בקטגוריה"><span class="bt-ico" style="background:${c.color}22">${c.icon}</span><span class="bt-cat-name">${c.name}</span><span class="bt-cat-hint">👁️</span></button><button class="bt-del" data-delcat="${c.id}" title="מחק קטגוריה">🗑️</button></td>
         <td><input type="number" class="bt-plan" data-cat="${c.id}" value="${planned || ""}" placeholder="0" min="0" /></td>
         <td><button type="button" class="bt-spent-btn" data-cat="${c.id}">${spent ? fmt(spent) : "0"} <span class="bt-spent-plus">＋</span></button></td>
         <td class="bt-remain ${remaining < 0 ? "neg" : "pos"}">${fmt(remaining)}</td>
@@ -2685,7 +2704,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
       `<div class="bt-sum-item"><span class="l">סה"כ הוצאות</span><span class="v">${fmt(totalSpent)}</span></div>` +
       `<div class="bt-sum-item remain"><span class="l">נשאר החודש</span><span class="v ${endRemain < 0 ? "neg" : "pos"}">${fmt(endRemain)}</span></div>`;
     el.budgetTableBody.querySelectorAll(".bt-plan").forEach((inp) => inp.addEventListener("change", () => { const v = parseFloat(inp.value); if (v > 0) catBudgets[inp.dataset.cat] = Math.round(v); else delete catBudgets[inp.dataset.cat]; save(); renderBudgetTable(); }));
-    el.budgetTableBody.querySelectorAll(".bt-spent-btn").forEach((b) => b.addEventListener("click", () => openCatTx(b.dataset.cat)));
+    el.budgetTableBody.querySelectorAll(".bt-spent-btn, .bt-cat-btn").forEach((b) => b.addEventListener("click", () => openCatTx(b.dataset.cat)));
     el.budgetTableBody.querySelectorAll("[data-delcat]").forEach((b) => b.addEventListener("click", () => deleteCat(b.dataset.delcat)));
     translateDom(document.getElementById("budgetTableCard"));
   }
@@ -2795,7 +2814,22 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     const ym = currentMonth;
     const txs = transactions.filter((t) => t.type === "expense" && t.category === catTxCat && ymOf(t.date) === ym).sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
     if (!txs.length) el.catTxList.innerHTML = `<p class="tbl-empty">אין תנועות בקטגוריה זו</p>`;
-    else el.catTxList.innerHTML = txs.map((t) => `<div class="cattx-item"><span class="cattx-date">${t.date.split("-").reverse().join("/")}</span><span class="cattx-desc">${escapeHtml(t.description || "—")}</span><span class="cattx-amt">${fmt(t.amount)}</span><button class="cattx-del" data-del="${t.id}" title="מחק">🗑️</button></div>`).join("");
+    else {
+      const rows = txs.map((t) => {
+        const [, mo, da] = t.date.split("-");
+        return `<tr>
+          <td class="ct-topic">${escapeHtml(t.description || "—")}</td>
+          <td class="ct-amt">${fmt(t.amount)}</td>
+          <td class="ct-when">${+da}/${+mo}</td>
+          <td class="ct-act"><button class="cattx-del" data-del="${t.id}" title="מחק">🗑️</button></td>
+        </tr>`;
+      }).join("");
+      el.catTxList.innerHTML = `<table class="cattx-table">
+        <thead><tr><th>נושא</th><th>כמה</th><th>מתי</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td>סה"כ</td><td class="ct-amt">${fmt(sum(txs))}</td><td colspan="2"></td></tr></tfoot>
+      </table>`;
+    }
     el.catTxList.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => { transactions = transactions.filter((t) => t.id !== b.dataset.del); save(); renderCatTxList(); renderAll(); }));
     translateDom(el.catTxModal);
   }
@@ -2820,6 +2854,16 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
   }
   if (el.catTxAdd) el.catTxAdd.addEventListener("click", addCatTx);
   if (el.catTxClose) el.catTxClose.addEventListener("click", closeCatTx);
+  if (el.catTxExport) el.catTxExport.addEventListener("click", () => {
+    const c = catById(catTxCat);
+    const txs = transactions.filter((t) => t.type === "expense" && t.category === catTxCat && ymOf(t.date) === currentMonth).sort((a, b) => a.date.localeCompare(b.date));
+    if (!txs.length) { toast("אין תנועות לייצוא"); return; }
+    const rows = [[tr("תאריך"), tr("קטגוריה"), tr("תיאור"), tr("סכום")]];
+    txs.forEach((t) => rows.push([t.date, tr(c.name), t.description || "", t.amount]));
+    rows.push([tr('סה"כ'), "", "", sum(txs)]);
+    downloadFile("﻿" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n"), `${c.id}-${currentMonth}.csv`, "text/csv");
+    toast("הנתונים יוצאו לקובץ CSV");
+  });
   if (el.catTxModal) el.catTxModal.addEventListener("click", (e) => { if (e.target === el.catTxModal) closeCatTx(); });
 
   /* ---------- רינדור כללי ---------- */

@@ -540,6 +540,15 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
 .budget-table td { border: 1px solid var(--border); padding: 10px 12px; }
 .budget-table tbody tr:nth-child(even) { background: var(--surface-2); }
 .bt-cat { font-weight: 700; white-space: nowrap; }
+.bt-cat-btn {
+  display: inline-flex; align-items: center; gap: 4px; background: transparent; border: 1px solid transparent;
+  border-radius: 10px; padding: 6px 10px 6px 6px; font-family: var(--font); font-size: 16px; font-weight: 700;
+  color: var(--text); cursor: pointer; transition: all 0.15s;
+}
+.bt-cat-btn:hover { background: var(--surface); border-color: var(--primary); }
+.bt-cat-btn .bt-cat-name { text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+.bt-cat-hint { font-size: 13px; opacity: 0; transition: opacity 0.15s; }
+.bt-cat-btn:hover .bt-cat-hint { opacity: 0.75; }
 .bt-ico { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; margin-inline-end: 10px; vertical-align: middle; font-size: 19px; }
 .budget-table input.bt-plan { width: 100px; padding: 9px 10px; font-size: 15.5px; text-align: end; font-weight: 700; }
 .bt-spent-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font-family: var(--font); font-size: 15.5px; font-weight: 800; color: var(--text); cursor: pointer; font-variant-numeric: tabular-nums; transition: all 0.15s; }
@@ -547,11 +556,16 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
 .bt-spent-plus { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--primary); color: #fff; font-size: 16px; line-height: 1; }
 
 /* Category transactions modal */
-.cattx-list { display: flex; flex-direction: column; gap: 7px; max-height: 300px; overflow-y: auto; margin: 6px 0 14px; }
-.cattx-item { display: flex; align-items: center; gap: 10px; padding: 9px 11px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; font-size: 13.5px; }
-.cattx-date { color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.cattx-desc { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cattx-amt { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--expense); white-space: nowrap; }
+.cattx-list { max-height: 320px; overflow-y: auto; margin: 6px 0 14px; }
+.cattx-table { width: 100%; border-collapse: collapse; font-size: 14.5px; border: 2px solid var(--border); border-radius: 6px; overflow: hidden; }
+.cattx-table th { background: var(--surface-2); border: 1px solid var(--border); padding: 10px 8px; font-size: 13px; font-weight: 800; text-align: center; color: var(--text); }
+.cattx-table td { border: 1px solid var(--border); padding: 10px 10px; }
+.cattx-table tbody tr:nth-child(even) { background: var(--surface-2); }
+.cattx-table .ct-topic { font-weight: 600; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cattx-table .ct-amt { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--expense); white-space: nowrap; text-align: end; }
+.cattx-table .ct-when { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; }
+.cattx-table .ct-act { width: 34px; text-align: center; }
+.cattx-table tfoot td { background: var(--surface-2); font-weight: 800; border-top: 2px solid var(--text-muted); }
 .cattx-del { background: none; border: none; cursor: pointer; font-size: 15px; opacity: 0.6; }
 .cattx-del:hover { opacity: 1; }
 .cattx-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--border); padding-top: 14px; }
