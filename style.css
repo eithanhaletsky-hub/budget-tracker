@@ -614,7 +614,15 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
   animation: pop 0.16s cubic-bezier(.34,1.56,.64,1);
 }
 .cal-pop[hidden] { display: none; }
-.cal-head { text-align: center; font-size: 22px; font-weight: 800; margin-bottom: 16px; }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
+.cal-nav button {
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor: pointer;
+  width: 40px; height: 40px; border-radius: 11px; font-size: 24px; line-height: 1; font-weight: 700;
+  display: grid; place-items: center; transition: all 0.14s; flex-shrink: 0; font-family: var(--font);
+}
+.cal-nav button:hover { background: var(--surface); border-color: var(--primary); color: var(--primary); }
+.cal-nav button:active { transform: scale(0.93); }
+.cal-head { flex: 1; text-align: center; font-size: 21px; font-weight: 800; }
 .cal-week, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; }
 .cal-week { margin-bottom: 8px; }
 .cal-week span { text-align: center; font-size: 14px; font-weight: 800; color: var(--text-muted); padding: 4px 0; }

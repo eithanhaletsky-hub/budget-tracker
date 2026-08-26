@@ -172,7 +172,7 @@
     "שיטת מעקב:": "Способ учёта:", "📝 תנועות": "📝 Операции", "📊 טבלה": "📊 Таблица",
     "הצג את כל ההוצאות בקטגוריה": "Показать все расходы категории", "📊 ייצוא לאקסל (CSV)": "📊 Экспорт в Excel (CSV)", "אין תנועות לייצוא": "Нет операций для экспорта",
     "נושא": "Тема", "כמה": "Сколько", "מתי": "Когда",
-    "היום": "Сегодня", "אתמול": "Вчера", "תחילת החודש": "Начало месяца", "תאריך ההוצאה": "Дата расхода", "יום ": "",
+    "היום": "Сегодня", "אתמול": "Вчера", "תחילת החודש": "Начало месяца", "תאריך ההוצאה": "Дата расхода", "יום ": "", "התנועה נוספה ל": "Операция добавлена в ",
     "ראשון": "воскресенье", "שני": "понедельник", "שלישי": "вторник", "רביעי": "среда", "חמישי": "четверг", "שישי": "пятница", "שבת": "суббота",
     "📅 תוצאות לפי חודש": "📅 Итоги по месяцам", "כל החודשים במבט אחד": "Все месяцы в одной таблице",
     "חודש": "Месяц", "תקציב": "Бюджет", "שינוי": "Изменение", "אין נתונים עדיין": "Пока нет данных",
@@ -300,7 +300,7 @@
     "שיטת מעקב:": "Tracking method:", "📝 תנועות": "📝 Transactions", "📊 טבלה": "📊 Table",
     "הצג את כל ההוצאות בקטגוריה": "Show all expenses in this category", "📊 ייצוא לאקסל (CSV)": "📊 Export to Excel (CSV)", "אין תנועות לייצוא": "No transactions to export",
     "נושא": "Topic", "כמה": "Amount", "מתי": "When",
-    "היום": "Today", "אתמול": "Yesterday", "תחילת החודש": "Start of month", "תאריך ההוצאה": "Expense date", "יום ": "",
+    "היום": "Today", "אתמול": "Yesterday", "תחילת החודש": "Start of month", "תאריך ההוצאה": "Expense date", "יום ": "", "התנועה נוספה ל": "Transaction added to ",
     "ראשון": "Sunday", "שני": "Monday", "שלישי": "Tuesday", "רביעי": "Wednesday", "חמישי": "Thursday", "שישי": "Friday", "שבת": "Saturday",
     "📅 תוצאות לפי חודש": "📅 Results by month", "כל החודשים במבט אחד": "All months at a glance",
     "חודש": "Month", "תקציב": "Budget", "שינוי": "Change", "אין נתונים עדיין": "No data yet",
@@ -1722,17 +1722,9 @@
   const WEEKDAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
   function setupDateField() {
     if (!el.catTxDate) return;
+    calMonth = currentMonth;
     updateWeekday();
     toggleCalendar(false);
-    // כפתורי הבחירה המהירה — מסתירים אפשרויות שלא שייכות לחודש המוצג
-    const isCur = currentMonth === ymNow();
-    const yst = new Date(); yst.setDate(yst.getDate() - 1);
-    const ystYm = `${yst.getFullYear()}-${String(yst.getMonth() + 1).padStart(2, "0")}`;
-    const q = document.getElementById("catTxQuick");
-    if (q) {
-      q.querySelector('[data-quick="today"]').hidden = !isCur;
-      q.querySelector('[data-quick="yesterday"]').hidden = ystYm !== currentMonth;
-    }
   }
   function updateWeekday() {
     const w = document.getElementById("catTxWeekday");
@@ -1743,6 +1735,7 @@
     w.textContent = tr("יום ") + tr(WEEKDAYS[new Date(yy, mm - 1, dd).getDay()]);
     const btn = document.getElementById("catTxDateBtn");
     if (btn) btn.innerHTML = `<span class="dd-ico">📅</span>${dd}/${mm}/${yy}`;
+    calMonth = ymOf(v);
     renderCalendar();
   }
 
@@ -1753,25 +1746,34 @@
     ru: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
   };
   const weekStart = () => (APP.lang === "ru" ? 1 : 0); // ברוסית השבוע מתחיל בשני
+  let calMonth = null; // החודש שמוצג בלוח (יכול להיות שונה מהחודש שבטבלה)
+  function shiftCalMonth(delta) {
+    const [y, m] = (calMonth || currentMonth).split("-").map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    calMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    renderCalendar();
+  }
   function renderCalendar() {
     const head = document.getElementById("catTxCalHead");
     const week = document.getElementById("catTxCalWeek");
     const grid = document.getElementById("catTxCalGrid");
     if (!head || !week || !grid) return;
+    const ym = calMonth || currentMonth;
     const names = WEEK_SHORT[APP.lang] || WEEK_SHORT.he;
     const ws = weekStart();
-    head.textContent = tr(monthLabel(currentMonth));
+    head.textContent = tr(monthLabel(ym));
     week.innerHTML = Array.from({ length: 7 }, (_, i) => `<span>${names[(ws + i) % 7]}</span>`).join("");
-    const [y, m] = currentMonth.split("-").map(Number);
+    const [y, m] = ym.split("-").map(Number);
     const dim = new Date(y, m, 0).getDate();
     const firstDow = new Date(y, m - 1, 1).getDay();
     const blanks = (firstDow - ws + 7) % 7;
-    const sel = (el.catTxDate && el.catTxDate.value) ? +el.catTxDate.value.split("-")[2] : -1;
+    const selVal = el.catTxDate && el.catTxDate.value;
+    const sel = (selVal && ymOf(selVal) === ym) ? +selVal.split("-")[2] : -1;
     const todayStrNow = todayStr();
     let html = "";
     for (let i = 0; i < blanks; i++) html += `<span class="cal-blank"></span>`;
     for (let d = 1; d <= dim; d++) {
-      const iso = `${currentMonth}-${String(d).padStart(2, "0")}`;
+      const iso = `${ym}-${String(d).padStart(2, "0")}`;
       const cls = ["cal-day"];
       if (d === sel) cls.push("is-selected");
       if (iso === todayStrNow) cls.push("is-today");
@@ -1779,6 +1781,10 @@
     }
     grid.innerHTML = html;
   }
+  const calPrev = document.getElementById("catTxCalPrev");
+  const calNext = document.getElementById("catTxCalNext");
+  if (calPrev) calPrev.addEventListener("click", (e) => { e.stopPropagation(); shiftCalMonth(-1); });
+  if (calNext) calNext.addEventListener("click", (e) => { e.stopPropagation(); shiftCalMonth(1); });
   function toggleCalendar(show) {
     const pop = document.getElementById("catTxCal");
     if (!pop) return;
@@ -1792,7 +1798,7 @@
     e.stopPropagation();
     const b = e.target.closest("[data-day]");
     if (!b || !el.catTxDate) return;
-    el.catTxDate.value = `${currentMonth}-${String(b.dataset.day).padStart(2, "0")}`;
+    el.catTxDate.value = `${calMonth || currentMonth}-${String(b.dataset.day).padStart(2, "0")}`;
     updateWeekday();
     toggleCalendar(false);
   });
@@ -1801,26 +1807,25 @@
   if (quickWrap) quickWrap.addEventListener("click", (e) => {
     const b = e.target.closest("[data-quick]");
     if (!b || !el.catTxDate) return;
-    const [y, m] = currentMonth.split("-").map(Number);
-    const dim = new Date(y, m, 0).getDate();
-    let day;
-    if (b.dataset.quick === "today") day = Math.min(new Date().getDate(), dim);
-    else if (b.dataset.quick === "yesterday") { const d = new Date(); d.setDate(d.getDate() - 1); day = d.getDate(); }
-    else day = 1;
-    el.catTxDate.value = `${currentMonth}-${String(day).padStart(2, "0")}`;
+    const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    if (b.dataset.quick === "today") el.catTxDate.value = iso(new Date());
+    else if (b.dataset.quick === "yesterday") { const d = new Date(); d.setDate(d.getDate() - 1); el.catTxDate.value = iso(d); }
+    else el.catTxDate.value = `${calMonth || currentMonth}-01`;
     updateWeekday();
   });
   function addCatTx() {
     const a = parseFloat(el.catTxAmount.value);
     if (!(a > 0)) { toast("נא להזין סכום חוקי"); return; }
-    let date = (el.catTxDate && el.catTxDate.value) || defaultDateForMonth();
-    if (ymOf(date) !== currentMonth) date = defaultDateForMonth(); // שומר על החודש הנבחר
+    const date = (el.catTxDate && el.catTxDate.value) || defaultDateForMonth();
     transactions.push({ id: uid(), type: "expense", amount: round2(a), category: catTxCat, description: el.catTxDesc.value.trim(), date });
     save();
     el.catTxAmount.value = ""; el.catTxDesc.value = "";
-    if (el.catTxDate) { el.catTxDate.value = defaultDateForMonth(); setupDateField(); }
+    // אם התאריך שייך לחודש אחר — עוברים לאותו חודש כדי שהתנועה תהיה גלויה
+    const movedTo = ymOf(date) !== currentMonth ? ymOf(date) : null;
+    if (movedTo) { currentMonth = movedTo; if (el.monthSelect) el.monthSelect.value = movedTo; }
+    if (el.catTxDate) { calMonth = ymOf(date); updateWeekday(); }
     renderCatTxList(); renderAll(); el.catTxAmount.focus();
-    toast("התנועה נוספה ✅");
+    toast(movedTo ? `${tr("התנועה נוספה ל")}${tr(monthLabel(movedTo))} ✅` : "התנועה נוספה ✅");
   }
   if (el.catTxAdd) el.catTxAdd.addEventListener("click", addCatTx);
   if (el.catTxClose) el.catTxClose.addEventListener("click", closeCatTx);
