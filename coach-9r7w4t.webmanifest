@@ -1,11 +1,11 @@
 {
-  "name": "Мой бюджет",
-  "short_name": "Мой бюджет",
-  "start_url": "ru-6p4n9m1x5q.html",
+  "name": "התקציב שלי",
+  "short_name": "התקציב שלי",
+  "start_url": "coach-9r7w4t.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#6366f1",
+  "theme_color": "#0f766e",
   "icons": [
     {
       "src": "icons/icon-192.png",

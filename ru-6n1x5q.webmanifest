@@ -1,7 +1,7 @@
 {
-  "name": "My Budget",
-  "short_name": "My Budget",
-  "start_url": "en-8w2q5r7t3v.html",
+  "name": "Мой бюджет",
+  "short_name": "Мой бюджет",
+  "start_url": "ru-6n1x5q.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",

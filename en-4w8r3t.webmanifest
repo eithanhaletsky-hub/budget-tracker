@@ -1,7 +1,7 @@
 {
-  "name": "התקציב שלי",
-  "short_name": "התקציב שלי",
-  "start_url": "he-3f9a7k2c8d.html",
+  "name": "My Budget",
+  "short_name": "My Budget",
+  "start_url": "en-4w8r3t.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",

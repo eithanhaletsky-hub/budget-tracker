@@ -26,9 +26,9 @@ self.addEventListener('fetch', e => {
 """
 
 def build(config, out_path, pwa=False):
-    html = open('index.html', encoding='utf-8').read()
-    css = open('style.css', encoding='utf-8').read()
-    js = open('app.js', encoding='utf-8').read()
+    html = open('src/index.html', encoding='utf-8').read()
+    css = open('src/style.css', encoding='utf-8').read()
+    js = open('src/app.js', encoding='utf-8').read()
     cfg_js = ''
     if config is not None:
         cfg_js = 'window.BUDGET_CONFIG = ' + json.dumps(config, ensure_ascii=False) + ';\n'
@@ -76,8 +76,8 @@ def build(config, out_path, pwa=False):
     print(line.encode('ascii', 'replace').decode('ascii'))
 
 # =====================================================================
-# Deployment: everything published lives in docs/ (GitHub Pages source
-# = /docs). The base URL serves only a neutral placeholder, so the app
+# Deployment: sources live in src/; the published site is the repo ROOT
+# (GitHub Pages source = /). The base URL serves only a neutral placeholder, so the app
 # is reachable ONLY via the unguessable token links below. Source files
 # (index.html/style.css/app.js) stay in the repo root and are NOT served.
 # Tokens are FIXED so the secret links stay stable across rebuilds.
@@ -85,62 +85,62 @@ def build(config, out_path, pwa=False):
 CONTACT = "eithan.haletsky@gmail.com"
 
 # --- Protected editions: unguessable token filenames (installable PWAs) ---
-build({"showTable": True}, 'docs/he-3f9a7k2c8d.html', pwa=True)  # Hebrew (with tracking table)
+build({"showTable": True}, 'he-7k2p9m.html', pwa=True)  # Hebrew (with tracking table)
 
 build({
     "name": "הכסף שלי", "tagline": "לומדים לנהל כסף — בכיף! 🌟", "logo": "🐷",
     "accent": {"primary": "#ec4899", "primary2": "#f59e0b"},
     "preset": "kids", "kids": True, "variant": "kids", "storeKey": "budgetkids",
-}, 'docs/kids-2v8z5b3k7m.html', pwa=True)
+}, 'kids-2v8z5b.html', pwa=True)
 
 build({
     "name": "התקציב שלי", "tagline": "ניהול פיננסי חכם — בליווי מקצועי", "logo": "📊",
     "accent": {"primary": "#0f766e", "primary2": "#0891b2"},
     "preset": "coach", "variant": "coach", "brandedBy": "דנה כהן · מאמנת פיננסית", "storeKey": "budgetcoach",
-}, 'docs/coach-9r7w4t6y1p.html', pwa=True)
+}, 'coach-9r7w4t.html', pwa=True)
 
 build({
     "name": "Мой бюджет", "tagline": "Учёт доходов и расходов — просто и удобно", "logo": "💰",
     "lang": "ru", "tableOnly": True, "storeKey": "budgetru",
-}, 'docs/ru-6p4n9m1x5q.html', pwa=True)
+}, 'ru-6n1x5q.html', pwa=True)
 
 build({
     "name": "My Budget", "tagline": "Income & expense tracker — simple and handy", "logo": "💰",
     "lang": "en", "tableOnly": True, "storeKey": "budgeten",
-}, 'docs/en-8w2q5r7t3v.html', pwa=True)
+}, 'en-4w8r3t.html', pwa=True)
 
 # --- Locked demo editions (meant for sharing with clients — predictable names OK) ---
 build({
     "name": "התקציב שלי", "logo": "💰",
     "preset": "generic", "demoLock": True, "contact": CONTACT, "storeKey": "budgetdemo",
-}, 'docs/demo-generic.html')
+}, 'demo-generic.html')
 
 build({
     "name": "הכסף שלי", "tagline": "לומדים לנהל כסף — בכיף! 🌟", "logo": "🐷",
     "accent": {"primary": "#ec4899", "primary2": "#f59e0b"},
     "preset": "kids", "kids": True, "variant": "kids",
     "demoLock": True, "contact": CONTACT, "storeKey": "budgetdemokids",
-}, 'docs/demo-kids.html')
+}, 'demo-kids.html')
 
 build({
     "name": "התקציב שלי", "tagline": "ניהול פיננסי חכם — בליווי מקצועי", "logo": "📊",
     "accent": {"primary": "#0f766e", "primary2": "#0891b2"},
     "preset": "coach", "variant": "coach", "brandedBy": "דנה כהן · מאמנת פיננסית",
     "demoLock": True, "contact": CONTACT, "storeKey": "budgetdemocoach",
-}, 'docs/demo-coach.html')
+}, 'demo-coach.html')
 
 # --- Neutral placeholder at the site root + skip Jekyll ---
 import os
-os.makedirs('docs', exist_ok=True)
-open('docs/.nojekyll', 'w').close()
-open('docs/sw.js', 'w', encoding='utf-8').write(SW_JS)
-print('  docs/sw.js: service worker')
+
+open('.nojekyll', 'w').close()
+open('sw.js', 'w', encoding='utf-8').write(SW_JS)
+print('  sw.js: service worker')
 placeholder = ('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
                '<meta name="robots" content="noindex,nofollow">'
                '<title>Private</title><style>body{font-family:system-ui,sans-serif;'
                'display:grid;place-items:center;height:100vh;margin:0;color:#667;background:#f5f6fa}'
                '</style></head><body><p>This page is private. Access is by invitation only.</p></body></html>')
-open('docs/index.html', 'w', encoding='utf-8').write(placeholder)
-print('  docs/index.html: placeholder')
+open('index.html', 'w', encoding='utf-8').write(placeholder)
+print('  index.html: private placeholder')
 
 print('done.')
