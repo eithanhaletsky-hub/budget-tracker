@@ -413,7 +413,15 @@
       <div class="cattx-list" id="catTxList"></div>
       <div class="cattx-add">
         <input type="number" id="catTxAmount" min="0" step="0.01" inputmode="decimal" placeholder="סכום" />
-        <input type="date" id="catTxDate" title="תאריך ההוצאה" />
+        <div class="date-field">
+          <input type="date" id="catTxDate" title="תאריך ההוצאה" />
+          <span class="date-weekday" id="catTxWeekday"></span>
+          <div class="date-quick" id="catTxQuick">
+            <button type="button" data-quick="today">היום</button>
+            <button type="button" data-quick="yesterday">אתמול</button>
+            <button type="button" data-quick="first">תחילת החודש</button>
+          </div>
+        </div>
         <input type="text" id="catTxDesc" maxlength="80" placeholder="תיאור (לא חובה)" />
         <button type="button" class="btn-primary" id="catTxAdd">+ הוסף</button>
       </div>

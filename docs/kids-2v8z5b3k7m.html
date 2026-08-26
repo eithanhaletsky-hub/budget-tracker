@@ -601,7 +601,21 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
   .bt-spent-btn { font-size: 15px; padding: 9px 11px; }
   .bt-remain { font-size: 16px; }
 }
-.cattx-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--border); padding-top: 14px; }
+.cattx-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; border-top: 1px dashed var(--border); padding-top: 14px; }
+
+/* Date field: input + weekday + quick picks */
+.date-field { display: flex; flex-direction: column; gap: 6px; }
+.date-field input[type="date"] { cursor: pointer; }
+.date-field input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.7; font-size: 17px; }
+.date-weekday { font-size: 12.5px; font-weight: 700; color: var(--primary); text-align: center; min-height: 15px; }
+.date-quick { display: flex; gap: 5px; flex-wrap: wrap; }
+.date-quick button {
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted);
+  font-family: var(--font); font-size: 12.5px; font-weight: 700; padding: 6px 11px; border-radius: 8px; cursor: pointer;
+  transition: all 0.14s; white-space: nowrap;
+}
+.date-quick button:hover { background: var(--surface); border-color: var(--primary); color: var(--text); }
+.date-quick button[hidden] { display: none; }
 .cattx-add #catTxAmount { width: 110px; }
 .cattx-add #catTxDesc { flex: 1; min-width: 140px; }
 .cattx-add .btn-primary { width: auto; padding: 10px 16px; }
@@ -1126,7 +1140,15 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
       <div class="cattx-list" id="catTxList"></div>
       <div class="cattx-add">
         <input type="number" id="catTxAmount" min="0" step="0.01" inputmode="decimal" placeholder="סכום" />
-        <input type="date" id="catTxDate" title="תאריך ההוצאה" />
+        <div class="date-field">
+          <input type="date" id="catTxDate" title="תאריך ההוצאה" />
+          <span class="date-weekday" id="catTxWeekday"></span>
+          <div class="date-quick" id="catTxQuick">
+            <button type="button" data-quick="today">היום</button>
+            <button type="button" data-quick="yesterday">אתמול</button>
+            <button type="button" data-quick="first">תחילת החודש</button>
+          </div>
+        </div>
         <input type="text" id="catTxDesc" maxlength="80" placeholder="תיאור (לא חובה)" />
         <button type="button" class="btn-primary" id="catTxAdd">+ הוסף</button>
       </div>
@@ -1328,6 +1350,8 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     "שיטת מעקב:": "Способ учёта:", "📝 תנועות": "📝 Операции", "📊 טבלה": "📊 Таблица",
     "הצג את כל ההוצאות בקטגוריה": "Показать все расходы категории", "📊 ייצוא לאקסל (CSV)": "📊 Экспорт в Excel (CSV)", "אין תנועות לייצוא": "Нет операций для экспорта",
     "נושא": "Тема", "כמה": "Сколько", "מתי": "Когда",
+    "היום": "Сегодня", "אתמול": "Вчера", "תחילת החודש": "Начало месяца", "תאריך ההוצאה": "Дата расхода", "יום ": "",
+    "ראשון": "воскресенье", "שני": "понедельник", "שלישי": "вторник", "רביעי": "среда", "חמישי": "четверг", "שישי": "пятница", "שבת": "суббота",
     "📅 תוצאות לפי חודש": "📅 Итоги по месяцам", "כל החודשים במבט אחד": "Все месяцы в одной таблице",
     "חודש": "Месяц", "תקציב": "Бюджет", "שינוי": "Изменение", "אין נתונים עדיין": "Пока нет данных",
     "נשאר בחודש הקודם": "Остаток за прошлый месяц", "תאריך ההוצאה": "Дата расхода",
@@ -1454,6 +1478,8 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     "שיטת מעקב:": "Tracking method:", "📝 תנועות": "📝 Transactions", "📊 טבלה": "📊 Table",
     "הצג את כל ההוצאות בקטגוריה": "Show all expenses in this category", "📊 ייצוא לאקסל (CSV)": "📊 Export to Excel (CSV)", "אין תנועות לייצוא": "No transactions to export",
     "נושא": "Topic", "כמה": "Amount", "מתי": "When",
+    "היום": "Today", "אתמול": "Yesterday", "תחילת החודש": "Start of month", "תאריך ההוצאה": "Expense date", "יום ": "",
+    "ראשון": "Sunday", "שני": "Monday", "שלישי": "Tuesday", "רביעי": "Wednesday", "חמישי": "Thursday", "שישי": "Friday", "שבת": "Saturday",
     "📅 תוצאות לפי חודש": "📅 Results by month", "כל החודשים במבט אחד": "All months at a glance",
     "חודש": "Month", "תקציב": "Budget", "שינוי": "Change", "אין נתונים עדיין": "No data yet",
     "נשאר בחודש הקודם": "Left last month", "תאריך ההוצאה": "Expense date",
@@ -2836,7 +2862,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     const c = catById(cat);
     el.catTxTitle.textContent = `${c.icon} ${c.name}`;
     el.catTxAmount.value = ""; el.catTxDesc.value = "";
-    if (el.catTxDate) el.catTxDate.value = defaultDateForMonth();
+    if (el.catTxDate) { el.catTxDate.value = defaultDateForMonth(); setupDateField(); }
     renderCatTxList();
     el.catTxModal.hidden = false; el.catTxAmount.focus();
   }
@@ -2870,6 +2896,47 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     const d = currentMonth === ymNow() ? Math.min(new Date().getDate(), dim) : Math.min(15, dim);
     return `${currentMonth}-${String(d).padStart(2, "0")}`;
   }
+  // מגביל את בורר התאריך לחודש המוצג, ומציג את יום השבוע
+  const WEEKDAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+  function setupDateField() {
+    if (!el.catTxDate) return;
+    const [y, m] = currentMonth.split("-").map(Number);
+    const dim = new Date(y, m, 0).getDate();
+    el.catTxDate.min = `${currentMonth}-01`;
+    el.catTxDate.max = `${currentMonth}-${String(dim).padStart(2, "0")}`;
+    updateWeekday();
+    // כפתורי הבחירה המהירה — מסתירים אפשרויות שלא שייכות לחודש המוצג
+    const isCur = currentMonth === ymNow();
+    const yst = new Date(); yst.setDate(yst.getDate() - 1);
+    const ystYm = `${yst.getFullYear()}-${String(yst.getMonth() + 1).padStart(2, "0")}`;
+    const q = document.getElementById("catTxQuick");
+    if (q) {
+      q.querySelector('[data-quick="today"]').hidden = !isCur;
+      q.querySelector('[data-quick="yesterday"]').hidden = ystYm !== currentMonth;
+    }
+  }
+  function updateWeekday() {
+    const w = document.getElementById("catTxWeekday");
+    if (!w || !el.catTxDate) return;
+    const v = el.catTxDate.value;
+    if (!v) { w.textContent = ""; return; }
+    const [yy, mm, dd] = v.split("-").map(Number);
+    w.textContent = tr("יום ") + tr(WEEKDAYS[new Date(yy, mm - 1, dd).getDay()]);
+  }
+  if (el.catTxDate) el.catTxDate.addEventListener("change", updateWeekday);
+  const quickWrap = document.getElementById("catTxQuick");
+  if (quickWrap) quickWrap.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-quick]");
+    if (!b || !el.catTxDate) return;
+    const [y, m] = currentMonth.split("-").map(Number);
+    const dim = new Date(y, m, 0).getDate();
+    let day;
+    if (b.dataset.quick === "today") day = Math.min(new Date().getDate(), dim);
+    else if (b.dataset.quick === "yesterday") { const d = new Date(); d.setDate(d.getDate() - 1); day = d.getDate(); }
+    else day = 1;
+    el.catTxDate.value = `${currentMonth}-${String(day).padStart(2, "0")}`;
+    updateWeekday();
+  });
   function addCatTx() {
     const a = parseFloat(el.catTxAmount.value);
     if (!(a > 0)) { toast("נא להזין סכום חוקי"); return; }
@@ -2878,7 +2945,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     transactions.push({ id: uid(), type: "expense", amount: round2(a), category: catTxCat, description: el.catTxDesc.value.trim(), date });
     save();
     el.catTxAmount.value = ""; el.catTxDesc.value = "";
-    if (el.catTxDate) el.catTxDate.value = defaultDateForMonth();
+    if (el.catTxDate) { el.catTxDate.value = defaultDateForMonth(); setupDateField(); }
     renderCatTxList(); renderAll(); el.catTxAmount.focus();
     toast("התנועה נוספה ✅");
   }

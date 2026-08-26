@@ -172,6 +172,8 @@
     "שיטת מעקב:": "Способ учёта:", "📝 תנועות": "📝 Операции", "📊 טבלה": "📊 Таблица",
     "הצג את כל ההוצאות בקטגוריה": "Показать все расходы категории", "📊 ייצוא לאקסל (CSV)": "📊 Экспорт в Excel (CSV)", "אין תנועות לייצוא": "Нет операций для экспорта",
     "נושא": "Тема", "כמה": "Сколько", "מתי": "Когда",
+    "היום": "Сегодня", "אתמול": "Вчера", "תחילת החודש": "Начало месяца", "תאריך ההוצאה": "Дата расхода", "יום ": "",
+    "ראשון": "воскресенье", "שני": "понедельник", "שלישי": "вторник", "רביעי": "среда", "חמישי": "четверг", "שישי": "пятница", "שבת": "суббота",
     "📅 תוצאות לפי חודש": "📅 Итоги по месяцам", "כל החודשים במבט אחד": "Все месяцы в одной таблице",
     "חודש": "Месяц", "תקציב": "Бюджет", "שינוי": "Изменение", "אין נתונים עדיין": "Пока нет данных",
     "נשאר בחודש הקודם": "Остаток за прошлый месяц", "תאריך ההוצאה": "Дата расхода",
@@ -298,6 +300,8 @@
     "שיטת מעקב:": "Tracking method:", "📝 תנועות": "📝 Transactions", "📊 טבלה": "📊 Table",
     "הצג את כל ההוצאות בקטגוריה": "Show all expenses in this category", "📊 ייצוא לאקסל (CSV)": "📊 Export to Excel (CSV)", "אין תנועות לייצוא": "No transactions to export",
     "נושא": "Topic", "כמה": "Amount", "מתי": "When",
+    "היום": "Today", "אתמול": "Yesterday", "תחילת החודש": "Start of month", "תאריך ההוצאה": "Expense date", "יום ": "",
+    "ראשון": "Sunday", "שני": "Monday", "שלישי": "Tuesday", "רביעי": "Wednesday", "חמישי": "Thursday", "שישי": "Friday", "שבת": "Saturday",
     "📅 תוצאות לפי חודש": "📅 Results by month", "כל החודשים במבט אחד": "All months at a glance",
     "חודש": "Month", "תקציב": "Budget", "שינוי": "Change", "אין נתונים עדיין": "No data yet",
     "נשאר בחודש הקודם": "Left last month", "תאריך ההוצאה": "Expense date",
@@ -1680,7 +1684,7 @@
     const c = catById(cat);
     el.catTxTitle.textContent = `${c.icon} ${c.name}`;
     el.catTxAmount.value = ""; el.catTxDesc.value = "";
-    if (el.catTxDate) el.catTxDate.value = defaultDateForMonth();
+    if (el.catTxDate) { el.catTxDate.value = defaultDateForMonth(); setupDateField(); }
     renderCatTxList();
     el.catTxModal.hidden = false; el.catTxAmount.focus();
   }
@@ -1714,6 +1718,47 @@
     const d = currentMonth === ymNow() ? Math.min(new Date().getDate(), dim) : Math.min(15, dim);
     return `${currentMonth}-${String(d).padStart(2, "0")}`;
   }
+  // מגביל את בורר התאריך לחודש המוצג, ומציג את יום השבוע
+  const WEEKDAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+  function setupDateField() {
+    if (!el.catTxDate) return;
+    const [y, m] = currentMonth.split("-").map(Number);
+    const dim = new Date(y, m, 0).getDate();
+    el.catTxDate.min = `${currentMonth}-01`;
+    el.catTxDate.max = `${currentMonth}-${String(dim).padStart(2, "0")}`;
+    updateWeekday();
+    // כפתורי הבחירה המהירה — מסתירים אפשרויות שלא שייכות לחודש המוצג
+    const isCur = currentMonth === ymNow();
+    const yst = new Date(); yst.setDate(yst.getDate() - 1);
+    const ystYm = `${yst.getFullYear()}-${String(yst.getMonth() + 1).padStart(2, "0")}`;
+    const q = document.getElementById("catTxQuick");
+    if (q) {
+      q.querySelector('[data-quick="today"]').hidden = !isCur;
+      q.querySelector('[data-quick="yesterday"]').hidden = ystYm !== currentMonth;
+    }
+  }
+  function updateWeekday() {
+    const w = document.getElementById("catTxWeekday");
+    if (!w || !el.catTxDate) return;
+    const v = el.catTxDate.value;
+    if (!v) { w.textContent = ""; return; }
+    const [yy, mm, dd] = v.split("-").map(Number);
+    w.textContent = tr("יום ") + tr(WEEKDAYS[new Date(yy, mm - 1, dd).getDay()]);
+  }
+  if (el.catTxDate) el.catTxDate.addEventListener("change", updateWeekday);
+  const quickWrap = document.getElementById("catTxQuick");
+  if (quickWrap) quickWrap.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-quick]");
+    if (!b || !el.catTxDate) return;
+    const [y, m] = currentMonth.split("-").map(Number);
+    const dim = new Date(y, m, 0).getDate();
+    let day;
+    if (b.dataset.quick === "today") day = Math.min(new Date().getDate(), dim);
+    else if (b.dataset.quick === "yesterday") { const d = new Date(); d.setDate(d.getDate() - 1); day = d.getDate(); }
+    else day = 1;
+    el.catTxDate.value = `${currentMonth}-${String(day).padStart(2, "0")}`;
+    updateWeekday();
+  });
   function addCatTx() {
     const a = parseFloat(el.catTxAmount.value);
     if (!(a > 0)) { toast("נא להזין סכום חוקי"); return; }
@@ -1722,7 +1767,7 @@
     transactions.push({ id: uid(), type: "expense", amount: round2(a), category: catTxCat, description: el.catTxDesc.value.trim(), date });
     save();
     el.catTxAmount.value = ""; el.catTxDesc.value = "";
-    if (el.catTxDate) el.catTxDate.value = defaultDateForMonth();
+    if (el.catTxDate) { el.catTxDate.value = defaultDateForMonth(); setupDateField(); }
     renderCatTxList(); renderAll(); el.catTxAmount.focus();
     toast("התנועה נוספה ✅");
   }
