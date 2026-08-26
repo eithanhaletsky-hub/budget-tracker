@@ -1711,7 +1711,7 @@
     el.catTxList.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => { transactions = transactions.filter((t) => t.id !== b.dataset.del); save(); renderCatTxList(); renderAll(); }));
     translateDom(el.catTxModal);
   }
-  function closeCatTx() { if (el.catTxModal) el.catTxModal.hidden = true; catTxCat = null; renderAll(); }
+  function closeCatTx() { toggleCalendar(false); if (el.catTxModal) el.catTxModal.hidden = true; catTxCat = null; renderAll(); }
   function defaultDateForMonth() {
     const [y, m] = currentMonth.split("-").map(Number);
     const dim = new Date(y, m, 0).getDate();
@@ -1722,11 +1722,8 @@
   const WEEKDAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
   function setupDateField() {
     if (!el.catTxDate) return;
-    const [y, m] = currentMonth.split("-").map(Number);
-    const dim = new Date(y, m, 0).getDate();
-    el.catTxDate.min = `${currentMonth}-01`;
-    el.catTxDate.max = `${currentMonth}-${String(dim).padStart(2, "0")}`;
     updateWeekday();
+    toggleCalendar(false);
     // כפתורי הבחירה המהירה — מסתירים אפשרויות שלא שייכות לחודש המוצג
     const isCur = currentMonth === ymNow();
     const yst = new Date(); yst.setDate(yst.getDate() - 1);
@@ -1744,8 +1741,62 @@
     if (!v) { w.textContent = ""; return; }
     const [yy, mm, dd] = v.split("-").map(Number);
     w.textContent = tr("יום ") + tr(WEEKDAYS[new Date(yy, mm - 1, dd).getDay()]);
+    const btn = document.getElementById("catTxDateBtn");
+    if (btn) btn.innerHTML = `<span class="dd-ico">📅</span>${dd}/${mm}/${yy}`;
+    renderCalendar();
   }
-  if (el.catTxDate) el.catTxDate.addEventListener("change", updateWeekday);
+
+  /* ---------- לוח שנה מובנה (לא של הדפדפן — כדי לשלוט בגודל ובשפה) ---------- */
+  const WEEK_SHORT = {
+    he: ["א", "ב", "ג", "ד", "ה", "ו", "ש"],
+    en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    ru: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+  };
+  const weekStart = () => (APP.lang === "ru" ? 1 : 0); // ברוסית השבוע מתחיל בשני
+  function renderCalendar() {
+    const head = document.getElementById("catTxCalHead");
+    const week = document.getElementById("catTxCalWeek");
+    const grid = document.getElementById("catTxCalGrid");
+    if (!head || !week || !grid) return;
+    const names = WEEK_SHORT[APP.lang] || WEEK_SHORT.he;
+    const ws = weekStart();
+    head.textContent = tr(monthLabel(currentMonth));
+    week.innerHTML = Array.from({ length: 7 }, (_, i) => `<span>${names[(ws + i) % 7]}</span>`).join("");
+    const [y, m] = currentMonth.split("-").map(Number);
+    const dim = new Date(y, m, 0).getDate();
+    const firstDow = new Date(y, m - 1, 1).getDay();
+    const blanks = (firstDow - ws + 7) % 7;
+    const sel = (el.catTxDate && el.catTxDate.value) ? +el.catTxDate.value.split("-")[2] : -1;
+    const todayStrNow = todayStr();
+    let html = "";
+    for (let i = 0; i < blanks; i++) html += `<span class="cal-blank"></span>`;
+    for (let d = 1; d <= dim; d++) {
+      const iso = `${currentMonth}-${String(d).padStart(2, "0")}`;
+      const cls = ["cal-day"];
+      if (d === sel) cls.push("is-selected");
+      if (iso === todayStrNow) cls.push("is-today");
+      html += `<button type="button" class="${cls.join(" ")}" data-day="${d}">${d}</button>`;
+    }
+    grid.innerHTML = html;
+  }
+  function toggleCalendar(show) {
+    const pop = document.getElementById("catTxCal");
+    if (!pop) return;
+    pop.hidden = show === undefined ? !pop.hidden : !show;
+    if (!pop.hidden) renderCalendar();
+  }
+  const dateBtn = document.getElementById("catTxDateBtn");
+  if (dateBtn) dateBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleCalendar(); });
+  const calPop = document.getElementById("catTxCal");
+  if (calPop) calPop.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const b = e.target.closest("[data-day]");
+    if (!b || !el.catTxDate) return;
+    el.catTxDate.value = `${currentMonth}-${String(b.dataset.day).padStart(2, "0")}`;
+    updateWeekday();
+    toggleCalendar(false);
+  });
+  document.addEventListener("click", () => toggleCalendar(false));
   const quickWrap = document.getElementById("catTxQuick");
   if (quickWrap) quickWrap.addEventListener("click", (e) => {
     const b = e.target.closest("[data-quick]");

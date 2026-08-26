@@ -603,10 +603,38 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
 }
 .cattx-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; border-top: 1px dashed var(--border); padding-top: 14px; }
 
-/* Date field: input + weekday + quick picks */
-.date-field { display: flex; flex-direction: column; gap: 6px; }
-.date-field input[type="date"] { cursor: pointer; }
-.date-field input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.7; font-size: 17px; }
+/* Date field: display button + weekday + quick picks + custom calendar */
+.date-field { display: flex; flex-direction: column; gap: 6px; position: relative; }
+.date-display {
+  display: inline-flex; align-items: center; gap: 8px; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer;
+  font-family: var(--font); font-size: 17px; font-weight: 700; color: var(--text);
+  font-variant-numeric: tabular-nums; transition: all 0.15s; min-width: 175px; justify-content: center;
+}
+.date-display:hover { border-color: var(--primary); background: var(--surface); }
+.date-display .dd-ico { font-size: 18px; }
+
+/* Custom calendar popup — big and fully localized */
+.cal-pop {
+  position: absolute; bottom: calc(100% + 10px); inset-inline-start: 0; z-index: 30;
+  background: var(--surface); border: 2px solid var(--border); border-radius: 16px;
+  box-shadow: var(--shadow-lg); padding: 22px; width: 430px; max-width: 92vw; box-sizing: border-box;
+  animation: pop 0.16s cubic-bezier(.34,1.56,.64,1);
+}
+.cal-pop[hidden] { display: none; }
+.cal-head { text-align: center; font-size: 22px; font-weight: 800; margin-bottom: 16px; }
+.cal-week, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; }
+.cal-week { margin-bottom: 8px; }
+.cal-week span { text-align: center; font-size: 14px; font-weight: 800; color: var(--text-muted); padding: 4px 0; }
+.cal-day {
+  aspect-ratio: 1; display: grid; place-items: center; border: 1px solid transparent; border-radius: 12px;
+  background: var(--surface-2); font-family: var(--font); font-size: 19px; font-weight: 700; color: var(--text);
+  cursor: pointer; transition: all 0.12s; padding: 0;
+}
+.cal-day:hover { background: var(--surface); border-color: var(--primary); transform: scale(1.06); }
+.cal-day.is-today { border-color: var(--primary); color: var(--primary); }
+.cal-day.is-selected { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 3px 10px rgba(99,102,241,0.4); }
+.cal-blank { visibility: hidden; }
 .date-weekday { font-size: 12.5px; font-weight: 700; color: var(--primary); text-align: center; min-height: 15px; }
 .date-quick { display: flex; gap: 5px; flex-wrap: wrap; }
 .date-quick button {
@@ -1136,12 +1164,18 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
       <div class="cattx-add">
         <input type="number" id="catTxAmount" min="0" step="0.01" inputmode="decimal" placeholder="סכום" />
         <div class="date-field">
-          <input type="date" id="catTxDate" title="תאריך ההוצאה" />
+          <input type="hidden" id="catTxDate" />
+          <button type="button" class="date-display" id="catTxDateBtn" title="תאריך ההוצאה"></button>
           <span class="date-weekday" id="catTxWeekday"></span>
           <div class="date-quick" id="catTxQuick">
             <button type="button" data-quick="today">היום</button>
             <button type="button" data-quick="yesterday">אתמול</button>
             <button type="button" data-quick="first">תחילת החודש</button>
+          </div>
+          <div class="cal-pop" id="catTxCal" hidden>
+            <div class="cal-head" id="catTxCalHead"></div>
+            <div class="cal-week" id="catTxCalWeek"></div>
+            <div class="cal-grid" id="catTxCalGrid"></div>
           </div>
         </div>
         <input type="text" id="catTxDesc" maxlength="80" placeholder="תיאור (לא חובה)" />
@@ -2884,7 +2918,7 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     el.catTxList.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => { transactions = transactions.filter((t) => t.id !== b.dataset.del); save(); renderCatTxList(); renderAll(); }));
     translateDom(el.catTxModal);
   }
-  function closeCatTx() { if (el.catTxModal) el.catTxModal.hidden = true; catTxCat = null; renderAll(); }
+  function closeCatTx() { toggleCalendar(false); if (el.catTxModal) el.catTxModal.hidden = true; catTxCat = null; renderAll(); }
   function defaultDateForMonth() {
     const [y, m] = currentMonth.split("-").map(Number);
     const dim = new Date(y, m, 0).getDate();
@@ -2895,11 +2929,8 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
   const WEEKDAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
   function setupDateField() {
     if (!el.catTxDate) return;
-    const [y, m] = currentMonth.split("-").map(Number);
-    const dim = new Date(y, m, 0).getDate();
-    el.catTxDate.min = `${currentMonth}-01`;
-    el.catTxDate.max = `${currentMonth}-${String(dim).padStart(2, "0")}`;
     updateWeekday();
+    toggleCalendar(false);
     // כפתורי הבחירה המהירה — מסתירים אפשרויות שלא שייכות לחודש המוצג
     const isCur = currentMonth === ymNow();
     const yst = new Date(); yst.setDate(yst.getDate() - 1);
@@ -2917,8 +2948,62 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     if (!v) { w.textContent = ""; return; }
     const [yy, mm, dd] = v.split("-").map(Number);
     w.textContent = tr("יום ") + tr(WEEKDAYS[new Date(yy, mm - 1, dd).getDay()]);
+    const btn = document.getElementById("catTxDateBtn");
+    if (btn) btn.innerHTML = `<span class="dd-ico">📅</span>${dd}/${mm}/${yy}`;
+    renderCalendar();
   }
-  if (el.catTxDate) el.catTxDate.addEventListener("change", updateWeekday);
+
+  /* ---------- לוח שנה מובנה (לא של הדפדפן — כדי לשלוט בגודל ובשפה) ---------- */
+  const WEEK_SHORT = {
+    he: ["א", "ב", "ג", "ד", "ה", "ו", "ש"],
+    en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    ru: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+  };
+  const weekStart = () => (APP.lang === "ru" ? 1 : 0); // ברוסית השבוע מתחיל בשני
+  function renderCalendar() {
+    const head = document.getElementById("catTxCalHead");
+    const week = document.getElementById("catTxCalWeek");
+    const grid = document.getElementById("catTxCalGrid");
+    if (!head || !week || !grid) return;
+    const names = WEEK_SHORT[APP.lang] || WEEK_SHORT.he;
+    const ws = weekStart();
+    head.textContent = tr(monthLabel(currentMonth));
+    week.innerHTML = Array.from({ length: 7 }, (_, i) => `<span>${names[(ws + i) % 7]}</span>`).join("");
+    const [y, m] = currentMonth.split("-").map(Number);
+    const dim = new Date(y, m, 0).getDate();
+    const firstDow = new Date(y, m - 1, 1).getDay();
+    const blanks = (firstDow - ws + 7) % 7;
+    const sel = (el.catTxDate && el.catTxDate.value) ? +el.catTxDate.value.split("-")[2] : -1;
+    const todayStrNow = todayStr();
+    let html = "";
+    for (let i = 0; i < blanks; i++) html += `<span class="cal-blank"></span>`;
+    for (let d = 1; d <= dim; d++) {
+      const iso = `${currentMonth}-${String(d).padStart(2, "0")}`;
+      const cls = ["cal-day"];
+      if (d === sel) cls.push("is-selected");
+      if (iso === todayStrNow) cls.push("is-today");
+      html += `<button type="button" class="${cls.join(" ")}" data-day="${d}">${d}</button>`;
+    }
+    grid.innerHTML = html;
+  }
+  function toggleCalendar(show) {
+    const pop = document.getElementById("catTxCal");
+    if (!pop) return;
+    pop.hidden = show === undefined ? !pop.hidden : !show;
+    if (!pop.hidden) renderCalendar();
+  }
+  const dateBtn = document.getElementById("catTxDateBtn");
+  if (dateBtn) dateBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleCalendar(); });
+  const calPop = document.getElementById("catTxCal");
+  if (calPop) calPop.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const b = e.target.closest("[data-day]");
+    if (!b || !el.catTxDate) return;
+    el.catTxDate.value = `${currentMonth}-${String(b.dataset.day).padStart(2, "0")}`;
+    updateWeekday();
+    toggleCalendar(false);
+  });
+  document.addEventListener("click", () => toggleCalendar(false));
   const quickWrap = document.getElementById("catTxQuick");
   if (quickWrap) quickWrap.addEventListener("click", (e) => {
     const b = e.target.closest("[data-quick]");
