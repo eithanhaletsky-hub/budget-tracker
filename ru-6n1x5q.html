@@ -371,6 +371,76 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 @keyframes pop-in { from { transform: scale(0.85); } to { transform: scale(1); } }
 
 /* ============================================================
+   VARIANT: SLATE — modern professional (muted steel blue)
+   ============================================================ */
+.variant-slate {
+  --bg: #eef1f5; --bg-2: #e7ebf1;
+  --surface: #ffffff; --surface-2: #f5f7fa;
+  --border: #d5dbe4;
+  --text: #1a2331; --text-muted: #5d6a7a;
+  --primary: #2f5d8a; --primary-2: #2f5d8a; --primary-dark: #24486b;
+  --income: #2f7d5d; --income-soft: #e4f0ea;
+  --expense: #b0474a; --expense-soft: #f6e6e6;
+  --balance: #2f5d8a; --budget: #8a6a2f;
+  --radius: 8px; --radius-sm: 6px;
+  --grad: #2f5d8a; --grad-income: #2f7d5d; --grad-expense: #b0474a;
+  --shadow: 0 1px 2px rgba(20,30,45,.06), 0 2px 8px rgba(20,30,45,.05);
+  --shadow-lg: 0 4px 16px rgba(20,30,45,.12);
+}
+[data-theme="dark"] .variant-slate {
+  --bg: #10151c; --bg-2: #131922; --surface: #182029; --surface-2: #1f2833;
+  --border: #2c3742; --text: #e6ebf2; --text-muted: #94a3b4;
+  --primary: #6f9ec4; --primary-2: #6f9ec4; --primary-dark: #8db6d6;
+  --income: #57a687; --expense: #d1787a; --grad: #3b6f9f;
+  --grad-income: #57a687; --grad-expense: #d1787a;
+}
+
+/* ============================================================
+   VARIANT: EXECUTIVE — classic premium (navy + warm paper, serif)
+   ============================================================ */
+.variant-exec {
+  --bg: #f3f2ef; --bg-2: #eceae5;
+  --surface: #ffffff; --surface-2: #faf9f6;
+  --border: #dbd6cc;
+  --text: #16181c; --text-muted: #6b675f;
+  --primary: #1f3a5f; --primary-2: #1f3a5f; --primary-dark: #162b47;
+  --income: #2c624a; --income-soft: #e6efea;
+  --expense: #92373a; --expense-soft: #f4e7e7;
+  --balance: #1f3a5f; --budget: #8a6b2c;
+  --radius: 4px; --radius-sm: 3px;
+  --grad: #1f3a5f; --grad-income: #2c624a; --grad-expense: #92373a;
+  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 1px 4px rgba(0,0,0,.04);
+  --shadow-lg: 0 6px 20px rgba(0,0,0,.12);
+}
+[data-theme="dark"] .variant-exec {
+  --bg: #14140f; --bg-2: #1a1a14; --surface: #1e1e18; --surface-2: #26261f;
+  --border: #35342b; --text: #eeece4; --text-muted: #a09b8f;
+  --primary: #7d9ec4; --primary-2: #7d9ec4; --primary-dark: #99b5d6;
+  --income: #599077; --expense: #c2777a; --grad: #35578a;
+  --grad-income: #599077; --grad-expense: #c2777a;
+}
+.variant-exec h1, .variant-exec h2, .variant-exec h3,
+.variant-exec .budget-table th, .variant-exec .cattx-table th,
+.variant-exec .cal-head, .variant-exec .summary-value {
+  font-family: Georgia, "Times New Roman", "David", serif; letter-spacing: 0;
+}
+
+/* Shared "grown-up" toning for both mature variants */
+.variant-slate .bg-decoration, .variant-exec .bg-decoration { display: none; }
+.variant-slate .brand-logo, .variant-exec .brand-logo { box-shadow: none; border: 1px solid var(--border); }
+.variant-slate .summary-card:hover, .variant-exec .summary-card:hover,
+.variant-slate .goal:hover, .variant-exec .goal:hover { transform: none; box-shadow: var(--shadow); }
+.variant-slate .btn-primary, .variant-exec .btn-primary { box-shadow: none; }
+.variant-slate .btn-primary:hover, .variant-exec .btn-primary:hover { transform: none; filter: brightness(1.1); }
+.variant-slate .bt-spent-btn:hover, .variant-exec .bt-spent-btn:hover { transform: none; }
+.variant-slate .cal-day:hover, .variant-exec .cal-day:hover { transform: none; }
+.variant-slate .cal-day.is-selected, .variant-exec .cal-day.is-selected { box-shadow: none; }
+.variant-slate .budget-table th, .variant-exec .budget-table th,
+.variant-slate .cattx-table th, .variant-exec .cattx-table th { text-transform: uppercase; letter-spacing: .6px; font-size: 13.5px; }
+.variant-exec .bt-ico, .variant-exec .tc-ico, .variant-exec .cattx-table .tc-ico { background: var(--surface-2) !important; filter: grayscale(.35); }
+.variant-slate .bt-ico { filter: saturate(.75); }
+
+/* ============================================================
    VARIANT: COACH — professional, sharp, minimal
    ============================================================ */
 .variant-coach {

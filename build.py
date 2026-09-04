@@ -109,6 +109,27 @@ build({
     "lang": "en", "tableOnly": True, "storeKey": "budgeten",
 }, 'en-4w8r3t.html', pwa=True)
 
+# --- Design previews: two "grown-up" looks for EN/RU (pick one, then apply) ---
+build({
+    "name": "My Budget", "tagline": "Income & expense tracker", "logo": "💼",
+    "lang": "en", "tableOnly": True, "variant": "slate", "storeKey": "budgeten",
+}, 'design-slate-en.html', pwa=True)
+
+build({
+    "name": "Мой бюджет", "tagline": "Учёт доходов и расходов", "logo": "💼",
+    "lang": "ru", "tableOnly": True, "variant": "slate", "storeKey": "budgetru",
+}, 'design-slate-ru.html', pwa=True)
+
+build({
+    "name": "My Budget", "tagline": "Income & expense tracker", "logo": "📘",
+    "lang": "en", "tableOnly": True, "variant": "exec", "storeKey": "budgeten",
+}, 'design-exec-en.html', pwa=True)
+
+build({
+    "name": "Мой бюджет", "tagline": "Учёт доходов и расходов", "logo": "📘",
+    "lang": "ru", "tableOnly": True, "variant": "exec", "storeKey": "budgetru",
+}, 'design-exec-ru.html', pwa=True)
+
 # --- Locked demo editions (meant for sharing with clients — predictable names OK) ---
 build({
     "name": "התקציב שלי", "logo": "💰",
