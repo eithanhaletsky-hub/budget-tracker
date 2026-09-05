@@ -1079,6 +1079,66 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
   #printRoot { display: block; position: absolute; inset: 0; padding: 0; }
 }
 
+/* ============================================================
+   PRO — עובי: רקעים אטומים, כתוביות בולטות וקווים עבים יותר
+   ============================================================ */
+/* .variant-report הפך כל .card לשקוף — אבל המודאלים חייבים רקע אטום */
+.variant-report .modal.card {
+  background: var(--surface); border: 2px solid var(--text);
+  border-radius: var(--radius); padding: 24px;
+}
+.variant-dash .modal.card { border: 2px solid var(--border); }
+.pro .modal-overlay { background: rgba(10, 14, 26, 0.72); }
+.pro .cal-pop { background: var(--surface); border: 2px solid var(--border); }
+
+/* כתוביות מיקרו: גדולות, כהות ועבות יותר */
+.pro .card h2,
+.pro .bt-sum-item .l,
+.pro .cmp-l,
+.pro .bt-budget-label,
+.pro .budget-table th,
+.pro .history-table th,
+.pro .cattx-table th {
+  font-size: 12.5px; font-weight: 800; letter-spacing: 1.3px; color: var(--text);
+}
+.pro .modal h3 { font-size: 17px; font-weight: 800; }
+.pro .bt-sum-item .v, .pro .cmp-v, .pro .bt-remain { font-weight: 700; }
+.pro .bt-cat-btn { font-size: 15.5px; font-weight: 700; }
+.pro .budget-table input.bt-plan, .pro .bt-spent-btn { font-weight: 700; }
+.pro .budget-table tfoot td { font-size: 12.5px; font-weight: 800; }
+.pro .budget-table tfoot .bt-remain { font-size: 18px; font-weight: 800; }
+.pro .btn-primary { font-size: 13.5px; font-weight: 700; }
+.pro .muted-inline { font-weight: 700; }
+
+/* קווים עבים */
+.pro .cattx-table { border: none; }
+.pro .budget-table th,
+.pro .history-table th,
+.pro .cattx-table th { border-bottom: 3px solid var(--text); }
+.pro .budget-table td,
+.pro .history-table td,
+.pro .cattx-table td { border-bottom: 2px solid var(--border); }
+.pro .budget-table tfoot td,
+.pro .history-table tfoot td { border-top: 3px solid var(--text); }
+.pro .bt-summary { border-top: 2px solid var(--text); border-bottom: 2px solid var(--text); }
+.pro .bt-sum-item, .pro .cmp-item { border-inline-end: 2px solid var(--border); }
+.pro .bt-sum-item:last-child, .pro .cmp-item:last-child { border-inline-end: none; }
+.pro .bt-compare { border-top: 2px solid var(--border); }
+.pro .bt-budget-label input { border-bottom: 3px solid var(--border); }
+.pro .bt-budget-label input:focus { border-bottom-color: var(--primary); }
+.pro .bt-spent-btn { border-bottom: 2px dashed var(--border); }
+.pro .bt-ico { width: 5px; height: 26px; }
+.pro .budget-table tbody td:nth-child(3)::after { height: 3px; opacity: .7; }
+.pro .section-head { border-bottom: 2px solid var(--border); }
+
+.variant-report .header-inner { border-bottom: 4px double var(--text); }
+.variant-report .section-head { border-bottom: 2px solid var(--text); }
+.variant-report .brand h1 { font-weight: 600; }
+.variant-report .brand-sub { font-size: 10.5px; font-weight: 700; }
+.variant-report .btn-primary { border-width: 2px; }
+.variant-dash .app-header { border-inline-end: 2px solid var(--border); }
+.variant-dash .header-actions { border-top: 2px solid var(--border); }
+
 </style>
   <link rel="manifest" href="he-7k2p9m.webmanifest" />
   <meta name="theme-color" content="#6366f1" />
