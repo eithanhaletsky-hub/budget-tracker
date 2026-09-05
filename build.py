@@ -42,6 +42,17 @@ def build(config, out_path, pwa=False):
         if config['lang'] in titles:
             title = titles[config['lang']] % config.get('name', '')
             html = html.replace('<title>ניהול תקציב — מעקב הוצאות והכנסות</title>', '<title>%s</title>' % title)
+    # Real typefaces for the mature editions only (Hebrew/kids/coach keep the
+    # system font — Inter has no Hebrew coverage and they need no extra request).
+    if config and config.get('noEmoji'):
+        fonts = (
+            '<link rel="preconnect" href="https://fonts.googleapis.com" />\n'
+            '  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />\n'
+            '  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
+            'family=Inter:wght@400;500;600;700;800&'
+            'family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" />\n  <link rel="icon"'
+        )
+        html = html.replace('<link rel="icon"', fonts, 1)
     if pwa:
         base = os.path.splitext(os.path.basename(out_path))[0]
         cfg = config or {}
@@ -121,7 +132,7 @@ for cfg, current, legacy in EDITIONS:
 # noEmoji=True strips every emoji from the UI and adds body.pro (ledger table, KPI band).
 DASH = {"variant": "dash", "noEmoji": True, "tableOnly": True}
 REPORT = {"variant": "report", "noEmoji": True, "tableOnly": True}
-MONO = {"variant": "mono", "noEmoji": True, "tableOnly": True, "defaultTheme": "dark"}
+MONO = {"variant": "mono", "noEmoji": True, "tableOnly": True, "defaultTheme": "light"}
 
 build(dict(DASH, **{
     "name": "My Budget", "tagline": "Monthly income & expense control",

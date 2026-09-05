@@ -1209,6 +1209,49 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
 .variant-mono .btn-primary { border-radius: 2px; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; padding: 9px 16px; }
 .variant-mono .history-table td, .variant-mono .history-table th { padding: 9px 12px; font-size: 13px; }
 
+/* ============================================================
+   PRO — טיפוגרפיה אמיתית: Inter לממשק, IBM Plex Mono לספרות
+   (נטענות רק בגרסאות הבוגרות; יש נפילה חזרה לפונט המערכת)
+   ============================================================ */
+.pro {
+  --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Consolas, "Courier New", monospace;
+  font-feature-settings: "cv05" 1, "ss01" 1;   /* אות a/g פשוטות יותר */
+  -webkit-font-smoothing: antialiased;
+}
+/* כל הספרות ברוחב אחיד — עמודות מיושרות גם כשמעדכנים סכומים */
+.pro .bt-sum-item .v, .pro .bt-remain, .pro .cmp-v, .pro .bt-spent-btn,
+.pro .budget-table input.bt-plan, .pro .bt-budget-label input,
+.pro .history-table td, .pro .cattx-table .ct-amt, .pro .cattx-table .ct-when {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+/* כותרות המיקרו נושמות יותר עם Inter */
+.pro .budget-table th, .pro .history-table th, .pro .cattx-table th,
+.pro .bt-sum-item .l, .pro .cmp-l, .pro .bt-budget-label, .pro .card h2 {
+  letter-spacing: 1.1px;
+}
+.pro .bt-sum-item .v { letter-spacing: -1.4px; }
+
+/* ---- MONO: הספרות עוברות ל-IBM Plex Mono, והמסך בהיר כברירת מחדל ---- */
+.variant-mono .bt-sum-item .v, .variant-mono .bt-remain, .variant-mono .cmp-v,
+.variant-mono .bt-spent-btn, .variant-mono .budget-table input.bt-plan,
+.variant-mono .bt-budget-label input, .variant-mono .history-table td,
+.variant-mono .cattx-table .ct-amt, .variant-mono .cattx-table .ct-when,
+.variant-mono .month-picker input[type="month"] {
+  font-family: var(--mono); letter-spacing: -.3px;
+}
+.variant-mono .bt-sum-item .v { letter-spacing: -1px; font-weight: 600; }
+/* פלטת בהיר מלוטשת יותר — זו כבר ברירת המחדל */
+.variant-mono {
+  --bg: #f7f8f9; --bg-2: #eff1f3;
+  --surface: #ffffff; --surface-2: #f4f6f7;
+  --border: #dfe3e7;
+  --text: #0d1114; --text-muted: #5f6a73;
+  --primary: #0d6e66; --primary-dark: #0a5751;
+  --income: #0d6e66; --expense: #ad433d;
+  --grad: #0d6e66; --grad-income: #0d6e66; --grad-expense: #ad433d;
+}
+
 </style>
   <link rel="manifest" href="coach-9r7w4t.webmanifest" />
   <meta name="theme-color" content="#0f766e" />
