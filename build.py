@@ -121,6 +121,7 @@ for cfg, current, legacy in EDITIONS:
 # noEmoji=True strips every emoji from the UI and adds body.pro (ledger table, KPI band).
 DASH = {"variant": "dash", "noEmoji": True, "tableOnly": True}
 REPORT = {"variant": "report", "noEmoji": True, "tableOnly": True}
+MONO = {"variant": "mono", "noEmoji": True, "tableOnly": True, "defaultTheme": "dark"}
 
 build(dict(DASH, **{
     "name": "My Budget", "tagline": "Monthly income & expense control",
@@ -141,6 +142,16 @@ build(dict(REPORT, **{
     "name": "Мой бюджет", "tagline": "Контроль доходов и расходов",
     "lang": "ru", "storeKey": "budgetru",
 }), 'design-report-ru.html', pwa=True)
+
+build(dict(MONO, **{
+    "name": "My Budget", "tagline": "Monthly income & expense control",
+    "lang": "en", "storeKey": "budgeten",
+}), 'design-mono-en.html', pwa=True)
+
+build(dict(MONO, **{
+    "name": "Мой бюджет", "tagline": "Контроль доходов и расходов",
+    "lang": "ru", "storeKey": "budgetru",
+}), 'design-mono-ru.html', pwa=True)
 
 # --- Locked demo editions (meant for sharing with clients — predictable names OK) ---
 build({

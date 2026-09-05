@@ -1139,6 +1139,76 @@ body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display:
 .variant-dash .app-header { border-inline-end: 2px solid var(--border); }
 .variant-dash .header-actions { border-top: 2px solid var(--border); }
 
+/* תיקון: תווית וערך ברצועת ההשוואה נדבקו לשורה אחת */
+.pro .cmp-body { display: flex; flex-direction: column; gap: 6px; }
+
+/* ============================================================
+   VARIANT: MONO — מסוף נתונים (כהה כברירת מחדל, ספרות מונוספייס)
+   הצפוף והטכני מבין השלושה: שורות נמוכות, בלי מרווחים מיותרים,
+   מספרים ברוחב קבוע כמו במסך מסחר.
+   ============================================================ */
+.variant-mono {
+  --bg: #f6f7f8; --bg-2: #eef0f2;
+  --surface: #ffffff; --surface-2: #f2f4f6;
+  --border: #d9dde2;
+  --text: #0f1216; --text-muted: #656d78;
+  --primary: #0f766e; --primary-2: #0f766e; --primary-dark: #0b5b55;
+  --income: #0f766e; --income-soft: #e3efee;
+  --expense: #b4453f; --expense-soft: #f7e8e7;
+  --balance: #0f766e; --budget: #8a6a2f;
+  --radius: 3px; --radius-sm: 2px;
+  --grad: #0f766e; --grad-income: #0f766e; --grad-expense: #b4453f;
+  --shadow: none; --shadow-sm: none; --shadow-lg: 0 8px 30px rgba(0,0,0,.3);
+}
+[data-theme="dark"] .variant-mono {
+  --bg: #0b0d10; --bg-2: #101317;
+  --surface: #101317; --surface-2: #161a1f;
+  --border: #232930;
+  --text: #d8dee5; --text-muted: #7c8794;
+  --primary: #3fb9a5; --primary-2: #3fb9a5; --primary-dark: #349c8b;
+  --income: #3fb9a5; --income-soft: #0e211f;
+  --expense: #e0716a; --expense-soft: #241413;
+  --grad: #3fb9a5; --grad-income: #3fb9a5; --grad-expense: #e0716a;
+}
+/* כל המספרים במונוספייס ברוחב קבוע */
+.variant-mono {
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+.variant-mono .bt-sum-item .v,
+.variant-mono .bt-remain,
+.variant-mono .cmp-v,
+.variant-mono .bt-spent-btn,
+.variant-mono .budget-table input.bt-plan,
+.variant-mono .bt-budget-label input,
+.variant-mono .history-table td,
+.variant-mono .cattx-table .ct-amt,
+.variant-mono .cattx-table .ct-when,
+.variant-mono .month-picker input[type="month"] {
+  font-family: var(--mono); font-feature-settings: "tnum" 1; letter-spacing: -.2px;
+}
+/* כותרת דקה כמו שורת סטטוס */
+.variant-mono .app-header { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.variant-mono .header-inner { padding: 10px 20px; }
+.variant-mono .brand-logo { width: 30px; height: 30px; font-size: 13px; border-radius: 2px; }
+.variant-mono .brand h1 { font-size: 15px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
+.variant-mono .brand-sub { display: none; }
+.variant-mono .icon-btn { width: 30px; height: 30px; }
+.variant-mono main.container { max-width: 1240px; padding-top: 20px; }
+.variant-mono .card { border-radius: var(--radius); padding: 0; background: transparent; border: none; }
+/* שורות נמוכות וצפופות */
+.variant-mono .budget-table { font-size: 13.5px; }
+.variant-mono .budget-table td { height: 40px; padding: 0 12px; }
+.variant-mono .budget-table th { padding: 0 12px 8px; font-size: 11px; letter-spacing: 1.6px; }
+.variant-mono .budget-table tbody tr:nth-child(even) { background: var(--surface-2) !important; }
+.variant-mono .bt-cat-btn { font-size: 13.5px; font-weight: 600; letter-spacing: .2px; }
+.variant-mono .bt-ico { width: 4px; height: 16px; border-radius: 0; }
+.variant-mono .bt-sum-item { padding: 12px 18px; }
+.variant-mono .bt-sum-item .l { font-size: 11px; letter-spacing: 1.6px; margin-bottom: 4px; }
+.variant-mono .bt-sum-item .v { font-size: 25px; font-weight: 700; }
+.variant-mono .bt-budget-label input { font-size: 18px; width: 170px; }
+.variant-mono .btn-primary { border-radius: 2px; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; padding: 9px 16px; }
+.variant-mono .history-table td, .variant-mono .history-table th { padding: 9px 12px; font-size: 13px; }
+
 </style>
   <link rel="manifest" href="en-4w8r3t.webmanifest" />
   <meta name="theme-color" content="#6366f1" />
@@ -1628,6 +1698,7 @@ window.BUDGET_CONFIG = {"name": "My Budget", "tagline": "Monthly income & expens
     tableOnly: !!CFG.tableOnly,         // מצב טבלה בלבד (רוסית/אנגלית): רק טבלת תקציב
     showTable: !!CFG.showTable,         // הצגת טבלת המעקב גם בגרסה העברית (בעמוד הראשי)
     noEmoji: !!CFG.noEmoji,             // מסיר אימוג'ים מהממשק (עיצובים "בוגרים") + מוסיף class "pro"
+    defaultTheme: CFG.defaultTheme || null, // "dark" | "light" — ברירת מחדל במקום העדפת המערכת
   };
 
   /* ---------- i18n (עברית → רוסית) ---------- */
@@ -2141,7 +2212,11 @@ window.BUDGET_CONFIG = {"name": "My Budget", "tagline": "Monthly income & expens
   /* ---------- ערכת נושא ---------- */
   function initTheme() {
     const saved = localStorage.getItem(K.theme);
-    const dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    // defaultTheme בקונפיג גובר על העדפת המערכת, אבל לא על בחירה שהמשתמש כבר עשה
+    const fallback = APP.defaultTheme
+      ? APP.defaultTheme === "dark"
+      : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const dark = saved ? saved === "dark" : fallback;
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
     el.themeToggle.textContent = dark ? "☀️" : "🌙";
   }

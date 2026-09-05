@@ -28,6 +28,7 @@
     tableOnly: !!CFG.tableOnly,         // מצב טבלה בלבד (רוסית/אנגלית): רק טבלת תקציב
     showTable: !!CFG.showTable,         // הצגת טבלת המעקב גם בגרסה העברית (בעמוד הראשי)
     noEmoji: !!CFG.noEmoji,             // מסיר אימוג'ים מהממשק (עיצובים "בוגרים") + מוסיף class "pro"
+    defaultTheme: CFG.defaultTheme || null, // "dark" | "light" — ברירת מחדל במקום העדפת המערכת
   };
 
   /* ---------- i18n (עברית → רוסית) ---------- */
@@ -541,7 +542,11 @@
   /* ---------- ערכת נושא ---------- */
   function initTheme() {
     const saved = localStorage.getItem(K.theme);
-    const dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    // defaultTheme בקונפיג גובר על העדפת המערכת, אבל לא על בחירה שהמשתמש כבר עשה
+    const fallback = APP.defaultTheme
+      ? APP.defaultTheme === "dark"
+      : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const dark = saved ? saved === "dark" : fallback;
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
     el.themeToggle.textContent = dark ? "☀️" : "🌙";
   }
