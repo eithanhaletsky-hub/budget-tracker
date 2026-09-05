@@ -85,29 +85,35 @@ def build(config, out_path, pwa=False):
 CONTACT = "eithan.haletsky@gmail.com"
 
 # --- Protected editions: unguessable token filenames (installable PWAs) ---
-build({"showTable": True}, 'he-7k2p9m.html', pwa=True)  # Hebrew (with tracking table)
+# LEGACY names: the site was once served from /docs with longer tokens. Apps
+# installed back then open those URLs, so every edition is ALSO built under its
+# old filename. Never drop these — an installed PWA that 404s is a dead app.
+EDITIONS = [
+    ({"showTable": True},                                       # Hebrew (with tracking table)
+     'he-7k2p9m.html', 'he-3f9a7k2c8d.html'),
 
-build({
-    "name": "הכסף שלי", "tagline": "לומדים לנהל כסף — בכיף! 🌟", "logo": "🐷",
-    "accent": {"primary": "#ec4899", "primary2": "#f59e0b"},
-    "preset": "kids", "kids": True, "variant": "kids", "storeKey": "budgetkids",
-}, 'kids-2v8z5b.html', pwa=True)
+    ({"name": "הכסף שלי", "tagline": "לומדים לנהל כסף — בכיף! 🌟", "logo": "🐷",
+      "accent": {"primary": "#ec4899", "primary2": "#f59e0b"},
+      "preset": "kids", "kids": True, "variant": "kids", "storeKey": "budgetkids"},
+     'kids-2v8z5b.html', 'kids-2v8z5b3k7m.html'),
 
-build({
-    "name": "התקציב שלי", "tagline": "ניהול פיננסי חכם — בליווי מקצועי", "logo": "📊",
-    "accent": {"primary": "#0f766e", "primary2": "#0891b2"},
-    "preset": "coach", "variant": "coach", "brandedBy": "דנה כהן · מאמנת פיננסית", "storeKey": "budgetcoach",
-}, 'coach-9r7w4t.html', pwa=True)
+    ({"name": "התקציב שלי", "tagline": "ניהול פיננסי חכם — בליווי מקצועי", "logo": "📊",
+      "accent": {"primary": "#0f766e", "primary2": "#0891b2"},
+      "preset": "coach", "variant": "coach",
+      "brandedBy": "דנה כהן · מאמנת פיננסית", "storeKey": "budgetcoach"},
+     'coach-9r7w4t.html', 'coach-9r7w4t6y1p.html'),
 
-build({
-    "name": "Мой бюджет", "tagline": "Учёт доходов и расходов — просто и удобно", "logo": "💰",
-    "lang": "ru", "tableOnly": True, "storeKey": "budgetru",
-}, 'ru-6n1x5q.html', pwa=True)
+    ({"name": "Мой бюджет", "tagline": "Учёт доходов и расходов — просто и удобно", "logo": "💰",
+      "lang": "ru", "tableOnly": True, "storeKey": "budgetru"},
+     'ru-6n1x5q.html', 'ru-6p4n9m1x5q.html'),
 
-build({
-    "name": "My Budget", "tagline": "Income & expense tracker — simple and handy", "logo": "💰",
-    "lang": "en", "tableOnly": True, "storeKey": "budgeten",
-}, 'en-4w8r3t.html', pwa=True)
+    ({"name": "My Budget", "tagline": "Income & expense tracker — simple and handy", "logo": "💰",
+      "lang": "en", "tableOnly": True, "storeKey": "budgeten"},
+     'en-4w8r3t.html', 'en-8w2q5r7t3v.html'),
+]
+for cfg, current, legacy in EDITIONS:
+    build(cfg, current, pwa=True)
+    build(cfg, legacy, pwa=True)  # same app, same storeKey -> same data
 
 # --- Design previews: two restructured "grown-up" layouts for EN/RU (pick one, then apply) ---
 # noEmoji=True strips every emoji from the UI and adds body.pro (ledger table, KPI band).
