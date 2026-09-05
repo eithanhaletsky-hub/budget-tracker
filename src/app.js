@@ -27,6 +27,7 @@
     compact: !!CFG.compact,            // פריסה תמציתית: 2 כרטיסים, בלי תובנות/גרפי מגמה, טבלת קטגוריות
     tableOnly: !!CFG.tableOnly,         // מצב טבלה בלבד (רוסית/אנגלית): רק טבלת תקציב
     showTable: !!CFG.showTable,         // הצגת טבלת המעקב גם בגרסה העברית (בעמוד הראשי)
+    noEmoji: !!CFG.noEmoji,             // מסיר אימוג'ים מהממשק (עיצובים "בוגרים") + מוסיף class "pro"
   };
 
   /* ---------- i18n (עברית → רוסית) ---------- */
@@ -318,24 +319,50 @@
     return s;
   }
   function translateDom(root) {
-    if (!ACTIVE_DICT) return;
+    root = root || document.body;
+    if (ACTIVE_DICT) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode(n) {
+          if (!n.nodeValue || !HE_RE.test(n.nodeValue)) return NodeFilter.FILTER_REJECT;
+          const p = n.parentNode && n.parentNode.nodeName;
+          if (p === "SCRIPT" || p === "STYLE" || p === "NOSCRIPT") return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        },
+      });
+      const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach((n) => { n.nodeValue = tr(n.nodeValue); });
+      root.querySelectorAll("[placeholder],[title],[aria-label]").forEach((elm) => {
+        ["placeholder", "title", "aria-label"].forEach((a) => {
+          const v = elm.getAttribute(a);
+          if (v && HE_RE.test(v)) elm.setAttribute(a, tr(v));
+        });
+      });
+    }
+    stripEmoji(root);
+  }
+
+  /* ---------- הסרת אימוג'ים (עיצובים "בוגרים") ---------- */
+  // האייקונים של הקטגוריות נשארים — הם הופכים ל"פס צבע" ב-CSS, לא לטקסט.
+  const EMOJI_KEEP = ".bt-ico,.tc-ico,.tx-icon,.m-ico,.emoji-picker,.emoji-opt,.goal-emoji,.insight-emoji,.badge-emoji,.brand-logo,.cmp-ico";
+  // טווחים זהירים: אימוג'ים וסמלים דקורטיביים בלבד. − ‹ › ⤢ נשארים (יש להם משמעות בממשק).
+  const EMOJI_RANGES = "\\u{1F000}-\\u{1FAFF}\\u{2300}-\\u{23FF}\\u{2600}-\\u{27BF}\\u{2B00}-\\u{2BFF}\\u{FE0E}\\u{FE0F}\\u{20E3}";
+  const EMOJI_TEST = new RegExp("[" + EMOJI_RANGES + "]", "u");         // ללא g — בטוח ל-test()
+  const EMOJI_STRIP = new RegExp("[" + EMOJI_RANGES + "]", "gu");
+  function stripEmoji(root) {
+    if (!APP.noEmoji) return;
     root = root || document.body;
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode(n) {
-        if (!n.nodeValue || !HE_RE.test(n.nodeValue)) return NodeFilter.FILTER_REJECT;
-        const p = n.parentNode && n.parentNode.nodeName;
-        if (p === "SCRIPT" || p === "STYLE" || p === "NOSCRIPT") return NodeFilter.FILTER_REJECT;
+        if (!n.nodeValue || !EMOJI_TEST.test(n.nodeValue)) return NodeFilter.FILTER_REJECT;
+        const p = n.parentElement;
+        if (!p || p.closest(EMOJI_KEEP)) return NodeFilter.FILTER_REJECT;
+        const t = p.nodeName;
+        if (t === "SCRIPT" || t === "STYLE" || t === "NOSCRIPT") return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       },
     });
     const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
-    nodes.forEach((n) => { n.nodeValue = tr(n.nodeValue); });
-    root.querySelectorAll("[placeholder],[title],[aria-label]").forEach((elm) => {
-      ["placeholder", "title", "aria-label"].forEach((a) => {
-        const v = elm.getAttribute(a);
-        if (v && HE_RE.test(v)) elm.setAttribute(a, tr(v));
-      });
-    });
+    nodes.forEach((n) => { n.nodeValue = n.nodeValue.replace(EMOJI_STRIP, "").replace(/\s{2,}/g, " ").trim(); });
   }
   // תרגום אוטומטי של דיאלוגים native
   if (ACTIVE_DICT) {
@@ -1236,10 +1263,12 @@
     }
     document.body.dataset.page = "main";
     if (APP.variant) document.body.classList.add("variant-" + APP.variant);
+    if (APP.noEmoji) document.body.classList.add("pro");
     const logoEl = document.querySelector(".brand-logo");
     const h1 = document.querySelector(".brand h1");
     const sub = document.querySelector(".brand-sub");
-    if (logoEl) logoEl.textContent = APP.logo;
+    // בעיצובים "בוגרים" הלוגו הוא מונוגרמה (אות ראשונה) במקום אימוג'י
+    if (logoEl) logoEl.textContent = APP.noEmoji ? (APP.name || "B").trim().charAt(0).toUpperCase() : APP.logo;
     if (h1) h1.textContent = APP.name;
     if (sub) sub.textContent = APP.tagline;
     if (APP.accent) {
@@ -1565,7 +1594,8 @@
     const cats = catsOf("expense");
     el.budgetTableBody.innerHTML = cats.map((c) => {
       const planned = catBudgets[c.id] || 0, spent = catSpent(c.id, ym), remaining = planned - spent;
-      return `<tr>
+      const used = planned > 0 ? Math.min(100, Math.round((spent / planned) * 100)) : 0;
+      return `<tr style="--cat:${c.color};--used:${used}%">
         <td class="bt-cat"><button type="button" class="bt-cat-btn" data-cat="${c.id}" title="הצג את כל ההוצאות בקטגוריה"><span class="bt-ico" style="background:${c.color}22">${c.icon}</span><span class="bt-cat-name">${c.name}</span><span class="bt-cat-hint">👁️</span></button><button class="bt-del" data-delcat="${c.id}" title="מחק קטגוריה">🗑️</button></td>
         <td><input type="number" class="bt-plan" data-cat="${c.id}" value="${planned || ""}" placeholder="0" min="0" /></td>
         <td><button type="button" class="bt-spent-btn" data-cat="${c.id}">${spent ? fmt(spent) : "0"} <span class="bt-spent-plus">＋</span></button></td>

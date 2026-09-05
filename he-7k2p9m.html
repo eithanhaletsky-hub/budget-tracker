@@ -371,74 +371,320 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 @keyframes pop-in { from { transform: scale(0.85); } to { transform: scale(1); } }
 
 /* ============================================================
-   VARIANT: SLATE — modern professional (muted steel blue)
+   "PRO" — תשתית משותפת לעיצובים הבוגרים (dash / report)
+   שינוי מבני, לא רק צבעים: בלי אימוג'ים, בלי כרטיסים "מרחפים",
+   טבלה בסגנון ספר-חשבונות, ומספרים במרכז הבמה.
    ============================================================ */
-.variant-slate {
-  --bg: #eef1f5; --bg-2: #e7ebf1;
-  --surface: #ffffff; --surface-2: #f5f7fa;
-  --border: #d5dbe4;
-  --text: #1a2331; --text-muted: #5d6a7a;
-  --primary: #2f5d8a; --primary-2: #2f5d8a; --primary-dark: #24486b;
-  --income: #2f7d5d; --income-soft: #e4f0ea;
-  --expense: #b0474a; --expense-soft: #f6e6e6;
-  --balance: #2f5d8a; --budget: #8a6a2f;
-  --radius: 8px; --radius-sm: 6px;
-  --grad: #2f5d8a; --grad-income: #2f7d5d; --grad-expense: #b0474a;
-  --shadow: 0 1px 2px rgba(20,30,45,.06), 0 2px 8px rgba(20,30,45,.05);
-  --shadow-lg: 0 4px 16px rgba(20,30,45,.12);
+.pro .bg-decoration { display: none; }
+.pro .card { box-shadow: none; }
+.pro .card h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: var(--text-muted); }
+
+/* --- כפתורים: שטוחים, בלי זוהר ובלי קפיצות --- */
+.pro .btn-primary {
+  background: var(--primary); box-shadow: none; border-radius: var(--radius-sm);
+  font-weight: 600; font-size: 13px; letter-spacing: .3px; padding: 10px 18px;
 }
-[data-theme="dark"] .variant-slate {
-  --bg: #10151c; --bg-2: #131922; --surface: #182029; --surface-2: #1f2833;
-  --border: #2c3742; --text: #e6ebf2; --text-muted: #94a3b4;
-  --primary: #6f9ec4; --primary-2: #6f9ec4; --primary-dark: #8db6d6;
-  --income: #57a687; --expense: #d1787a; --grad: #3b6f9f;
-  --grad-income: #57a687; --grad-expense: #d1787a;
+.pro .btn-primary:hover { transform: none; box-shadow: none; filter: brightness(1.12); }
+.pro .btn-primary:active { transform: none; }
+.pro .btn-ghost:hover, .pro .btn-danger:hover { transform: none; }
+.pro .icon-btn { border-radius: var(--radius-sm); box-shadow: none; background: transparent; }
+.pro .icon-btn:hover { transform: none; background: var(--surface-2); }
+/* האימוג'י של מתג התצוגה הוסר — מחליפים בסמל ניטרלי (לא אימוג'י) */
+.pro #themeToggle { font-size: 0; }
+.pro #themeToggle::after { content: "\25D0"; font-size: 17px; line-height: 1; }
+[data-theme="dark"] .pro #themeToggle::after { content: "\25D1"; }
+.pro .brand-logo {
+  background: var(--primary); color: #fff; box-shadow: none;
+  border-radius: var(--radius-sm); width: 40px; height: 40px;
+  font-size: 17px; font-weight: 700; letter-spacing: .5px;
 }
+
+/* --- סדר חדש בכרטיס הטבלה: קלט ← מדדים ← טבלה ---
+   ה-html מקדים נדרש כדי לגבור על body.table-only #budgetTableCard{display:block} שמופיע אחר כך */
+html body.pro #budgetTableCard { display: flex; flex-direction: column; }
+.pro .bt-top { order: -2; }
+.pro .bt-summary { order: -1; }
+.pro .bt-scroll { order: 0; }
+.pro .bt-compare { order: 1; }
+
+/* --- רצועת מדדים: מספרים גדולים, קווי הפרדה דקים, בלי "קופסאות" --- */
+.pro .bt-summary {
+  display: flex; gap: 0; margin: 0 0 30px;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.pro .bt-sum-item {
+  flex: 1; background: none; border: none; border-radius: 0; text-align: start;
+  padding: 20px 24px; border-inline-end: 1px solid var(--border);
+}
+.pro .bt-sum-item:last-child { border-inline-end: none; }
+.pro .bt-sum-item .l {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: 1.2px;
+  font-weight: 700; margin-bottom: 10px;
+}
+.pro .bt-sum-item .v { font-size: 32px; font-weight: 600; letter-spacing: -1.2px; }
+
+/* --- שדה התקציב החודשי --- */
+.pro .bt-top { align-items: flex-end; margin-bottom: 26px; }
+.pro .bt-budget-label {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700;
+}
+.pro .bt-budget-label input {
+  width: 200px; font-size: 22px; font-weight: 600; letter-spacing: -.5px;
+  padding: 8px 0; background: transparent; border: none;
+  border-bottom: 2px solid var(--border); border-radius: 0;
+}
+.pro .bt-budget-label input:focus { border-bottom-color: var(--primary); box-shadow: none; }
+
+/* --- הטבלה: קווי אורך בלבד, מספרים מיושרים לימין, בלי משבצות --- */
+.pro .budget-table {
+  border: none; border-radius: 0; font-size: 15px; font-variant-numeric: tabular-nums;
+}
+.pro .budget-table th {
+  background: transparent; border: none; border-bottom: 2px solid var(--text);
+  text-align: end; padding: 0 16px 12px; color: var(--text-muted);
+  font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+}
+.pro .budget-table th:first-child { text-align: start; padding-inline-start: 0; }
+.pro .budget-table th:last-child { padding-inline-end: 0; }
+.pro .budget-table td {
+  border: none; border-bottom: 1px solid var(--border);
+  padding: 0 16px; height: 58px; vertical-align: middle;
+}
+.pro .budget-table td:first-child { padding-inline-start: 0; }
+.pro .budget-table td:last-child { padding-inline-end: 0; }
+.pro .budget-table tbody tr { background: transparent !important; }
+.pro .budget-table tbody tr:hover { background: var(--surface-2) !important; }
+.pro .budget-table td:nth-child(2),
+.pro .budget-table td:nth-child(3),
+.pro .budget-table td:nth-child(4) { text-align: end; }
+
+/* שם הקטגוריה — פס צבע דק במקום אימוג'י בתוך ריבוע */
+.pro .bt-cat { font-weight: 500; }
+.pro .bt-cat-btn {
+  background: none; border: none; padding: 0; gap: 14px;
+  font-size: 15px; font-weight: 600; letter-spacing: -.1px;
+}
+.pro .bt-cat-btn:hover { background: none; border-color: transparent; color: var(--primary); }
+.pro .bt-cat-btn .bt-cat-name { text-decoration: none; }
+.pro .bt-cat-hint { display: none; }
+.pro .bt-ico {
+  width: 3px; height: 24px; border-radius: 2px; margin: 0;
+  font-size: 0; background: var(--cat, var(--primary)) !important; filter: none;
+}
+.pro .bt-del { opacity: 0; font-size: 0; width: 22px; transition: opacity .15s; }
+.pro .bt-del::after { content: "\00d7"; font-size: 19px; line-height: 1; }
+.pro tr:hover .bt-del { opacity: .5; }
+.pro .bt-del:hover { opacity: 1; }
+
+/* "תוכנן" — שדה שקוף שנראה כמו טקסט עד שנוגעים בו */
+.pro .budget-table input.bt-plan {
+  width: 110px; text-align: end; font-size: 15px; font-weight: 500; padding: 8px 10px;
+  background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm);
+}
+.pro .budget-table input.bt-plan:hover { border-color: var(--border); }
+.pro .budget-table input.bt-plan:focus { border-color: var(--primary); background: var(--surface); box-shadow: none; }
+
+/* "הוצא בפועל" — מספר עם קו-בסיס מקווקו + מד ניצול דק מתחת לשורה */
+.pro .bt-spent-btn {
+  background: none; border: none; border-bottom: 1px dashed var(--border); border-radius: 0;
+  padding: 4px 1px; font-size: 15px; font-weight: 500; gap: 9px;
+}
+.pro .bt-spent-btn:hover { background: none; border-bottom-color: var(--primary); color: var(--primary); }
+.pro .bt-spent-plus {
+  background: none; color: var(--text-muted); border: 1px solid var(--border);
+  border-radius: 3px; width: 18px; height: 18px; font-size: 11px;
+}
+.pro .bt-spent-btn:hover .bt-spent-plus { border-color: var(--primary); color: var(--primary); }
+.pro .budget-table tbody td:nth-child(3) { position: relative; }
+.pro .budget-table tbody td:nth-child(3)::after {
+  content: ""; position: absolute; inset-inline-end: 16px; bottom: 0;
+  width: calc(var(--used, 0%) * .62); max-width: calc(100% - 32px);
+  height: 2px; background: var(--cat, var(--primary)); opacity: .5;
+}
+
+.pro .bt-remain { font-size: 15px; font-weight: 600; }
+.pro .budget-table tfoot td {
+  background: transparent; border: none; border-top: 2px solid var(--text);
+  padding: 16px; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+}
+.pro .budget-table tfoot td:first-child { padding-inline-start: 0; }
+.pro .budget-table tfoot td:last-child { padding-inline-end: 0; }
+.pro .budget-table tfoot .bt-remain { font-size: 17px; letter-spacing: -.4px; text-transform: none; }
+
+/* --- השוואה לחודש קודם: שורת טקסט, לא כרטיסיות צבעוניות --- */
+.pro .bt-compare { margin-top: 26px; gap: 0; border-top: 1px solid var(--border); }
+.pro .cmp-item {
+  flex: 1; background: none; border: none; border-radius: 0; padding: 16px 22px 0;
+  border-inline-end: 1px solid var(--border);
+}
+.pro .cmp-item:last-child { border-inline-end: none; }
+.pro .cmp-ico { display: none; }
+.pro .cmp-l { font-size: 10.5px; text-transform: uppercase; letter-spacing: 1.1px; font-weight: 700; }
+.pro .cmp-v { font-size: 19px; font-weight: 600; }
+
+/* --- טבלת ההיסטוריה באותה שפה עיצובית --- */
+.pro .history-table { border: none; font-variant-numeric: tabular-nums; }
+.pro .history-table th {
+  background: transparent; border: none; border-bottom: 2px solid var(--text);
+  font-size: 10.5px; letter-spacing: 1.1px; text-transform: uppercase; padding: 0 14px 10px;
+}
+.pro .history-table td { border: none; border-bottom: 1px solid var(--border); padding: 13px 14px; }
+.pro .history-table tbody tr { background: transparent !important; }
+.pro .history-table tbody tr:hover { background: var(--surface-2) !important; }
+.pro .history-table tfoot td { background: transparent; border: none; border-top: 2px solid var(--text); }
+
+/* --- מודאלים: שקטים, בלי אנימציית "קפיצה" --- */
+.pro .modal { animation: fade .16s ease; }
+.pro .modal h3 { font-size: 15px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; }
+.pro .cattx-table th {
+  background: transparent; border: none; border-bottom: 2px solid var(--text);
+  font-size: 10.5px; letter-spacing: 1.1px; text-transform: uppercase;
+}
+.pro .cattx-table td { border: none; border-bottom: 1px solid var(--border); }
+.pro .tc-ico { filter: grayscale(1); opacity: .5; }
+.pro .cal-day:hover { transform: none; }
+.pro .cal-day.is-selected { box-shadow: none; border-radius: var(--radius-sm); }
 
 /* ============================================================
-   VARIANT: EXECUTIVE — classic premium (navy + warm paper, serif)
+   VARIANT: DASH — לוח בקרה עם סרגל צד קבוע (מבנה שונה לגמרי)
    ============================================================ */
-.variant-exec {
-  --bg: #f3f2ef; --bg-2: #eceae5;
-  --surface: #ffffff; --surface-2: #faf9f6;
-  --border: #dbd6cc;
-  --text: #16181c; --text-muted: #6b675f;
-  --primary: #1f3a5f; --primary-2: #1f3a5f; --primary-dark: #162b47;
-  --income: #2c624a; --income-soft: #e6efea;
-  --expense: #92373a; --expense-soft: #f4e7e7;
-  --balance: #1f3a5f; --budget: #8a6b2c;
-  --radius: 4px; --radius-sm: 3px;
-  --grad: #1f3a5f; --grad-income: #2c624a; --grad-expense: #92373a;
-  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 1px 4px rgba(0,0,0,.04);
-  --shadow-lg: 0 6px 20px rgba(0,0,0,.12);
+.variant-dash {
+  --bg: #f4f6f9; --bg-2: #eef1f6;
+  --surface: #ffffff; --surface-2: #f4f6f9;
+  --border: #dde2ea;
+  --text: #10161f; --text-muted: #6b7787;
+  --primary: #2b5f8f; --primary-2: #2b5f8f; --primary-dark: #204a71;
+  --income: #1f7a5a; --income-soft: #e6f2ed;
+  --expense: #a83f43; --expense-soft: #f7e8e8;
+  --balance: #2b5f8f; --budget: #8a6a2f;
+  --radius: 8px; --radius-sm: 5px;
+  --grad: #2b5f8f; --grad-income: #1f7a5a; --grad-expense: #a83f43;
+  --shadow: none; --shadow-sm: none; --shadow-lg: 0 8px 30px rgba(16,22,31,.14);
 }
-[data-theme="dark"] .variant-exec {
-  --bg: #14140f; --bg-2: #1a1a14; --surface: #1e1e18; --surface-2: #26261f;
-  --border: #35342b; --text: #eeece4; --text-muted: #a09b8f;
-  --primary: #7d9ec4; --primary-2: #7d9ec4; --primary-dark: #99b5d6;
-  --income: #599077; --expense: #c2777a; --grad: #35578a;
-  --grad-income: #599077; --grad-expense: #c2777a;
-}
-.variant-exec h1, .variant-exec h2, .variant-exec h3,
-.variant-exec .budget-table th, .variant-exec .cattx-table th,
-.variant-exec .cal-head, .variant-exec .summary-value {
-  font-family: Georgia, "Times New Roman", "David", serif; letter-spacing: 0;
+[data-theme="dark"] .variant-dash {
+  --bg: #0d1117; --bg-2: #11161e;
+  --surface: #141a23; --surface-2: #1a212c;
+  --border: #262e3a;
+  --text: #e8ecf2; --text-muted: #8d99a9;
+  --primary: #5b93cc; --primary-2: #5b93cc; --primary-dark: #4a7fb5;
+  --income: #4ab98d; --income-soft: #12291f;
+  --expense: #d2686b; --expense-soft: #2b1719;
+  --grad: #5b93cc; --grad-income: #4ab98d; --grad-expense: #d2686b;
 }
 
-/* Shared "grown-up" toning for both mature variants */
-.variant-slate .bg-decoration, .variant-exec .bg-decoration { display: none; }
-.variant-slate .brand-logo, .variant-exec .brand-logo { box-shadow: none; border: 1px solid var(--border); }
-.variant-slate .summary-card:hover, .variant-exec .summary-card:hover,
-.variant-slate .goal:hover, .variant-exec .goal:hover { transform: none; box-shadow: var(--shadow); }
-.variant-slate .btn-primary, .variant-exec .btn-primary { box-shadow: none; }
-.variant-slate .btn-primary:hover, .variant-exec .btn-primary:hover { transform: none; filter: brightness(1.1); }
-.variant-slate .bt-spent-btn:hover, .variant-exec .bt-spent-btn:hover { transform: none; }
-.variant-slate .cal-day:hover, .variant-exec .cal-day:hover { transform: none; }
-.variant-slate .cal-day.is-selected, .variant-exec .cal-day.is-selected { box-shadow: none; }
-.variant-slate .budget-table th, .variant-exec .budget-table th,
-.variant-slate .cattx-table th, .variant-exec .cattx-table th { text-transform: uppercase; letter-spacing: .6px; font-size: 13.5px; }
-.variant-exec .bt-ico, .variant-exec .tc-ico, .variant-exec .cattx-table .tc-ico { background: var(--surface-2) !important; filter: grayscale(.35); }
-.variant-slate .bt-ico { filter: saturate(.75); }
+/* סרגל צד קבוע במקום כותרת עליונה */
+@media (min-width: 1000px) {
+  body.variant-dash { display: grid; grid-template-columns: 250px minmax(0, 1fr); align-items: start; }
+  .variant-dash .app-header {
+    grid-column: 1; grid-row: 1;
+    position: sticky; top: 0; height: 100vh;
+    background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none;
+    border-bottom: none; border-inline-end: 1px solid var(--border);
+  }
+  .variant-dash .header-inner {
+    max-width: none; height: 100%; flex-direction: column; align-items: stretch;
+    justify-content: flex-start; gap: 30px; padding: 28px 22px; flex-wrap: nowrap;
+  }
+  .variant-dash .brand { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .variant-dash .brand h1 { font-size: 19px; letter-spacing: -.3px; }
+  .variant-dash .brand-sub { font-size: 11.5px; line-height: 1.45; }
+  .variant-dash .header-actions {
+    flex-direction: column; align-items: stretch; gap: 10px;
+    margin-top: auto; padding-top: 22px; border-top: 1px solid var(--border);
+  }
+  .variant-dash .month-picker { width: 100%; justify-content: space-between; border-radius: var(--radius-sm); }
+  .variant-dash .month-picker input[type="month"] { flex: 1; text-align: center; }
+  .variant-dash .icon-btn#themeToggle { width: 100%; }
+  .variant-dash main { grid-column: 2; grid-row: 1; }
+  /* .container מגדיר margin:0 auto — צריך לבטל אותו כדי שהעמודה תתמלא */
+  .variant-dash main.container {
+    max-width: none; width: auto; margin: 0; justify-self: stretch;
+    padding: 36px 44px 60px;
+  }
+  .variant-dash .app-footer { grid-column: 2; }
+}
+/* כרטיסים = לוחות שטוחים עם כותרת מופרדת בקו */
+.variant-dash .card { border-radius: var(--radius); padding: 26px 28px; }
+.variant-dash .card + .card, .variant-dash section + section { margin-top: 22px; }
+.variant-dash .section-head { border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 20px; }
+.variant-dash .bt-sum-item .v { color: var(--text); }
+.variant-dash .bt-summary { border-top: none; margin-top: 4px; }
+
+/* ============================================================
+   VARIANT: REPORT — דוח פיננסי מודפס (מסמך, לא אפליקציה)
+   ============================================================ */
+.variant-report {
+  --bg: #f2f0ec; --bg-2: #eae7e1;
+  --surface: #ffffff; --surface-2: #f7f5f1;
+  --border: #ddd8cf;
+  --text: #14171c; --text-muted: #6f6a62;
+  --primary: #1b4b3a; --primary-2: #1b4b3a; --primary-dark: #143728;
+  --income: #1b4b3a; --income-soft: #e8efeb;
+  --expense: #8e3236; --expense-soft: #f4e7e7;
+  --balance: #1b4b3a; --budget: #8a6a2f;
+  --radius: 0px; --radius-sm: 2px;
+  --grad: #1b4b3a; --grad-income: #1b4b3a; --grad-expense: #8e3236;
+  --shadow: none; --shadow-sm: none; --shadow-lg: 0 10px 40px rgba(20,23,28,.16);
+}
+[data-theme="dark"] .variant-report {
+  --bg: #14151a; --bg-2: #191a20;
+  --surface: #1c1e25; --surface-2: #21242c;
+  --border: #32353f;
+  --text: #ece9e3; --text-muted: #948e85;
+  --primary: #6aa88f; --primary-2: #6aa88f; --primary-dark: #58907a;
+  --income: #6aa88f; --income-soft: #16241e;
+  --expense: #c9797c; --expense-soft: #2a1a1b;
+  --grad: #6aa88f; --grad-income: #6aa88f; --grad-expense: #c9797c;
+}
+
+/* "דף" אחד רחב במקום ערימת כרטיסים */
+.variant-report .app-header {
+  position: static; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none;
+  border-bottom: none;
+}
+.variant-report .header-inner {
+  max-width: 1000px; margin: 0 auto; align-items: flex-end;
+  padding: 46px 32px 18px; border-bottom: 3px double var(--text);
+}
+.variant-report .brand-logo { display: none; }
+.variant-report .brand h1 {
+  font-size: 27px; font-weight: 500; letter-spacing: 5px; text-transform: uppercase;
+}
+.variant-report .brand-sub {
+  font-size: 10px; letter-spacing: 2.2px; text-transform: uppercase; margin-top: 6px;
+}
+.variant-report .header-actions { gap: 6px; }
+.variant-report .month-picker { background: transparent; border: none; box-shadow: none; }
+.variant-report .month-picker input[type="month"] {
+  font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 600;
+}
+.variant-report main.container { max-width: 1000px; padding: 0 32px 70px; }
+.variant-report main { padding-top: 34px; }
+/* הכרטיסים נעלמים — נשארים "פרקים" במסמך */
+.variant-report .card {
+  background: transparent; border: none; border-radius: 0;
+  padding: 0; margin-bottom: 52px;
+}
+.variant-report .section-head {
+  border-bottom: 1px solid var(--text); padding-bottom: 8px; margin-bottom: 22px;
+}
+.variant-report .card h2 { font-size: 11px; letter-spacing: 2.4px; color: var(--text); }
+.variant-report .muted-inline { font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; }
+.variant-report .bt-summary {
+  border-top: 1px solid var(--text); border-bottom: 1px solid var(--text);
+  margin-bottom: 38px;
+}
+.variant-report .bt-sum-item { padding: 22px 26px; }
+.variant-report .bt-sum-item .v { font-size: 34px; font-weight: 400; letter-spacing: -1px; }
+.variant-report .budget-table th, .variant-report .history-table th { letter-spacing: 2px; }
+.variant-report .budget-table td { height: 56px; }
+.variant-report .btn-primary {
+  background: transparent; color: var(--text); border: 1px solid var(--text);
+  text-transform: uppercase; letter-spacing: 1.6px; font-size: 11px; font-weight: 700;
+}
+.variant-report .btn-primary:hover { background: var(--text); color: var(--surface); filter: none; }
+.variant-report .app-footer { max-width: 1000px; margin: 0 auto; letter-spacing: 1px; font-size: 11px; }
+.variant-report .modal { border: 1px solid var(--text); }
 
 /* ============================================================
    VARIANT: COACH — professional, sharp, minimal
@@ -1321,6 +1567,7 @@ window.BUDGET_CONFIG = {"showTable": true};
     compact: !!CFG.compact,            // פריסה תמציתית: 2 כרטיסים, בלי תובנות/גרפי מגמה, טבלת קטגוריות
     tableOnly: !!CFG.tableOnly,         // מצב טבלה בלבד (רוסית/אנגלית): רק טבלת תקציב
     showTable: !!CFG.showTable,         // הצגת טבלת המעקב גם בגרסה העברית (בעמוד הראשי)
+    noEmoji: !!CFG.noEmoji,             // מסיר אימוג'ים מהממשק (עיצובים "בוגרים") + מוסיף class "pro"
   };
 
   /* ---------- i18n (עברית → רוסית) ---------- */
@@ -1612,24 +1859,50 @@ window.BUDGET_CONFIG = {"showTable": true};
     return s;
   }
   function translateDom(root) {
-    if (!ACTIVE_DICT) return;
+    root = root || document.body;
+    if (ACTIVE_DICT) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode(n) {
+          if (!n.nodeValue || !HE_RE.test(n.nodeValue)) return NodeFilter.FILTER_REJECT;
+          const p = n.parentNode && n.parentNode.nodeName;
+          if (p === "SCRIPT" || p === "STYLE" || p === "NOSCRIPT") return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        },
+      });
+      const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach((n) => { n.nodeValue = tr(n.nodeValue); });
+      root.querySelectorAll("[placeholder],[title],[aria-label]").forEach((elm) => {
+        ["placeholder", "title", "aria-label"].forEach((a) => {
+          const v = elm.getAttribute(a);
+          if (v && HE_RE.test(v)) elm.setAttribute(a, tr(v));
+        });
+      });
+    }
+    stripEmoji(root);
+  }
+
+  /* ---------- הסרת אימוג'ים (עיצובים "בוגרים") ---------- */
+  // האייקונים של הקטגוריות נשארים — הם הופכים ל"פס צבע" ב-CSS, לא לטקסט.
+  const EMOJI_KEEP = ".bt-ico,.tc-ico,.tx-icon,.m-ico,.emoji-picker,.emoji-opt,.goal-emoji,.insight-emoji,.badge-emoji,.brand-logo,.cmp-ico";
+  // טווחים זהירים: אימוג'ים וסמלים דקורטיביים בלבד. − ‹ › ⤢ נשארים (יש להם משמעות בממשק).
+  const EMOJI_RANGES = "\\u{1F000}-\\u{1FAFF}\\u{2300}-\\u{23FF}\\u{2600}-\\u{27BF}\\u{2B00}-\\u{2BFF}\\u{FE0E}\\u{FE0F}\\u{20E3}";
+  const EMOJI_TEST = new RegExp("[" + EMOJI_RANGES + "]", "u");         // ללא g — בטוח ל-test()
+  const EMOJI_STRIP = new RegExp("[" + EMOJI_RANGES + "]", "gu");
+  function stripEmoji(root) {
+    if (!APP.noEmoji) return;
     root = root || document.body;
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode(n) {
-        if (!n.nodeValue || !HE_RE.test(n.nodeValue)) return NodeFilter.FILTER_REJECT;
-        const p = n.parentNode && n.parentNode.nodeName;
-        if (p === "SCRIPT" || p === "STYLE" || p === "NOSCRIPT") return NodeFilter.FILTER_REJECT;
+        if (!n.nodeValue || !EMOJI_TEST.test(n.nodeValue)) return NodeFilter.FILTER_REJECT;
+        const p = n.parentElement;
+        if (!p || p.closest(EMOJI_KEEP)) return NodeFilter.FILTER_REJECT;
+        const t = p.nodeName;
+        if (t === "SCRIPT" || t === "STYLE" || t === "NOSCRIPT") return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       },
     });
     const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
-    nodes.forEach((n) => { n.nodeValue = tr(n.nodeValue); });
-    root.querySelectorAll("[placeholder],[title],[aria-label]").forEach((elm) => {
-      ["placeholder", "title", "aria-label"].forEach((a) => {
-        const v = elm.getAttribute(a);
-        if (v && HE_RE.test(v)) elm.setAttribute(a, tr(v));
-      });
-    });
+    nodes.forEach((n) => { n.nodeValue = n.nodeValue.replace(EMOJI_STRIP, "").replace(/\s{2,}/g, " ").trim(); });
   }
   // תרגום אוטומטי של דיאלוגים native
   if (ACTIVE_DICT) {
@@ -2530,10 +2803,12 @@ window.BUDGET_CONFIG = {"showTable": true};
     }
     document.body.dataset.page = "main";
     if (APP.variant) document.body.classList.add("variant-" + APP.variant);
+    if (APP.noEmoji) document.body.classList.add("pro");
     const logoEl = document.querySelector(".brand-logo");
     const h1 = document.querySelector(".brand h1");
     const sub = document.querySelector(".brand-sub");
-    if (logoEl) logoEl.textContent = APP.logo;
+    // בעיצובים "בוגרים" הלוגו הוא מונוגרמה (אות ראשונה) במקום אימוג'י
+    if (logoEl) logoEl.textContent = APP.noEmoji ? (APP.name || "B").trim().charAt(0).toUpperCase() : APP.logo;
     if (h1) h1.textContent = APP.name;
     if (sub) sub.textContent = APP.tagline;
     if (APP.accent) {
@@ -2859,7 +3134,8 @@ window.BUDGET_CONFIG = {"showTable": true};
     const cats = catsOf("expense");
     el.budgetTableBody.innerHTML = cats.map((c) => {
       const planned = catBudgets[c.id] || 0, spent = catSpent(c.id, ym), remaining = planned - spent;
-      return `<tr>
+      const used = planned > 0 ? Math.min(100, Math.round((spent / planned) * 100)) : 0;
+      return `<tr style="--cat:${c.color};--used:${used}%">
         <td class="bt-cat"><button type="button" class="bt-cat-btn" data-cat="${c.id}" title="הצג את כל ההוצאות בקטגוריה"><span class="bt-ico" style="background:${c.color}22">${c.icon}</span><span class="bt-cat-name">${c.name}</span><span class="bt-cat-hint">👁️</span></button><button class="bt-del" data-delcat="${c.id}" title="מחק קטגוריה">🗑️</button></td>
         <td><input type="number" class="bt-plan" data-cat="${c.id}" value="${planned || ""}" placeholder="0" min="0" /></td>
         <td><button type="button" class="bt-spent-btn" data-cat="${c.id}">${spent ? fmt(spent) : "0"} <span class="bt-spent-plus">＋</span></button></td>

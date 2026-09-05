@@ -1,7 +1,7 @@
 {
-  "name": "Мой бюджет",
-  "short_name": "Мой бюджет",
-  "start_url": "design-exec-ru.html",
+  "name": "My Budget",
+  "short_name": "My Budget",
+  "start_url": "design-report-en.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
