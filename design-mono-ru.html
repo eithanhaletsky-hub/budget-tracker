@@ -1253,6 +1253,73 @@ body.table-only .data-card #printReport { display: none; } /* הדוח המוד�
   --grad: #0d6e66; --grad-income: #0d6e66; --grad-expense: #ad433d;
 }
 
+/* ============================================================
+   PRO — חלון הקטגוריה: אטום, פשוט, גדול, עם מחיקה גלויה
+   ============================================================ */
+/* 1. רקע אטום בכל שלושת העיצובים (mono גם הוא מאפס את .card) */
+.pro .modal.card {
+  background: var(--surface); border: 2px solid var(--text);
+  border-radius: var(--radius); padding: 26px;
+}
+.pro .modal-overlay { background: rgba(10, 14, 26, 0.78); backdrop-filter: blur(6px); }
+
+/* 2. כפתור המחיקה — האימוג'י הוסר, מחזירים סמל ברור וקבוע (לא רק במעבר עכבר) */
+.pro .cattx-del {
+  font-size: 0; opacity: 1; width: 36px; height: 36px; border-radius: var(--radius-sm);
+  border: 2px solid var(--border); color: var(--text-muted); display: inline-grid; place-items: center;
+  transition: all .15s;
+}
+.pro .cattx-del::after { content: "\00d7"; font-size: 24px; line-height: 1; }
+.pro .cattx-del:hover { border-color: var(--expense); color: var(--expense); background: var(--expense-soft); }
+.pro .cattx-table .ct-act { width: 64px; }
+
+/* 3. טופס ההוספה — תיבה אחת מוגדרת במקום שדות צפים */
+.pro .cattx-add {
+  border-top: none; margin-top: 8px; padding: 18px;
+  background: var(--surface-2); border: 2px solid var(--border); border-radius: var(--radius);
+  align-items: center; gap: 12px;
+}
+.pro .cattx-add input, .pro .cattx-add .date-display {
+  background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 18px; padding: 13px 16px; height: 52px; box-sizing: border-box;
+}
+.pro .cattx-add input:focus, .pro .cattx-add .date-display:focus { border-color: var(--primary); box-shadow: none; }
+.pro #catTxModal .cattx-add #catTxAmount { width: 160px; }
+.pro .cattx-add .btn-primary { height: 52px; padding: 0 28px; font-size: 15px; }
+/* היום השבוע + כפתורי הקיצור: מתחת לתאריך, כדי שסכום/תאריך/תיאור/הוסף יישארו בשורה אחת */
+.pro .cattx-add { align-items: flex-start; }
+.pro .date-field { flex-direction: column; gap: 6px; }
+.pro .date-weekday { text-align: start; font-size: 13px; min-height: 0; padding-inline-start: 2px; }
+.pro .date-quick button {
+  font-size: 12.5px; font-weight: 600; padding: 6px 10px; border: 2px solid var(--border);
+  border-radius: 999px; background: var(--surface); color: var(--text-muted);
+}
+.pro .date-quick button:hover { border-color: var(--primary); color: var(--primary); }
+.pro .cal-pop { border-width: 2px; }
+
+/* 4. הטבלה בתוך החלון — גדולה יותר */
+.pro .cattx-table { font-size: 20px; }
+.pro .cattx-table th { font-size: 13px; padding: 0 16px 12px; }
+.pro .cattx-table td { padding: 18px 16px; }
+.pro .cattx-table .ct-topic { font-size: 20px; font-weight: 600; }
+.pro .cattx-table .ct-amt { font-size: 22px; }
+.pro .cattx-table .ct-when { font-size: 18px; }
+.pro .cattx-table tfoot td { background: transparent; font-size: 22px; padding: 18px 16px; }
+.pro #catTxModal h3 { font-size: 22px; }
+.pro #catTxModal .modal-actions { margin-top: 14px; }
+.pro #catTxModal .modal-actions button { border-width: 2px; font-weight: 700; }
+
+/* 5. הטבלה הראשית ב-mono — צפופה, אבל לא קטנה */
+.variant-mono .budget-table { font-size: 15.5px; }
+.variant-mono .budget-table td { height: 50px; padding: 0 14px; }
+.variant-mono .budget-table th { font-size: 12.5px; padding: 0 14px 10px; }
+.variant-mono .bt-cat-btn { font-size: 15.5px; }
+.variant-mono .bt-ico { height: 20px; }
+.variant-mono .bt-spent-btn, .variant-mono .budget-table input.bt-plan, .variant-mono .bt-remain { font-size: 16px; }
+.variant-mono .bt-spent-plus { width: 22px; height: 22px; font-size: 13px; }
+.variant-mono .bt-sum-item .v { font-size: 30px; }
+.variant-mono .history-table td, .variant-mono .history-table th { font-size: 14.5px; padding: 12px 14px; }
+
 </style>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
