@@ -114,14 +114,14 @@ EDITIONS = [
       "brandedBy": "דנה כהן · מאמנת פיננסית", "storeKey": "budgetcoach"},
      'coach-9r7w4t.html', 'coach-9r7w4t6y1p.html'),
 
-    # RU/EN use the mature "dash" layout: sidebar shell, no emoji, ledger table.
-    # Swap "dash" -> "report" for the printed-statement look.
+    # RU/EN use the "mono" layout: light, dense, monospace figures, no emoji.
+    # Alternatives: "dash" (sidebar shell) / "report" (printed statement).
     ({"name": "Мой бюджет", "tagline": "Контроль доходов и расходов",
-      "lang": "ru", "tableOnly": True, "variant": "dash", "noEmoji": True, "storeKey": "budgetru"},
+      "lang": "ru", "tableOnly": True, "variant": "mono", "noEmoji": True, "defaultTheme": "light", "storeKey": "budgetru"},
      'ru-6n1x5q.html', 'ru-6p4n9m1x5q.html'),
 
     ({"name": "My Budget", "tagline": "Monthly income & expense control",
-      "lang": "en", "tableOnly": True, "variant": "dash", "noEmoji": True, "storeKey": "budgeten"},
+      "lang": "en", "tableOnly": True, "variant": "mono", "noEmoji": True, "defaultTheme": "light", "storeKey": "budgeten"},
      'en-4w8r3t.html', 'en-8w2q5r7t3v.html'),
 ]
 for cfg, current, legacy in EDITIONS:

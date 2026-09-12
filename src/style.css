@@ -844,7 +844,8 @@ body.show-table:not(.table-only) .method-toggle { display: inline-flex; }
 body.table-only #budgetTableCard, body.method-table #budgetTableCard { display: block; }
 body.method-table .layout, body.method-table #listCard { display: none; }
 body.table-only .page-nav, body.table-only #pagePlanning, body.table-only #summaryBtn { display: none; }
-body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard) { display: none !important; }
+body.table-only #pageMain > *:not(#budgetTableCard):not(#historyCard):not(.data-card) { display: none !important; }
+body.table-only .data-card #printReport { display: none; } /* הדוח המודפס בנוי סביב מסך התנועות */
 
 .bt-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
 .bt-budget-label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 700; color: var(--text-muted); }
