@@ -1794,15 +1794,16 @@
     updateWeekday();
     toggleCalendar(false);
   }
+  // מעדכן את כפתור התאריך (+ תווית יום-בשבוע אם קיימת) לפי הערך הנסתר
   function updateWeekday() {
-    const w = document.getElementById("catTxWeekday");
-    if (!w || !el.catTxDate) return;
+    if (!el.catTxDate) return;
     const v = el.catTxDate.value;
-    if (!v) { w.textContent = ""; return; }
-    const [yy, mm, dd] = v.split("-").map(Number);
-    w.textContent = tr("יום ") + tr(WEEKDAYS[new Date(yy, mm - 1, dd).getDay()]);
+    const w = document.getElementById("catTxWeekday");
     const btn = document.getElementById("catTxDateBtn");
-    if (btn) btn.innerHTML = `<span class="dd-ico">📅</span>${dd}/${mm}/${yy}`;
+    if (!v) { if (w) w.textContent = ""; if (btn) btn.textContent = ""; return; }
+    const [yy, mm, dd] = v.split("-").map(Number);
+    if (w) w.textContent = tr("יום ") + tr(WEEKDAYS[new Date(yy, mm - 1, dd).getDay()]);
+    if (btn) { btn.innerHTML = `<span class="dd-ico">📅</span>${dd}/${mm}/${yy}`; stripEmoji(btn); }
     calMonth = ymOf(v);
     renderCalendar();
   }

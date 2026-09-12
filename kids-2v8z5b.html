@@ -2012,12 +2012,7 @@ body.table-only .data-card #printReport { display: none; } /* הדוח המוד�
         <div class="date-field">
           <input type="hidden" id="catTxDate" />
           <button type="button" class="date-display" id="catTxDateBtn" title="תאריך ההוצאה"></button>
-          <span class="date-weekday" id="catTxWeekday"></span>
-          <div class="date-quick" id="catTxQuick">
-            <button type="button" data-quick="today">היום</button>
-            <button type="button" data-quick="yesterday">אתמול</button>
-            <button type="button" data-quick="first">תחילת החודש</button>
-          </div>
+          <!-- יום-בשבוע וכפתורי קיצור (היום/אתמול/תחילת החודש) הוסרו לבקשת המשתמש — הקוד ב-app.js סובל את היעדרם -->
           <div class="cal-pop" id="catTxCal" hidden>
             <div class="cal-nav">
               <button type="button" id="catTxCalPrev" aria-label="חודש קודם">‹</button>
@@ -3851,15 +3846,16 @@ window.BUDGET_CONFIG = {"name": "הכסף שלי", "tagline": "לומדים לנ
     updateWeekday();
     toggleCalendar(false);
   }
+  // מעדכן את כפתור התאריך (+ תווית יום-בשבוע אם קיימת) לפי הערך הנסתר
   function updateWeekday() {
-    const w = document.getElementById("catTxWeekday");
-    if (!w || !el.catTxDate) return;
+    if (!el.catTxDate) return;
     const v = el.catTxDate.value;
-    if (!v) { w.textContent = ""; return; }
-    const [yy, mm, dd] = v.split("-").map(Number);
-    w.textContent = tr("יום ") + tr(WEEKDAYS[new Date(yy, mm - 1, dd).getDay()]);
+    const w = document.getElementById("catTxWeekday");
     const btn = document.getElementById("catTxDateBtn");
-    if (btn) btn.innerHTML = `<span class="dd-ico">📅</span>${dd}/${mm}/${yy}`;
+    if (!v) { if (w) w.textContent = ""; if (btn) btn.textContent = ""; return; }
+    const [yy, mm, dd] = v.split("-").map(Number);
+    if (w) w.textContent = tr("יום ") + tr(WEEKDAYS[new Date(yy, mm - 1, dd).getDay()]);
+    if (btn) { btn.innerHTML = `<span class="dd-ico">📅</span>${dd}/${mm}/${yy}`; stripEmoji(btn); }
     calMonth = ymOf(v);
     renderCalendar();
   }
