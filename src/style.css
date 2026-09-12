@@ -469,11 +469,13 @@ html body.pro #budgetTableCard { display: flex; flex-direction: column; }
 .pro .bt-del:hover { opacity: 1; }
 
 /* "תוכנן" — שדה שקוף שנראה כמו טקסט עד שנוגעים בו */
+/* שדה "תוכנן" חייב להיראות כמו שדה — משתמש חשב שהעמודה נעלמה כשהמסגרת הייתה שקופה */
 .pro .budget-table input.bt-plan {
   width: 110px; text-align: end; font-size: 15px; font-weight: 500; padding: 8px 10px;
-  background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
 }
-.pro .budget-table input.bt-plan:hover { border-color: var(--border); }
+.pro .budget-table input.bt-plan::placeholder { color: var(--text-muted); opacity: .7; }
+.pro .budget-table input.bt-plan:hover { border-color: var(--text-muted); }
 .pro .budget-table input.bt-plan:focus { border-color: var(--primary); background: var(--surface); box-shadow: none; }
 
 /* "הוצא בפועל" — מספר עם קו-בסיס מקווקו + מד ניצול דק מתחת לשורה */
@@ -1476,10 +1478,10 @@ body.table-only .data-card #printReport { display: none; } /* הדוח המוד�
 .variant-premium .bt-del::after { font-size: 18px; }
 .variant-premium .bt-del:hover { background: var(--expense-soft); color: var(--expense); }
 .variant-premium .budget-table input.bt-plan {
-  font-size: 15px; font-weight: 500; width: 110px; padding: 9px 12px; border-radius: 9px;
-  border: 1px solid transparent; background: transparent;
+  font-size: 15px; font-weight: 500; width: 116px; padding: 9px 12px; border-radius: 9px;
+  border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm);
 }
-.variant-premium .budget-table input.bt-plan:hover { border-color: var(--border); background: var(--surface); }
+.variant-premium .budget-table input.bt-plan:hover { border-color: var(--text-muted); }
 .variant-premium .budget-table input.bt-plan:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); background: var(--surface); }
 .variant-premium .bt-spent-btn {
   border: none; border-radius: 9px; background: var(--surface-2); padding: 8px 8px 8px 12px;
