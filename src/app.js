@@ -281,7 +281,7 @@
     "משכורת": "Salary", "דמי כיס": "Allowance", "מתנה": "Gift", "עבודה עצמאית": "Freelance", "החזר": "Refund", "הכל": "All",
     "ינואר": "January", "פברואר": "February", "מרץ": "March", "אפריל": "April", "מאי": "May", "יוני": "June",
     "יולי": "July", "אוגוסט": "August", "ספטמבר": "September", "אוקטובר": "October", "נובמבר": "November", "דצמבר": "December",
-    "ינו": "Jan", "פבר": "Feb", "מרץ": "Mar", "אפר": "Apr", "מאי": "May", "יונ": "Jun", "יול": "Jul", "אוג": "Aug", "ספט": "Sep", "אוק": "Oct", "נוב": "Nov", "דצמ": "Dec",
+    "ינו": "Jan", "פבר": "Feb", "אפר": "Apr", "יונ": "Jun", "יול": "Jul", "אוג": "Aug", "ספט": "Sep", "אוק": "Oct", "נוב": "Nov", "דצמ": "Dec",
     "סיכום החודש": "Monthly summary", "מחק תנועה": "Delete transaction", "בחר אייקון": "Choose icon",
     "גרף עוגה של הוצאות לפי קטגוריה": "Pie chart of expenses by category",
     "גרף עמודות של הכנסות והוצאות לפי חודש": "Bar chart of income and expenses by month",
@@ -498,7 +498,8 @@
   function todayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
   const fmt = (n) => "₪" + Number(n).toLocaleString("he-IL", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const fmtShort = (n) => { n = Math.round(n); return n >= 1000 ? "₪" + (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + "K" : "₪" + n; };
-  function monthLabel(ym) { const [y, m] = ym.split("-"); const names = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"]; return `${names[+m - 1]} ${y}`; }
+  const MONTH_NAMES = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
+  function monthLabel(ym) { const [y, m] = ym.split("-"); return `${MONTH_NAMES[+m - 1]} ${y}`; }
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
@@ -629,6 +630,34 @@
   el.nextMonth.addEventListener("click", () => shiftMonth(1));
   el.monthSelect.addEventListener("change", () => { currentMonth = el.monthSelect.value || ymNow(); renderAll(); });
   [el.searchInput, el.filterType, el.filterCategory].forEach((c) => c.addEventListener("input", renderList));
+
+  /* ---------- בורר חודש מותאם (מתורגם — במקום ה-input המובנה שמציג את שפת מערכת ההפעלה) ---------- */
+  const monthBtn = $("monthBtn"), monthPop = $("monthPop"), mpYear = $("mpYear"), mpGrid = $("mpGrid");
+  let mpShownYear = null;
+  function updateMonthLabel() { if (monthBtn) monthBtn.textContent = tr(monthLabel(currentMonth)); }
+  function renderMonthPop() {
+    mpYear.textContent = mpShownYear;
+    const [curY, curM] = currentMonth.split("-").map(Number);
+    const nowYm = ymNow();
+    mpGrid.innerHTML = MONTH_NAMES.map((n, i) => {
+      const ym = `${mpShownYear}-${String(i + 1).padStart(2, "0")}`;
+      const cls = ["mp-month", (mpShownYear === curY && i + 1 === curM) ? "is-selected" : "", ym === nowYm ? "is-today" : ""].join(" ").trim();
+      return `<button type="button" class="${cls}" data-ym="${ym}">${tr(n)}</button>`;
+    }).join("");
+    mpGrid.querySelectorAll("[data-ym]").forEach((b) => b.addEventListener("click", () => {
+      currentMonth = b.dataset.ym; el.monthSelect.value = currentMonth;
+      closeMonthPop(); renderAll();
+    }));
+  }
+  function openMonthPop() { mpShownYear = +currentMonth.slice(0, 4); renderMonthPop(); monthPop.hidden = false; monthBtn.setAttribute("aria-expanded", "true"); }
+  function closeMonthPop() { monthPop.hidden = true; monthBtn.setAttribute("aria-expanded", "false"); }
+  if (monthBtn) {
+    monthBtn.addEventListener("click", () => (monthPop.hidden ? openMonthPop() : closeMonthPop()));
+    $("mpPrevYear").addEventListener("click", () => { mpShownYear--; renderMonthPop(); });
+    $("mpNextYear").addEventListener("click", () => { mpShownYear++; renderMonthPop(); });
+    document.addEventListener("click", (e) => { if (!monthPop.hidden && !e.target.closest(".month-field")) closeMonthPop(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !monthPop.hidden) closeMonthPop(); });
+  }
 
   const monthTx = () => transactions.filter((t) => ymOf(t.date) === currentMonth);
   const sum = (arr) => arr.reduce((s, t) => s + t.amount, 0);
@@ -1882,6 +1911,7 @@
 
   /* ---------- רינדור כללי ---------- */
   function renderAll() {
+    updateMonthLabel();
     renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges();
     renderCatTableCard(); renderBudgetTable(); renderCompare(); renderHistory();
     if (el.reviewView && !el.reviewView.hidden) renderReview();

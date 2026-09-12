@@ -25,7 +25,19 @@
         <button id="themeToggle" class="icon-btn" title="מצב כהה/בהיר" aria-label="החלף מצב תצוגה">🌙</button>
         <div class="month-picker">
           <button id="prevMonth" class="icon-btn" aria-label="חודש קודם">‹</button>
-          <input type="month" id="monthSelect" aria-label="בחר חודש" />
+          <div class="month-field">
+            <!-- ה-input הנסתר נשאר מחזיק המצב (כל הקוד כותב ל-.value שלו); הכפתור הוא התצוגה המתורגמת -->
+            <input type="month" id="monthSelect" class="month-native" aria-hidden="true" tabindex="-1" />
+            <button type="button" id="monthBtn" class="month-btn" aria-haspopup="dialog" aria-label="בחר חודש"></button>
+            <div class="month-pop" id="monthPop" hidden>
+              <div class="mp-nav">
+                <button type="button" id="mpPrevYear" aria-label="שנה קודמת">‹</button>
+                <span class="mp-year" id="mpYear"></span>
+                <button type="button" id="mpNextYear" aria-label="שנה הבאה">›</button>
+              </div>
+              <div class="mp-grid" id="mpGrid"></div>
+            </div>
+          </div>
           <button id="nextMonth" class="icon-btn" aria-label="חודש הבא">›</button>
         </div>
       </div>

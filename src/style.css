@@ -1311,3 +1311,44 @@ body.table-only .data-card #printReport { display: none; } /* הדוח המוד�
 .variant-mono .bt-spent-plus { width: 22px; height: 22px; font-size: 13px; }
 .variant-mono .bt-sum-item .v { font-size: 30px; }
 .variant-mono .history-table td, .variant-mono .history-table th { font-size: 14.5px; padding: 12px 14px; }
+
+/* ============================================================
+   בורר חודש מותאם — מציג שם חודש מתורגם, לא את שפת מערכת ההפעלה
+   ============================================================ */
+.month-field { position: relative; }
+.month-native { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; border: 0; padding: 0; }
+.month-btn {
+  background: transparent; border: none; color: var(--text); font-family: var(--font);
+  font-size: 14px; font-weight: 700; padding: 6px 12px; min-width: 130px; cursor: pointer;
+  border-radius: 8px; white-space: nowrap;
+}
+.month-btn:hover { background: var(--surface-2); }
+.month-pop {
+  position: absolute; top: calc(100% + 8px); inset-inline-start: 50%; transform: translateX(-50%);
+  width: 300px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-lg); padding: 12px; z-index: 30; animation: fade .15s;
+}
+[dir="rtl"] .month-pop { transform: translateX(50%); }
+.month-pop[hidden] { display: none; }
+.mp-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.mp-nav button {
+  width: 32px; height: 32px; border: 1px solid var(--border); background: var(--surface-2);
+  border-radius: 8px; cursor: pointer; color: var(--text); font-size: 18px; line-height: 1;
+}
+.mp-nav button:hover { border-color: var(--primary); color: var(--primary); }
+.mp-year { font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
+.mp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.mp-month {
+  padding: 10px 4px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  border-radius: 8px; cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 600;
+}
+.mp-month:hover { border-color: var(--primary); color: var(--primary); background: var(--surface); }
+.mp-month.is-today { border-color: var(--primary); }
+.mp-month.is-selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* בעיצובים הבוגרים — קווים עבים ופינות ישרות, כמו כל השאר */
+.pro .month-btn { font-size: 13.5px; letter-spacing: .3px; border-radius: var(--radius-sm); }
+.pro .month-pop { border-width: 2px; border-color: var(--text); border-radius: var(--radius); }
+.pro .mp-nav button, .pro .mp-month { border-width: 2px; border-radius: var(--radius-sm); }
+.pro .mp-month { font-weight: 700; }
+.variant-mono .month-btn { font-family: var(--font); text-transform: uppercase; letter-spacing: 1px; font-size: 12.5px; }

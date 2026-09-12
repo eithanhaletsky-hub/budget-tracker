@@ -1320,6 +1320,47 @@ body.table-only .data-card #printReport { display: none; } /* הדוח המוד�
 .variant-mono .bt-sum-item .v { font-size: 30px; }
 .variant-mono .history-table td, .variant-mono .history-table th { font-size: 14.5px; padding: 12px 14px; }
 
+/* ============================================================
+   בורר חודש מותאם — מציג שם חודש מתורגם, לא את שפת מערכת ההפעלה
+   ============================================================ */
+.month-field { position: relative; }
+.month-native { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; border: 0; padding: 0; }
+.month-btn {
+  background: transparent; border: none; color: var(--text); font-family: var(--font);
+  font-size: 14px; font-weight: 700; padding: 6px 12px; min-width: 130px; cursor: pointer;
+  border-radius: 8px; white-space: nowrap;
+}
+.month-btn:hover { background: var(--surface-2); }
+.month-pop {
+  position: absolute; top: calc(100% + 8px); inset-inline-start: 50%; transform: translateX(-50%);
+  width: 300px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-lg); padding: 12px; z-index: 30; animation: fade .15s;
+}
+[dir="rtl"] .month-pop { transform: translateX(50%); }
+.month-pop[hidden] { display: none; }
+.mp-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.mp-nav button {
+  width: 32px; height: 32px; border: 1px solid var(--border); background: var(--surface-2);
+  border-radius: 8px; cursor: pointer; color: var(--text); font-size: 18px; line-height: 1;
+}
+.mp-nav button:hover { border-color: var(--primary); color: var(--primary); }
+.mp-year { font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
+.mp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.mp-month {
+  padding: 10px 4px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  border-radius: 8px; cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 600;
+}
+.mp-month:hover { border-color: var(--primary); color: var(--primary); background: var(--surface); }
+.mp-month.is-today { border-color: var(--primary); }
+.mp-month.is-selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* בעיצובים הבוגרים — קווים עבים ופינות ישרות, כמו כל השאר */
+.pro .month-btn { font-size: 13.5px; letter-spacing: .3px; border-radius: var(--radius-sm); }
+.pro .month-pop { border-width: 2px; border-color: var(--text); border-radius: var(--radius); }
+.pro .mp-nav button, .pro .mp-month { border-width: 2px; border-radius: var(--radius-sm); }
+.pro .mp-month { font-weight: 700; }
+.variant-mono .month-btn { font-family: var(--font); text-transform: uppercase; letter-spacing: 1px; font-size: 12.5px; }
+
 </style>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1348,7 +1389,19 @@ body.table-only .data-card #printReport { display: none; } /* הדוח המוד�
         <button id="themeToggle" class="icon-btn" title="מצב כהה/בהיר" aria-label="החלף מצב תצוגה">🌙</button>
         <div class="month-picker">
           <button id="prevMonth" class="icon-btn" aria-label="חודש קודם">‹</button>
-          <input type="month" id="monthSelect" aria-label="בחר חודש" />
+          <div class="month-field">
+            <!-- ה-input הנסתר נשאר מחזיק המצב (כל הקוד כותב ל-.value שלו); הכפתור הוא התצוגה המתורגמת -->
+            <input type="month" id="monthSelect" class="month-native" aria-hidden="true" tabindex="-1" />
+            <button type="button" id="monthBtn" class="month-btn" aria-haspopup="dialog" aria-label="בחר חודש"></button>
+            <div class="month-pop" id="monthPop" hidden>
+              <div class="mp-nav">
+                <button type="button" id="mpPrevYear" aria-label="שנה קודמת">‹</button>
+                <span class="mp-year" id="mpYear"></span>
+                <button type="button" id="mpNextYear" aria-label="שנה הבאה">›</button>
+              </div>
+              <div class="mp-grid" id="mpGrid"></div>
+            </div>
+          </div>
           <button id="nextMonth" class="icon-btn" aria-label="חודש הבא">›</button>
         </div>
       </div>
@@ -2065,7 +2118,7 @@ window.BUDGET_CONFIG = {"variant": "dash", "noEmoji": true, "tableOnly": true, "
     "משכורת": "Salary", "דמי כיס": "Allowance", "מתנה": "Gift", "עבודה עצמאית": "Freelance", "החזר": "Refund", "הכל": "All",
     "ינואר": "January", "פברואר": "February", "מרץ": "March", "אפריל": "April", "מאי": "May", "יוני": "June",
     "יולי": "July", "אוגוסט": "August", "ספטמבר": "September", "אוקטובר": "October", "נובמבר": "November", "דצמבר": "December",
-    "ינו": "Jan", "פבר": "Feb", "מרץ": "Mar", "אפר": "Apr", "מאי": "May", "יונ": "Jun", "יול": "Jul", "אוג": "Aug", "ספט": "Sep", "אוק": "Oct", "נוב": "Nov", "דצמ": "Dec",
+    "ינו": "Jan", "פבר": "Feb", "אפר": "Apr", "יונ": "Jun", "יול": "Jul", "אוג": "Aug", "ספט": "Sep", "אוק": "Oct", "נוב": "Nov", "דצמ": "Dec",
     "סיכום החודש": "Monthly summary", "מחק תנועה": "Delete transaction", "בחר אייקון": "Choose icon",
     "גרף עוגה של הוצאות לפי קטגוריה": "Pie chart of expenses by category",
     "גרף עמודות של הכנסות והוצאות לפי חודש": "Bar chart of income and expenses by month",
@@ -2282,7 +2335,8 @@ window.BUDGET_CONFIG = {"variant": "dash", "noEmoji": true, "tableOnly": true, "
   function todayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
   const fmt = (n) => "₪" + Number(n).toLocaleString("he-IL", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const fmtShort = (n) => { n = Math.round(n); return n >= 1000 ? "₪" + (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + "K" : "₪" + n; };
-  function monthLabel(ym) { const [y, m] = ym.split("-"); const names = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"]; return `${names[+m - 1]} ${y}`; }
+  const MONTH_NAMES = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
+  function monthLabel(ym) { const [y, m] = ym.split("-"); return `${MONTH_NAMES[+m - 1]} ${y}`; }
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
@@ -2413,6 +2467,34 @@ window.BUDGET_CONFIG = {"variant": "dash", "noEmoji": true, "tableOnly": true, "
   el.nextMonth.addEventListener("click", () => shiftMonth(1));
   el.monthSelect.addEventListener("change", () => { currentMonth = el.monthSelect.value || ymNow(); renderAll(); });
   [el.searchInput, el.filterType, el.filterCategory].forEach((c) => c.addEventListener("input", renderList));
+
+  /* ---------- בורר חודש מותאם (מתורגם — במקום ה-input המובנה שמציג את שפת מערכת ההפעלה) ---------- */
+  const monthBtn = $("monthBtn"), monthPop = $("monthPop"), mpYear = $("mpYear"), mpGrid = $("mpGrid");
+  let mpShownYear = null;
+  function updateMonthLabel() { if (monthBtn) monthBtn.textContent = tr(monthLabel(currentMonth)); }
+  function renderMonthPop() {
+    mpYear.textContent = mpShownYear;
+    const [curY, curM] = currentMonth.split("-").map(Number);
+    const nowYm = ymNow();
+    mpGrid.innerHTML = MONTH_NAMES.map((n, i) => {
+      const ym = `${mpShownYear}-${String(i + 1).padStart(2, "0")}`;
+      const cls = ["mp-month", (mpShownYear === curY && i + 1 === curM) ? "is-selected" : "", ym === nowYm ? "is-today" : ""].join(" ").trim();
+      return `<button type="button" class="${cls}" data-ym="${ym}">${tr(n)}</button>`;
+    }).join("");
+    mpGrid.querySelectorAll("[data-ym]").forEach((b) => b.addEventListener("click", () => {
+      currentMonth = b.dataset.ym; el.monthSelect.value = currentMonth;
+      closeMonthPop(); renderAll();
+    }));
+  }
+  function openMonthPop() { mpShownYear = +currentMonth.slice(0, 4); renderMonthPop(); monthPop.hidden = false; monthBtn.setAttribute("aria-expanded", "true"); }
+  function closeMonthPop() { monthPop.hidden = true; monthBtn.setAttribute("aria-expanded", "false"); }
+  if (monthBtn) {
+    monthBtn.addEventListener("click", () => (monthPop.hidden ? openMonthPop() : closeMonthPop()));
+    $("mpPrevYear").addEventListener("click", () => { mpShownYear--; renderMonthPop(); });
+    $("mpNextYear").addEventListener("click", () => { mpShownYear++; renderMonthPop(); });
+    document.addEventListener("click", (e) => { if (!monthPop.hidden && !e.target.closest(".month-field")) closeMonthPop(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !monthPop.hidden) closeMonthPop(); });
+  }
 
   const monthTx = () => transactions.filter((t) => ymOf(t.date) === currentMonth);
   const sum = (arr) => arr.reduce((s, t) => s + t.amount, 0);
@@ -3666,6 +3748,7 @@ window.BUDGET_CONFIG = {"variant": "dash", "noEmoji": true, "tableOnly": true, "
 
   /* ---------- רינדור כללי ---------- */
   function renderAll() {
+    updateMonthLabel();
     renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges();
     renderCatTableCard(); renderBudgetTable(); renderCompare(); renderHistory();
     if (el.reviewView && !el.reviewView.hidden) renderReview();
