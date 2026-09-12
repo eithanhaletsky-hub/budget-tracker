@@ -45,12 +45,14 @@ def build(config, out_path, pwa=False):
     # Real typefaces for the mature editions only (Hebrew/kids/coach keep the
     # system font — Inter has no Hebrew coverage and they need no extra request).
     if config and config.get('noEmoji'):
+        # premium: Rubik covers Hebrew + Cyrillic + Latin in one family (the brief asks
+        # for a geometric sans with Hebrew/English support and clean numerals)
+        family = ('family=Rubik:wght@400;500;600;700' if config.get('variant') == 'premium'
+                  else 'family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700')
         fonts = (
             '<link rel="preconnect" href="https://fonts.googleapis.com" />\n'
             '  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />\n'
-            '  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
-            'family=Inter:wght@400;500;600;700;800&'
-            'family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" />\n  <link rel="icon"'
+            '  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?' + family + '&display=swap" />\n  <link rel="icon"'
         )
         html = html.replace('<link rel="icon"', fonts, 1)
     if pwa:
@@ -114,14 +116,14 @@ EDITIONS = [
       "brandedBy": "דנה כהן · מאמנת פיננסית", "storeKey": "budgetcoach"},
      'coach-9r7w4t.html', 'coach-9r7w4t6y1p.html'),
 
-    # RU/EN use the "mono" layout: light, dense, monospace figures, no emoji.
-    # Alternatives: "dash" (sidebar shell) / "report" (printed statement).
+    # RU/EN use "premium" (the user's Sep-2026 design brief: calm fintech, Rubik,
+    # emerald accent, soft cards). Alternatives: dash / report / mono.
     ({"name": "Мой бюджет", "tagline": "Контроль доходов и расходов",
-      "lang": "ru", "tableOnly": True, "variant": "mono", "noEmoji": True, "defaultTheme": "light", "storeKey": "budgetru"},
+      "lang": "ru", "tableOnly": True, "variant": "premium", "noEmoji": True, "defaultTheme": "light", "storeKey": "budgetru"},
      'ru-6n1x5q.html', 'ru-6p4n9m1x5q.html'),
 
     ({"name": "My Budget", "tagline": "Monthly income & expense control",
-      "lang": "en", "tableOnly": True, "variant": "mono", "noEmoji": True, "defaultTheme": "light", "storeKey": "budgeten"},
+      "lang": "en", "tableOnly": True, "variant": "premium", "noEmoji": True, "defaultTheme": "light", "storeKey": "budgeten"},
      'en-4w8r3t.html', 'en-8w2q5r7t3v.html'),
 ]
 for cfg, current, legacy in EDITIONS:
@@ -133,6 +135,7 @@ for cfg, current, legacy in EDITIONS:
 DASH = {"variant": "dash", "noEmoji": True, "tableOnly": True}
 REPORT = {"variant": "report", "noEmoji": True, "tableOnly": True}
 MONO = {"variant": "mono", "noEmoji": True, "tableOnly": True, "defaultTheme": "light"}
+PREMIUM = {"variant": "premium", "noEmoji": True, "defaultTheme": "light"}
 
 build(dict(DASH, **{
     "name": "My Budget", "tagline": "Monthly income & expense control",
@@ -163,6 +166,9 @@ build(dict(MONO, **{
     "name": "Мой бюджет", "tagline": "Контроль доходов и расходов",
     "lang": "ru", "storeKey": "budgetru",
 }), 'design-mono-ru.html', pwa=True)
+
+# Hebrew preview of the premium look (full app, not table-only) — to decide whether to apply it there too
+build(dict(PREMIUM, **{"showTable": True}), 'design-premium-he.html', pwa=True)
 
 # --- Locked demo editions (meant for sharing with clients — predictable names OK) ---
 build({

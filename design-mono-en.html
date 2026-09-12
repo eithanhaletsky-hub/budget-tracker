@@ -1361,6 +1361,229 @@ body.table-only .data-card #printReport { display: none; } /* הדוח המוד�
 .pro .mp-month { font-weight: 700; }
 .variant-mono .month-btn { font-family: var(--font); text-transform: uppercase; letter-spacing: 1px; font-size: 12.5px; }
 
+/* ============================================================
+   VARIANT: PREMIUM — לפי בריף העיצוב של המשתמש (ספטמבר 2026)
+   "ניהול כסף יכול להיות פשוט, רגוע ומספק."
+   Off-white, פחם עמוק, אקסנט אמרלד אחד, Rubik, הרבה אוויר,
+   כרטיסים קלים עם צל רך, בלי אותיות גדולות, בלי קווים עבים.
+   מגיע על גבי .pro (בלי אימוגי) ומבטל את הכבדות שלו.
+   ============================================================ */
+.variant-premium {
+  --bg: #f6f6f4; --bg-2: #f0f0ed;
+  --surface: #ffffff; --surface-2: #f3f3f0;
+  --border: #e6e6e1;
+  --text: #17181c; --text-muted: #6f7279;
+  --primary: #0f6e5c; --primary-2: #0f6e5c; --primary-dark: #0b5646;
+  --accent-soft: #e4f1ec;
+  --income: #1e8a5e; --income-soft: #e6f4ed;
+  --expense: #c2483e; --expense-soft: #f8e9e7;
+  --balance: #0f6e5c; --budget: #0f6e5c;
+  --radius: 14px; --radius-sm: 10px;
+  --grad: #0f6e5c; --grad-income: #1e8a5e; --grad-expense: #c2483e;
+  --shadow-sm: 0 1px 2px rgba(23,24,28,.04);
+  --shadow: 0 1px 2px rgba(23,24,28,.04), 0 8px 24px rgba(23,24,28,.05);
+  --shadow-lg: 0 2px 6px rgba(23,24,28,.06), 0 24px 64px rgba(23,24,28,.14);
+  --ring: rgba(15,110,92,.18);
+  --font: "Rubik", "Assistant", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-feature-settings: normal;
+}
+[data-theme="dark"] .variant-premium {
+  --bg: #15161a; --bg-2: #191a1f;
+  --surface: #1c1d22; --surface-2: #24252b;
+  --border: #2d2e35;
+  --text: #ededea; --text-muted: #8f9198;
+  --primary: #4fb39a; --primary-2: #4fb39a; --primary-dark: #3d9a83;
+  --accent-soft: #1d2f2a;
+  --income: #4fb39a; --income-soft: #1a2b25;
+  --expense: #e07068; --expense-soft: #2e1f1e;
+  --grad: #4fb39a; --grad-income: #4fb39a; --grad-expense: #e07068;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.2);
+  --shadow: 0 1px 2px rgba(0,0,0,.25), 0 8px 24px rgba(0,0,0,.25);
+  --shadow-lg: 0 2px 6px rgba(0,0,0,.3), 0 24px 64px rgba(0,0,0,.5);
+  --ring: rgba(79,179,154,.22);
+}
+
+/* --- מעברים עדינים, רק לאלמנטים אינטראקטיביים --- */
+.variant-premium button, .variant-premium input, .variant-premium .card,
+.variant-premium .budget-table tbody tr, .variant-premium .history-table tbody tr {
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .12s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .variant-premium *, .variant-premium *::before, .variant-premium *::after { transition: none !important; animation: none !important; }
+}
+
+/* --- כותרת: קלה, כמעט שקופה --- */
+.variant-premium .app-header {
+  background: rgba(246,246,244,.82); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+[data-theme="dark"] .variant-premium .app-header { background: rgba(21,22,26,.82); }
+.variant-premium .header-inner { padding: 16px 24px; max-width: 1080px; margin: 0 auto; }
+.variant-premium .brand-logo {
+  width: 40px; height: 40px; border-radius: 12px; font-size: 16px; font-weight: 600;
+  background: var(--accent-soft); color: var(--primary); letter-spacing: 0;
+}
+.variant-premium .brand h1 { font-size: 17px; font-weight: 600; letter-spacing: -.2px; }
+.variant-premium .brand-sub { font-size: 12.5px; }
+.variant-premium .month-picker { border-radius: 12px; padding: 3px; box-shadow: none; }
+.variant-premium .month-btn { font-size: 14px; font-weight: 500; letter-spacing: 0; text-transform: none; min-width: 140px; border-radius: 9px; }
+.variant-premium .icon-btn { border-radius: 10px; width: 38px; height: 38px; }
+.variant-premium #themeToggle::after { font-size: 16px; }
+.variant-premium .month-pop { border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 14px; }
+.variant-premium .mp-nav button, .variant-premium .mp-month { border-width: 1px; border-radius: 9px; font-weight: 500; }
+.variant-premium .mp-month.is-selected { background: var(--primary); }
+
+/* --- הדף: צר יותר, הרבה אוויר --- */
+.variant-premium main.container { max-width: 1080px; padding: 36px 24px 72px; }
+.variant-premium .card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 28px 30px;
+}
+.variant-premium .card + .card, .variant-premium section + section { margin-top: 24px; }
+.variant-premium .card h2, .variant-premium .section-head h2 {
+  font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text);
+}
+.variant-premium .section-head { border-bottom: none; padding-bottom: 0; margin-bottom: 18px; }
+.variant-premium .muted-inline { font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+
+/* --- שדה התקציב: מספר גדול ורגוע --- */
+.variant-premium .bt-top { margin-bottom: 24px; align-items: center; }
+.variant-premium .bt-budget-label {
+  font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--text-muted); gap: 4px;
+}
+.variant-premium .bt-budget-label input {
+  font-size: 30px; font-weight: 600; letter-spacing: -.8px; color: var(--text); width: 220px;
+  border: none; border-bottom: 1px solid var(--border); border-radius: 0; padding: 4px 0 8px; background: transparent;
+}
+.variant-premium .bt-budget-label input:focus { border-bottom-color: var(--primary); box-shadow: none; }
+
+/* --- שלושת המספרים: כרטיסים רכים, בלי קווים --- */
+.variant-premium .bt-summary { border: none; gap: 12px; margin: 0 0 28px; }
+.variant-premium .bt-sum-item { background: var(--surface-2); border: none; border-radius: 12px; padding: 18px 22px; }
+.variant-premium .bt-sum-item .l {
+  font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--text-muted); margin-bottom: 6px;
+}
+.variant-premium .bt-sum-item .v { font-size: 28px; font-weight: 600; letter-spacing: -.8px; color: var(--text); }
+.variant-premium .bt-sum-item.remain .v.pos { color: var(--income); }
+.variant-premium .bt-sum-item.remain .v.neg { color: var(--expense); }
+
+/* --- הטבלה: קווים כמעט בלתי נראים, שורות גבוהות --- */
+.variant-premium .budget-table { font-size: 15px; }
+.variant-premium .budget-table th {
+  font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--text-muted);
+  border-bottom: 1px solid var(--border); padding: 0 12px 12px;
+}
+.variant-premium .budget-table td { height: 60px; padding: 0 12px; border-bottom: 1px solid var(--border); }
+.variant-premium .budget-table tbody tr:last-child td { border-bottom: none; }
+.variant-premium .budget-table tbody tr:nth-child(even) { background: transparent !important; }
+.variant-premium .budget-table tbody tr:hover { background: var(--surface-2) !important; }
+.variant-premium .bt-ico { width: 10px; height: 10px; border-radius: 50%; margin-inline-end: 4px; }
+.variant-premium .bt-cat-btn { font-size: 15px; font-weight: 500; letter-spacing: 0; gap: 12px; }
+.variant-premium .bt-cat-btn:hover { color: var(--primary); }
+.variant-premium .bt-del { border: none; width: 28px; height: 28px; border-radius: 8px; }
+.variant-premium .bt-del::after { font-size: 18px; }
+.variant-premium .bt-del:hover { background: var(--expense-soft); color: var(--expense); }
+.variant-premium .budget-table input.bt-plan {
+  font-size: 15px; font-weight: 500; width: 110px; padding: 9px 12px; border-radius: 9px;
+  border: 1px solid transparent; background: transparent;
+}
+.variant-premium .budget-table input.bt-plan:hover { border-color: var(--border); background: var(--surface); }
+.variant-premium .budget-table input.bt-plan:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); background: var(--surface); }
+.variant-premium .bt-spent-btn {
+  border: none; border-radius: 9px; background: var(--surface-2); padding: 8px 8px 8px 12px;
+  font-size: 15px; font-weight: 500; gap: 8px; color: var(--text);
+}
+.variant-premium .bt-spent-btn:hover { background: var(--accent-soft); color: var(--primary); }
+.variant-premium .bt-spent-btn:active { transform: scale(.98); }
+.variant-premium .bt-spent-plus {
+  width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--primary); color: #fff; font-size: 13px;
+}
+.variant-premium .budget-table tbody td:nth-child(3)::after {
+  height: 3px; border-radius: 999px; background: var(--primary); opacity: .28; bottom: 8px;
+}
+.variant-premium .bt-remain { font-size: 15px; font-weight: 600; }
+.variant-premium .budget-table tfoot td {
+  border-top: 1px solid var(--border); font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; padding: 18px 12px 4px;
+}
+.variant-premium .budget-table tfoot .bt-remain { font-size: 17px; }
+
+/* --- כפתורים: פשוטים ובטוחים --- */
+.variant-premium .btn-primary {
+  border-radius: 10px; font-size: 14px; font-weight: 500; letter-spacing: 0; text-transform: none;
+  padding: 11px 18px; background: var(--primary); color: #fff; box-shadow: var(--shadow-sm);
+}
+.variant-premium .btn-primary:hover { filter: none; background: var(--primary-dark); }
+.variant-premium .btn-primary:active { transform: scale(.98); }
+.variant-premium .btn-ghost, .variant-premium .btn-danger {
+  border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font-weight: 500; font-size: 14px; padding: 10px 16px;
+}
+.variant-premium .btn-ghost:hover { background: var(--surface-2); border-color: var(--border); }
+.variant-premium .btn-danger { color: var(--expense); }
+.variant-premium .btn-danger:hover { background: var(--expense-soft); border-color: transparent; }
+.variant-premium .icon-btn:hover { background: var(--surface-2); }
+
+/* --- השוואה לחודש קודם + היסטוריה --- */
+.variant-premium .bt-compare { border-top: none; gap: 12px; margin-top: 24px; }
+.variant-premium .cmp-item { background: var(--surface-2); border: none; border-radius: 12px; padding: 16px 20px; }
+.variant-premium .cmp-l { font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--text-muted); }
+.variant-premium .cmp-v { font-size: 18px; font-weight: 600; }
+.variant-premium .history-table th {
+  font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--text-muted);
+  border-bottom: 1px solid var(--border); padding: 0 12px 12px;
+}
+.variant-premium .history-table td { border-bottom: 1px solid var(--border); padding: 14px 12px; font-size: 14.5px; }
+.variant-premium .history-table tfoot td { border-top: 1px solid var(--border); font-weight: 600; }
+.variant-premium .data-actions { gap: 8px; }
+
+/* --- שדות קלט כלליים --- */
+.variant-premium input, .variant-premium select {
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-size: 14px;
+}
+.variant-premium input:focus, .variant-premium select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); }
+
+/* --- מודאל: מרחף, רך, מעבר קטן --- */
+.variant-premium .modal-overlay { background: rgba(23,24,28,.42); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.variant-premium .modal.card {
+  border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow-lg); padding: 28px 30px;
+  animation: premiumIn .22s cubic-bezier(.2,.7,.2,1);
+}
+/* transform בלבד — במצב מנוחה המודאל תמיד קריא, גם אם האנימציה לא רצה */
+@keyframes premiumIn { from { transform: translateY(10px) scale(.985); } to { transform: none; } }
+.variant-premium .modal h3 { font-size: 20px; font-weight: 600; letter-spacing: -.3px; text-transform: none; }
+.variant-premium .cattx-table { font-size: 16px; }
+.variant-premium .cattx-table th {
+  font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--text-muted);
+  border-bottom: 1px solid var(--border); padding: 0 14px 12px;
+}
+.variant-premium .cattx-table td { border-bottom: 1px solid var(--border); padding: 16px 14px; }
+.variant-premium .cattx-table .ct-topic { font-size: 16px; font-weight: 500; }
+.variant-premium .cattx-table .ct-amt { font-size: 17px; font-weight: 600; }
+.variant-premium .cattx-table .ct-when { font-size: 14.5px; }
+.variant-premium .cattx-table tfoot td { border-top: 1px solid var(--border); font-size: 16px; font-weight: 600; }
+.variant-premium .cattx-del { width: 32px; height: 32px; border: none; border-radius: 50%; background: transparent; }
+.variant-premium .cattx-del::after { font-size: 20px; }
+.variant-premium .cattx-del:hover { background: var(--expense-soft); }
+.variant-premium .cattx-add { background: var(--surface-2); border: none; border-radius: 12px; padding: 16px; gap: 10px; }
+.variant-premium .cattx-add input, .variant-premium .cattx-add .date-display {
+  height: 46px; font-size: 15px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+}
+.variant-premium .cattx-add .btn-primary { height: 46px; padding: 0 20px; font-size: 14px; }
+.variant-premium .date-quick button { border-width: 1px; font-weight: 500; }
+.variant-premium .date-weekday { font-weight: 500; }
+.variant-premium #catTxModal .modal-actions button { border-width: 1px; font-weight: 500; }
+.variant-premium .cal-pop { border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); }
+.variant-premium .cal-day.is-selected { background: var(--primary); border-radius: 8px; }
+
+/* --- רספונסיבי: מרווחים מתכווצים, השפה נשארת --- */
+@media (max-width: 720px) {
+  .variant-premium main.container { padding: 20px 14px 56px; }
+  .variant-premium .card { padding: 20px 18px; border-radius: 12px; }
+  .variant-premium .bt-summary { flex-direction: column; }
+  .variant-premium .bt-sum-item .v { font-size: 24px; }
+  .variant-premium .budget-table td { height: 54px; padding: 0 8px; }
+  .variant-premium .bt-budget-label input { font-size: 26px; width: 100%; }
+}
+
 </style>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
