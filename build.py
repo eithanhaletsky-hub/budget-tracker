@@ -33,6 +33,13 @@ def build(config, out_path, pwa=False):
     if config is not None:
         cfg_js = 'window.BUDGET_CONFIG = ' + json.dumps(config, ensure_ascii=False) + ';\n'
     html = html.replace('<link rel="stylesheet" href="style.css" />', '<style>\n' + css + '\n</style>')
+    # Content-Security-Policy: the page may load nothing from anywhere except itself and
+    # Google Fonts, may not connect anywhere (no data can leave), no plugins, no base/form
+    # hijacking. Inline script/style are ours (single-file build), hence 'unsafe-inline'.
+    csp = ("default-src 'self'; script-src 'self' 'unsafe-inline'; "
+           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; "
+           "img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'")
+    html = html.replace('<meta charset="UTF-8" />', '<meta charset="UTF-8" />\n  <meta http-equiv="Content-Security-Policy" content="%s" />' % csp, 1)
     # prepend the config assignment inside the same script tag, before the IIFE runs
     html = html.replace('<script src="app.js"></script>', '<script>\n' + cfg_js + js + '\n</script>')
     # non-Hebrew languages: LTR + lang + translated <title> for correct initial paint / SEO

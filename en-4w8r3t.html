@@ -2,6 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Budget — income & expense tracker</title>
   <meta name="description" content="אפליקציה נוחה למעקב אחרי הוצאות והכנסות, יעדי חיסכון, תנועות קבועות, תובנות חכמות וגרפים. הנתונים נשמרים במכשיר שלך בלבד." />
@@ -2560,6 +2561,59 @@ window.BUDGET_CONFIG = {"name": "My Budget", "tagline": "Monthly income & expens
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
+  /* ---------- סניטציה: כל מה שנכנס מבחוץ (קובץ ייבוא) או מהאחסון עובר רשימה לבנה ----------
+     טקסט חופשי (תיאור/שם) נשמר כמו שהוא ומקודד ב-render; שדות שנכנסים ל-attributes/class
+     (id/type/date/category) חייבים להתאים לתבנית, אחרת הרשומה נזרקת. */
+  const SAFE_ID = /^[A-Za-z0-9_:-]{1,80}$/, SAFE_DATE = /^\d{4}-\d{2}-\d{2}$/, SAFE_YM = /^\d{4}-\d{2}$/, SAFE_HEX = /^#[0-9a-fA-F]{6}$/;
+  const cleanStr = (s, max) => (s == null ? "" : String(s)).slice(0, max);
+  const cleanText = (s, max) => cleanStr(s, max).replace(/[<>&"']/g, "");      // לשדות שמוצגים בלי escapeHtml
+  const cleanNum = (n) => (Number.isFinite(+n) ? +n : NaN);
+  const cleanType = (t) => (t === "income" ? "income" : "expense");
+  const okId = (s) => SAFE_ID.test(String(s));
+  function sanitizeTx(t) {
+    if (!t || typeof t !== "object" || !okId(t.id) || !SAFE_DATE.test(String(t.date)) || !okId(t.category)) return null;
+    const amount = cleanNum(t.amount); if (!(amount >= 0)) return null;
+    const out = { id: String(t.id), type: cleanType(t.type), amount: round2(amount), category: String(t.category), description: cleanStr(t.description, 200), date: String(t.date) };
+    if (t.recurringId && okId(t.recurringId)) out.recurringId = String(t.recurringId);
+    if (t.monthly) out.monthly = true;
+    return out;
+  }
+  function sanitizeGoal(g) {
+    if (!g || typeof g !== "object" || !okId(g.id)) return null;
+    const target = cleanNum(g.target); if (!(target > 0)) return null;
+    const saved = cleanNum(g.saved);
+    return { id: String(g.id), name: cleanStr(g.name, 60), target: round2(target), saved: saved > 0 ? round2(saved) : 0, emoji: (/^[^\w\s]{1,4}$/u.test(String(g.emoji || "")) ? String(g.emoji) : "🎯") };  // אימוג'י בלבד, אחרת ברירת מחדל
+  }
+  function sanitizeRec(r) {
+    if (!r || typeof r !== "object" || !okId(r.id) || !okId(r.category)) return null;
+    const amount = cleanNum(r.amount); if (!(amount > 0)) return null;
+    const day = Math.round(cleanNum(r.day)); if (!(day >= 1 && day <= 31)) return null;
+    const out = { id: String(r.id), type: cleanType(r.type), amount: round2(amount), category: String(r.category), description: cleanStr(r.description, 200), day };
+    if (SAFE_YM.test(String(r.createdMonth))) out.createdMonth = String(r.createdMonth);
+    return out;
+  }
+  function sanitizeBudgets(b) {
+    const out = {};
+    if (b && typeof b === "object") Object.keys(b).forEach((k) => { const v = cleanNum(b[k]); if (SAFE_YM.test(k) && v > 0) out[k] = Math.round(v); });
+    return out;
+  }
+  function sanitizeApplied(a) {
+    const out = {};
+    if (a && typeof a === "object") Object.keys(a).forEach((k) => { if (/^[A-Za-z0-9_-]{1,80}:\d{4}-\d{2}$/.test(k) && a[k]) out[k] = true; });
+    return out;
+  }
+  const sanitizeList = (arr, fn) => (Array.isArray(arr) ? arr.map(fn).filter(Boolean) : []);
+  // קטגוריה מותאמת: שם/אייקון מוצגים ב-innerHTML ב-15 מקומות — מנקים במקור במקום בכל אחד מהם
+  function sanitizeCat(c) {
+    if (!c || typeof c !== "object" || !okId(c.id)) return null;
+    const name = cleanText(c.name, 40).trim(); if (!name) return null;
+    return { id: String(c.id), name, icon: cleanText(c.icon, 8) || "🏷️", color: SAFE_HEX.test(String(c.color)) ? String(c.color) : "#64748b" };
+  }
+  function sanitizeCats(cc) {
+    return { expense: sanitizeList(cc && cc.expense, sanitizeCat), income: sanitizeList(cc && cc.income, sanitizeCat) };
+  }
+  customCats = sanitizeCats(customCats); // גם מה שכבר באחסון — הגנה לעומק
+
   /* ---------- אלמנטים ---------- */
   const $ = (id) => document.getElementById(id);
   const el = {
@@ -3024,7 +3078,7 @@ window.BUDGET_CONFIG = {"name": "My Budget", "tagline": "Monthly income & expens
       const done = g.saved >= g.target;
       return `<div class="goal ${done ? "done" : ""}" data-id="${g.id}">
         <div class="goal-head">
-          <span class="goal-emoji">${g.emoji || "🎯"}</span>
+          <span class="goal-emoji">${escapeHtml(g.emoji || "🎯")}</span>
           <span class="goal-name">${escapeHtml(g.name)}</span>
           <span class="goal-actions">
             <button class="goal-mini" data-edit="${g.id}" title="ערוך">✏️</button>
@@ -3155,18 +3209,26 @@ window.BUDGET_CONFIG = {"name": "My Budget", "tagline": "Monthly income & expens
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const data = JSON.parse(reader.result);
-        if (!Array.isArray(data.transactions)) throw new Error("bad");
+        const raw = JSON.parse(reader.result);
+        if (!raw || !Array.isArray(raw.transactions)) throw new Error("bad");
+        // הקובץ הוא קלט לא אמין: כל רשומה עוברת רשימה לבנה, מה שלא עובר — נזרק בשקט
+        const data = {
+          transactions: sanitizeList(raw.transactions, sanitizeTx),
+          budgets: sanitizeBudgets(raw.budgets),
+          goals: sanitizeList(raw.goals, sanitizeGoal),
+          recurring: sanitizeList(raw.recurring, sanitizeRec),
+          recApplied: sanitizeApplied(raw.recApplied),
+        };
         const merge = confirm(`הקובץ מכיל ${data.transactions.length} תנועות. אישור = מיזוג עם הקיים · ביטול = החלפה מלאה`);
         if (merge) {
           const ids = new Set(transactions.map((t) => t.id));
           data.transactions.forEach((t) => { if (!ids.has(t.id)) transactions.push(t); });
           budgets = { ...data.budgets, ...budgets };
-          if (Array.isArray(data.goals)) { const gids = new Set(goals.map((g) => g.id)); data.goals.forEach((g) => { if (!gids.has(g.id)) goals.push(g); }); }
-          if (Array.isArray(data.recurring)) { const rids = new Set(recurring.map((r) => r.id)); data.recurring.forEach((r) => { if (!rids.has(r.id)) recurring.push(r); }); }
-          recApplied = { ...(data.recApplied || {}), ...recApplied };
+          const gids = new Set(goals.map((g) => g.id)); data.goals.forEach((g) => { if (!gids.has(g.id)) goals.push(g); });
+          const rids = new Set(recurring.map((r) => r.id)); data.recurring.forEach((r) => { if (!rids.has(r.id)) recurring.push(r); });
+          recApplied = { ...data.recApplied, ...recApplied };
         } else {
-          transactions = data.transactions; budgets = data.budgets || {}; goals = data.goals || []; recurring = data.recurring || []; recApplied = data.recApplied || {};
+          transactions = data.transactions; budgets = data.budgets; goals = data.goals; recurring = data.recurring; recApplied = data.recApplied;
         }
         save(); renderAll(); toast("הנתונים יובאו בהצלחה ✅");
       } catch { toast("שגיאה: הקובץ אינו תקין"); }
@@ -3228,7 +3290,8 @@ window.BUDGET_CONFIG = {"name": "My Budget", "tagline": "Monthly income & expens
   el.catAdd.addEventListener("click", () => {
     const name = el.newCatName.value.trim();
     if (!name) { toast("נא להזין שם לקטגוריה"); return; }
-    const cat = { id: "custom_" + uid(), name, icon: newCatEmoji, color: el.newCatColor.value };
+    const cat = sanitizeCat({ id: "custom_" + uid(), name, icon: newCatEmoji, color: el.newCatColor.value });
+    if (!cat) { toast("נא להזין שם לקטגוריה"); return; }
     if (!customCats[newCatType]) customCats[newCatType] = [];
     customCats[newCatType].push(cat);
     save();
