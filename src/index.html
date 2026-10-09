@@ -48,6 +48,7 @@
     <nav class="page-nav" id="pageNav">
       <button type="button" class="page-tab active" data-page="main">📊 מעקב</button>
       <button type="button" class="page-tab" data-page="planning">🎯 תכנון</button>
+      <button type="button" class="page-tab" data-page="wins">🏆 הצלחות</button>
     </nav>
 
     <div class="page" id="pageMain">
@@ -290,6 +291,21 @@
         </div>
         <div class="recurring-list" id="recurringList"></div>
         <p class="empty-note" id="recurringEmpty">אין תנועות קבועות. סמן "הפוך לתנועה קבועה" בעת הוספת תנועה. 🔁</p>
+      </section>
+    </div>
+
+    <!-- WINS PAGE -->
+    <div class="page" id="pageWins">
+      <section class="card wins-hero-card">
+        <div class="wins-hero" id="winsHero"></div>
+      </section>
+
+      <section class="card wins-card">
+        <div class="section-head">
+          <h2>🏆 ההישגים שלי</h2>
+          <span class="muted-inline" id="winsCount"></span>
+        </div>
+        <div class="wins-grid" id="winsGrid"></div>
       </section>
     </div>
   </main>

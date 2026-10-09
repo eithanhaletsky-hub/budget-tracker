@@ -33,6 +33,23 @@
 
   /* ---------- i18n (עברית → רוסית) ---------- */
   const TR_RU = {
+    // דף ההצלחות
+    "🏆 הצלחות": "🏆 Достижения", "🏆 ההישגים שלי": "🏆 Мои достижения",
+    "בוא נתחיל": "Начнём", "הוסף הוצאות כדי לראות את ההתקדמות שלך": "Добавьте расходы, чтобы увидеть прогресс",
+    "כל הכבוד! חסכת יותר מהחודש שעבר": "Отлично! Вы сэкономили больше, чем в прошлом месяце",
+    "לעומת החודש שעבר": "По сравнению с прошлым месяцем",
+    "אתה בתוך התקציב החודש": "В этом месяце вы укладываетесь в бюджет",
+    "נשאר מהתקציב": "Остаток бюджета", "חרגת מהתקציב החודש": "В этом месяце бюджет превышен", "מעל התקציב": "Сверх бюджета",
+    "ההתחלה": "Начало", "רשמת את ההוצאה הראשונה שלך": "Вы записали первый расход",
+    "בתוך התקציב": "В пределах бюджета", "סיימת חודש בלי לחרוג מהתקציב": "Вы завершили месяц без превышения бюджета",
+    "חודש טוב יותר": "Месяц лучше прежнего", "חסכת יותר מאשר בחודש שעבר": "Вы сэкономили больше, чем в прошлом месяце",
+    "שלושה חודשים ברצף": "Три месяца подряд", "שלושה חודשים רצופים בתוך התקציב": "Три месяца подряд в пределах бюджета",
+    "יש לי מטרה": "Есть цель", "הגדרת יעד חיסכון ראשון": "Вы создали первую цель накопления",
+    "יעד הושג": "Цель достигнута", "השלמת יעד חיסכון במלואו": "Вы полностью достигли цели накопления",
+    "חוסך רציני": "Серьёзный накопитель", "צברת 1,000 ביעדי החיסכון": "Вы накопили 1,000 на целях",
+    "שליטה מלאה": "Полный контроль", "כל הקטגוריות נשארו בתוך התכנון החודש": "Все категории уложились в план в этом месяце",
+    "חצי שנה של מעקב": "Полгода учёта", "עקבת אחרי ההוצאות במשך 6 חודשים": "Вы ведёте учёт расходов 6 месяцев",
+    "הושג": "Достигнуто", " מתוך ": " из ", " הושגו": " достигнуто",
     // כותרות וניווט
     "מעקב הוצאות והכנסות": "учёт доходов и расходов",
     "📋 סיכום חודשי": "📋 Итоги месяца", "סיכום חודשי": "Итоги месяца", "סיכום נקי של החודש": "Чистая сводка месяца",
@@ -184,6 +201,23 @@
     "ערוך": "Изм.",
   };
   const TR_EN = {
+    // דף ההצלחות
+    "🏆 הצלחות": "🏆 Wins", "🏆 ההישגים שלי": "🏆 My achievements",
+    "בוא נתחיל": "Let's begin", "הוסף הוצאות כדי לראות את ההתקדמות שלך": "Add expenses to see your progress",
+    "כל הכבוד! חסכת יותר מהחודש שעבר": "Well done! You saved more than last month",
+    "לעומת החודש שעבר": "Compared with last month",
+    "אתה בתוך התקציב החודש": "You are within budget this month",
+    "נשאר מהתקציב": "Left from budget", "חרגת מהתקציב החודש": "You went over budget this month", "מעל התקציב": "Over budget",
+    "ההתחלה": "The first step", "רשמת את ההוצאה הראשונה שלך": "You logged your first expense",
+    "בתוך התקציב": "Within budget", "סיימת חודש בלי לחרוג מהתקציב": "You finished a month without going over budget",
+    "חודש טוב יותר": "A better month", "חסכת יותר מאשר בחודש שעבר": "You saved more than the month before",
+    "שלושה חודשים ברצף": "Three months in a row", "שלושה חודשים רצופים בתוך התקציב": "Three consecutive months within budget",
+    "יש לי מטרה": "I have a goal", "הגדרת יעד חיסכון ראשון": "You set your first savings goal",
+    "יעד הושג": "Goal reached", "השלמת יעד חיסכון במלואו": "You completed a savings goal in full",
+    "חוסך רציני": "Serious saver", "צברת 1,000 ביעדי החיסכון": "You put aside 1,000 towards your goals",
+    "שליטה מלאה": "Full control", "כל הקטגוריות נשארו בתוך התכנון החודש": "Every category stayed within plan this month",
+    "חצי שנה של מעקב": "Six months of tracking", "עקבת אחרי ההוצאות במשך 6 חודשים": "You tracked your spending for 6 months",
+    "הושג": "Achieved", " מתוך ": " of ", " הושגו": " achieved",
     "מעקב הוצאות והכנסות": "expense & income tracker",
     "📋 סיכום חודשי": "📋 Monthly summary", "סיכום חודשי": "Monthly summary", "סיכום נקי של החודש": "Clean monthly summary",
     "החלף מצב תצוגה": "Toggle theme", "מצב כהה/בהיר": "Dark/light mode",
@@ -569,6 +603,7 @@
     searchInput: $("searchInput"), filterType: $("filterType"), filterCategory: $("filterCategory"),
     pieChart: $("pieChart"), pieLegend: $("pieLegend"), pieEmpty: $("pieEmpty"), barChart: $("barChart"),
     goalsGrid: $("goalsGrid"), goalsEmpty: $("goalsEmpty"), addGoal: $("addGoal"),
+    winsHero: $("winsHero"), winsGrid: $("winsGrid"), winsCount: $("winsCount"),
     recurringList: $("recurringList"), recurringEmpty: $("recurringEmpty"),
     exportJson: $("exportJson"), exportCsv: $("exportCsv"), importBtn: $("importBtn"), importFile: $("importFile"), clearAll: $("clearAll"),
     themeToggle: $("themeToggle"),
@@ -1780,6 +1815,85 @@
     translateDom(document.getElementById("historyCard"));
   }
 
+  /* ---------- דף ההצלחות ---------- */
+  // כל ההישגים מחושבים מהנתונים האמיתיים — אין "פרסים" שמחולקים סתם.
+  function monthsTracked() {
+    const set = new Set(transactions.map((t) => ymOf(t.date)).filter(Boolean));
+    Object.keys(budgets).forEach((ym) => { if (budgets[ym] > 0) set.add(ym); });
+    return [...set].sort();
+  }
+  function withinBudget(ym) {
+    const t = monthTotals(ym);
+    const limit = t.income > 0 ? t.income : t.budget;
+    return limit > 0 && t.expense > 0 && t.expense <= limit;
+  }
+  function budgetStreak() {
+    // רצף חודשים בתוך התקציב, נספר אחורה מהחודש האחרון שיש בו נתונים
+    const months = monthsTracked();
+    let streak = 0;
+    for (let i = months.length - 1; i >= 0; i--) {
+      if (withinBudget(months[i])) streak++;
+      else if (monthTotals(months[i]).expense > 0) break;
+    }
+    return streak;
+  }
+  function renderWins() {
+    if (!el.winsGrid) return;
+    const ym = currentMonth, cur = monthTotals(ym), prev = monthTotals(prevMonthOf(ym));
+    const months = monthsTracked();
+    const savedTotal = goals.reduce((s, g) => s + (g.saved || 0), 0);
+    const doneGoals = goals.filter((g) => g.saved >= g.target).length;
+    const expenseCats = catsOf("expense");
+    const planned = expenseCats.filter((c) => (catBudgets[c.id] || 0) > 0);
+    const catsOk = planned.filter((c) => catSpent(c.id, ym) <= catBudgets[c.id]);
+
+    /* --- כותרת: המצב החודש במשפט אחד --- */
+    let title, sub, big, tone;
+    const hadPrev = prev.expense > 0 || prev.income > 0 || prev.budget > 0;
+    if (!cur.expense && !cur.budget) {
+      title = "בוא נתחיל"; sub = "הוסף הוצאות כדי לראות את ההתקדמות שלך"; big = ""; tone = "neutral";
+    } else if (hadPrev && cur.left > prev.left) {
+      title = "כל הכבוד! חסכת יותר מהחודש שעבר"; sub = "לעומת החודש שעבר"; big = "+" + fmt(cur.left - prev.left); tone = "good";
+    } else if (cur.left >= 0) {
+      title = "אתה בתוך התקציב החודש"; sub = "נשאר מהתקציב"; big = fmt(cur.left); tone = "good";
+    } else {
+      title = "חרגת מהתקציב החודש"; sub = "מעל התקציב"; big = fmt(Math.abs(cur.left)); tone = "bad";
+    }
+    el.winsHero.innerHTML =
+      `<div class="wh-title">${escapeHtml(title)}</div>` +
+      (big ? `<div class="wh-big ${tone}">${escapeHtml(big)}</div>` : "") +
+      `<div class="wh-sub">${escapeHtml(sub)}</div>`;
+
+    /* --- ההישגים --- */
+    const streak = budgetStreak();
+    const list = [
+      { e: "🚀", t: "ההתחלה", d: "רשמת את ההוצאה הראשונה שלך", done: transactions.length > 0 },
+      { e: "✅", t: "בתוך התקציב", d: "סיימת חודש בלי לחרוג מהתקציב", done: months.some(withinBudget) },
+      { e: "📈", t: "חודש טוב יותר", d: "חסכת יותר מאשר בחודש שעבר", done: hadPrev && cur.left > prev.left },
+      { e: "🔥", t: "שלושה חודשים ברצף", d: "שלושה חודשים רצופים בתוך התקציב", done: streak >= 3, prog: [Math.min(streak, 3), 3] },
+      { e: "🎯", t: "יש לי מטרה", d: "הגדרת יעד חיסכון ראשון", done: goals.length > 0 },
+      { e: "🏁", t: "יעד הושג", d: "השלמת יעד חיסכון במלואו", done: doneGoals > 0 },
+      { e: "💰", t: "חוסך רציני", d: "צברת 1,000 ביעדי החיסכון", done: savedTotal >= 1000, prog: [Math.min(Math.round(savedTotal), 1000), 1000] },
+      { e: "🧭", t: "שליטה מלאה", d: "כל הקטגוריות נשארו בתוך התכנון החודש", done: planned.length > 0 && catsOk.length === planned.length, prog: planned.length ? [catsOk.length, planned.length] : null },
+      { e: "📅", t: "חצי שנה של מעקב", d: "עקבת אחרי ההוצאות במשך 6 חודשים", done: months.length >= 6, prog: [Math.min(months.length, 6), 6] },
+    ];
+    const got = list.filter((w) => w.done).length;
+    el.winsCount.textContent = `${got} מתוך ${list.length} הושגו`;
+    el.winsGrid.innerHTML = list.map((w) => {
+      const pct = w.prog && w.prog[1] ? Math.min(100, Math.round(w.prog[0] / w.prog[1] * 100)) : 0;
+      return `<div class="win ${w.done ? "is-done" : ""}">
+        <span class="win-ico">${w.done ? w.e : "🔒"}</span>
+        <div class="win-body">
+          <div class="win-title">${escapeHtml(w.t)}</div>
+          <div class="win-desc">${escapeHtml(w.d)}</div>
+          ${!w.done && w.prog ? `<div class="win-bar"><i style="width:${pct}%"></i></div><div class="win-prog">${w.prog[0]} / ${w.prog[1]}</div>` : ""}
+        </div>
+        ${w.done ? `<span class="win-flag">הושג</span>` : ""}
+      </div>`;
+    }).join("");
+    translateDom(document.getElementById("pageWins"));
+  }
+
   /* ---------- מעבר אוטומטי לחודש חדש ---------- */
   let lastSeenMonth = ymNow();
   function checkMonthRollover() {
@@ -1976,7 +2090,7 @@
   function renderAll() {
     updateMonthLabel();
     renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges();
-    renderCatTableCard(); renderBudgetTable(); renderCompare(); renderHistory();
+    renderCatTableCard(); renderBudgetTable(); renderCompare(); renderHistory(); renderWins();
     if (el.reviewView && !el.reviewView.hidden) renderReview();
     if (el.monthlyView && !el.monthlyView.hidden) renderMonthlyPanel();
     translateDom(document.body);

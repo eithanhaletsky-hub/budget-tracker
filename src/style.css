@@ -1577,3 +1577,77 @@ body.table-only .data-card #printReport { display: none; } /* הדוח המוד�
   .variant-premium .budget-table td { height: 54px; padding: 0 8px; }
   .variant-premium .bt-budget-label input { font-size: 26px; width: 100%; }
 }
+
+/* ============================================================
+   דף ההצלחות + חשיפת דף היעדים בגרסאות הטבלה בלבד
+   ============================================================ */
+body[data-page="main"] #pageWins, body[data-page="planning"] #pageWins { display: none; }
+body[data-page="wins"] #pageMain, body[data-page="wins"] #pagePlanning { display: none; }
+
+/* בגרסאות RU/EN: מחזירים את הניווט ואת דף היעדים, בלי תקציב-לפי-קטגוריה ותנועות קבועות
+   (הם לא רלוונטיים כשאין מסך תנועות) */
+body.table-only .page-nav { display: flex; }
+body.table-only #pagePlanning { display: block; }
+body.table-only[data-page="main"] #pagePlanning,
+body.table-only[data-page="wins"] #pagePlanning { display: none; }
+body.table-only .catbudget-card, body.table-only .recurring-card { display: none; }
+body.table-only[data-page="planning"] #historyCard,
+body.table-only[data-page="wins"] #historyCard { display: none; }
+
+/* --- הכותרת: המצב החודש במשפט אחד --- */
+.wins-hero { text-align: center; padding: 10px 0; }
+.wh-title { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+.wh-big { font-size: 44px; font-weight: 800; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.wh-big.good { color: var(--income); }
+.wh-big.bad { color: var(--expense); }
+.wh-sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+
+/* --- רשת ההישגים --- */
+.wins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.win {
+  display: flex; align-items: flex-start; gap: 14px; position: relative;
+  padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface-2); opacity: .62;
+}
+.win.is-done { opacity: 1; background: var(--surface); border-color: var(--income); }
+.win-ico { font-size: 26px; line-height: 1; flex-shrink: 0; }
+.win-body { min-width: 0; flex: 1; }
+.win-title { font-weight: 700; font-size: 15px; margin-bottom: 3px; }
+.win-desc { font-size: 13px; color: var(--text-muted); line-height: 1.45; }
+.win-bar { height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 9px; }
+.win-bar i { display: block; height: 100%; border-radius: 999px; background: var(--primary); }
+.win-prog { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.win-flag {
+  position: absolute; top: 12px; inset-inline-end: 14px;
+  font-size: 11px; font-weight: 700; color: var(--income);
+  background: var(--income-soft); padding: 3px 9px; border-radius: 999px;
+}
+@media (max-width: 500px) { .wins-grid { grid-template-columns: 1fr; } .wh-big { font-size: 36px; } }
+
+/* --- התאמות לעיצובים הבוגרים --- */
+.pro .win-flag, .pro .win-title { letter-spacing: 0; }
+.pro .wh-title { font-weight: 600; }
+.variant-premium .win {
+  border-radius: 12px; border-color: var(--border); background: var(--surface-2); opacity: 1;
+}
+.variant-premium .win:not(.is-done) .win-title, .variant-premium .win:not(.is-done) .win-ico { opacity: .55; }
+.variant-premium .win.is-done { background: var(--surface); border-color: var(--border); box-shadow: var(--shadow-sm); }
+.variant-premium .win-title { font-weight: 600; }
+.variant-premium .win-flag { background: var(--accent-soft); color: var(--primary); font-weight: 500; }
+.variant-premium .wh-title { font-size: 19px; font-weight: 600; letter-spacing: -.2px; }
+.variant-premium .wh-big { font-weight: 600; letter-spacing: -1.6px; }
+.variant-premium .page-nav { background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-sm); padding: 5px; }
+.variant-premium .page-tab { font-weight: 500; font-size: 14px; border-radius: 9px; }
+.variant-premium .page-tab.active { background: var(--primary); box-shadow: none; }
+.variant-premium .goal { border-radius: 12px; border-color: var(--border); }
+.variant-premium .goal-bar, .variant-premium .goal-bar-fill { border-radius: 999px; }
+.variant-premium .goal-add { background: var(--primary); border-radius: 8px; font-weight: 500; }
+.variant-premium .goal-name { font-weight: 600; }
+
+/* בעיצובים ללא אימוג'י הסמל נמחק ונשאר רווח ריק — מחליפים בסימון גיאומטרי */
+.pro .win-ico { font-size: 0; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--border); color: var(--text-muted); }
+.pro .win.is-done .win-ico { border-color: var(--income); background: var(--income-soft); color: var(--income); }
+.pro .win-ico::after { content: "\2713"; font-size: 14px; line-height: 1; font-weight: 700; }
+.pro .win:not(.is-done) .win-ico::after { content: ""; }
+.variant-premium .win-ico { border-width: 1px; }
+.variant-premium .win.is-done .win-ico { background: var(--accent-soft); border-color: var(--primary); color: var(--primary); }
