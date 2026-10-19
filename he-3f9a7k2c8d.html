@@ -832,7 +832,8 @@ body[data-page="planning"] #pageMain { display: none; }
 
 /* Monthly history table (Excel-like) */
 #historyCard { display: none; }
-body.table-only #historyCard, body.method-table #historyCard { display: block; }
+/* ההשוואה בין חודשים + טבלת החודשים שייכות לשתי שיטות המעקב, לא רק לטבלה */
+body.table-only #historyCard, body.method-table #historyCard, body.method-tx #historyCard { display: block; }
 .history-table { width: 100%; border-collapse: collapse; font-size: 15px; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; }
 .history-table th { background: var(--surface-2); border: 1px solid var(--border); padding: 12px 10px; font-size: 13.5px; font-weight: 800; text-align: center; white-space: nowrap; }
 .history-table td { border: 1px solid var(--border); padding: 11px 12px; text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
