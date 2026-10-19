@@ -1651,3 +1651,86 @@ body.table-only[data-page="wins"] #historyCard { display: none; }
 .pro .win:not(.is-done) .win-ico::after { content: ""; }
 .variant-premium .win-ico { border-width: 1px; }
 .variant-premium .win.is-done .win-ico { background: var(--accent-soft); border-color: var(--primary); color: var(--primary); }
+
+/* ============================================================
+   השוואה בין חודשים — הכנסות מול הוצאות
+   הזהות נקבעת לפי מיקום קבוע + מקרא + מרקם, לא לפי צבע בלבד:
+   צמד ירוק/אדום קרוב מדי עבור עיוורי צבעים (נבדק מול מדד CVD).
+   ============================================================ */
+:root { --chart-inc: #00704f; --chart-exp: #d9736a; }
+[data-theme="dark"] { --chart-inc: #008f6d; --chart-exp: #c95a4a; }
+
+/* בורר טווח — שורה אחת מעל התרשים */
+.cmp-range { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.cmp-range button {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);
+  font-family: var(--font); font-size: 13px; font-weight: 600; padding: 7px 14px;
+  border-radius: var(--radius-sm); cursor: pointer; transition: all .15s;
+}
+.cmp-range button:hover { border-color: var(--primary); color: var(--primary); }
+.cmp-range button.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* סיכומי הטווח */
+.cmp-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.ct-item { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; background: var(--surface-2); border-radius: var(--radius-sm); }
+.ct-l { font-size: 12px; color: var(--text-muted); }
+.ct-v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.4px; }
+.ct-v.inc { color: var(--chart-inc); } .ct-v.exp { color: var(--chart-exp); }
+.ct-v.pos { color: var(--income); } .ct-v.neg { color: var(--expense); }
+
+/* מקרא — תמיד נוכח כששתי סדרות */
+.cmp-legend { display: flex; gap: 18px; margin-bottom: 10px; font-size: 13px; color: var(--text-muted); }
+.cl-item { display: flex; align-items: center; gap: 7px; }
+.cl-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+.cl-swatch.inc { background: var(--chart-inc); }
+.cl-swatch.exp { background: var(--chart-exp); background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.45) 0 2px, transparent 2px 5px); }
+
+/* התרשים */
+.cmp-chart-wrap { overflow-x: auto; margin-bottom: 26px; }
+.cmp-chart { position: relative; height: 210px; min-width: 300px; padding: 10px 0 22px; }
+.cmp-grid { position: absolute; inset: 10px 0 22px 0; pointer-events: none; }
+.cg-line { position: absolute; inset-inline: 0; border-top: 1px dashed var(--border); }
+.cg-val { position: absolute; inset-inline-start: 0; top: -8px; font-size: 10.5px; color: var(--text-muted);
+  background: var(--surface); padding: 0 4px; font-variant-numeric: tabular-nums; }
+.cmp-groups { position: absolute; inset: 10px 0 0 0; display: flex; align-items: flex-end; gap: 4px; }
+.cmp-group { flex: 1; min-width: 34px; height: 100%; position: relative; display: flex; flex-direction: column;
+  justify-content: flex-end; border-radius: 6px 6px 0 0; outline: none; }
+.cmp-group:hover, .cmp-group:focus-visible { background: var(--surface-2); }
+.cmp-group:focus-visible { box-shadow: 0 0 0 2px var(--primary); }
+.cmp-group.is-current .cmp-mlabel { color: var(--text); font-weight: 700; }
+.cmp-bars { height: calc(100% - 22px); display: flex; align-items: flex-end; justify-content: center; gap: 2px; }
+.cmp-bar { width: 32%; max-width: 20px; min-height: 0; border-radius: 4px 4px 0 0; transition: opacity .15s; }
+.cmp-bar.inc { background: var(--chart-inc); }
+.cmp-bar.exp { background: var(--chart-exp);
+  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.45) 0 2px, transparent 2px 5px); }
+.cmp-mlabel { position: absolute; bottom: 0; inset-inline: 0; text-align: center; font-size: 11.5px; color: var(--text-muted); }
+
+/* חלונית ערכים — מופיעה במעבר עכבר או במיקוד מקלדת */
+.cmp-tip {
+  position: absolute; bottom: 100%; inset-inline-start: 50%; transform: translateX(-50%) translateY(-6px);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg); padding: 9px 12px; min-width: 150px; z-index: 5;
+  opacity: 0; visibility: hidden; transition: opacity .12s; pointer-events: none;
+}
+[dir="rtl"] .cmp-tip { transform: translateX(50%) translateY(-6px); }
+.cmp-group:hover .cmp-tip, .cmp-group:focus-visible .cmp-tip { opacity: 1; visibility: visible; }
+.tip-m { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+.tip-r { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.tip-r b { margin-inline-start: auto; color: var(--text); font-variant-numeric: tabular-nums; }
+.tip-r b.pos { color: var(--income); } .tip-r b.neg { color: var(--expense); }
+.tip-r.net { border-top: 1px solid var(--border); margin-top: 5px; padding-top: 5px; }
+.tip-sw { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.tip-r .tip-sw.inc { background: var(--chart-inc); }
+.tip-r .tip-sw.exp { background: var(--chart-exp); }
+
+@media (prefers-reduced-motion: reduce) { .cmp-tip, .cmp-bar { transition: none; } }
+@media (max-width: 560px) { .cmp-chart { height: 170px; } .ct-v { font-size: 17px; } }
+
+/* התאמות לעיצוב ה-premium */
+.variant-premium .cmp-range button { border-radius: 9px; font-weight: 500; font-size: 13.5px; }
+.variant-premium .cmp-range button.active { background: var(--primary); }
+.variant-premium .ct-item { border-radius: 12px; padding: 14px 16px; }
+.variant-premium .ct-l { font-size: 13px; }
+.variant-premium .ct-v { font-weight: 600; font-size: 22px; letter-spacing: -.6px; }
+.variant-premium .cmp-group { border-radius: 10px; }
+.variant-premium .cmp-tip { border-radius: 10px; }

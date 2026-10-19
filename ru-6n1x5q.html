@@ -1661,6 +1661,89 @@ body.table-only[data-page="wins"] #historyCard { display: none; }
 .variant-premium .win-ico { border-width: 1px; }
 .variant-premium .win.is-done .win-ico { background: var(--accent-soft); border-color: var(--primary); color: var(--primary); }
 
+/* ============================================================
+   השוואה בין חודשים — הכנסות מול הוצאות
+   הזהות נקבעת לפי מיקום קבוע + מקרא + מרקם, לא לפי צבע בלבד:
+   צמד ירוק/אדום קרוב מדי עבור עיוורי צבעים (נבדק מול מדד CVD).
+   ============================================================ */
+:root { --chart-inc: #00704f; --chart-exp: #d9736a; }
+[data-theme="dark"] { --chart-inc: #008f6d; --chart-exp: #c95a4a; }
+
+/* בורר טווח — שורה אחת מעל התרשים */
+.cmp-range { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.cmp-range button {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);
+  font-family: var(--font); font-size: 13px; font-weight: 600; padding: 7px 14px;
+  border-radius: var(--radius-sm); cursor: pointer; transition: all .15s;
+}
+.cmp-range button:hover { border-color: var(--primary); color: var(--primary); }
+.cmp-range button.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* סיכומי הטווח */
+.cmp-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.ct-item { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; background: var(--surface-2); border-radius: var(--radius-sm); }
+.ct-l { font-size: 12px; color: var(--text-muted); }
+.ct-v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.4px; }
+.ct-v.inc { color: var(--chart-inc); } .ct-v.exp { color: var(--chart-exp); }
+.ct-v.pos { color: var(--income); } .ct-v.neg { color: var(--expense); }
+
+/* מקרא — תמיד נוכח כששתי סדרות */
+.cmp-legend { display: flex; gap: 18px; margin-bottom: 10px; font-size: 13px; color: var(--text-muted); }
+.cl-item { display: flex; align-items: center; gap: 7px; }
+.cl-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+.cl-swatch.inc { background: var(--chart-inc); }
+.cl-swatch.exp { background: var(--chart-exp); background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.45) 0 2px, transparent 2px 5px); }
+
+/* התרשים */
+.cmp-chart-wrap { overflow-x: auto; margin-bottom: 26px; }
+.cmp-chart { position: relative; height: 210px; min-width: 300px; padding: 10px 0 22px; }
+.cmp-grid { position: absolute; inset: 10px 0 22px 0; pointer-events: none; }
+.cg-line { position: absolute; inset-inline: 0; border-top: 1px dashed var(--border); }
+.cg-val { position: absolute; inset-inline-start: 0; top: -8px; font-size: 10.5px; color: var(--text-muted);
+  background: var(--surface); padding: 0 4px; font-variant-numeric: tabular-nums; }
+.cmp-groups { position: absolute; inset: 10px 0 0 0; display: flex; align-items: flex-end; gap: 4px; }
+.cmp-group { flex: 1; min-width: 34px; height: 100%; position: relative; display: flex; flex-direction: column;
+  justify-content: flex-end; border-radius: 6px 6px 0 0; outline: none; }
+.cmp-group:hover, .cmp-group:focus-visible { background: var(--surface-2); }
+.cmp-group:focus-visible { box-shadow: 0 0 0 2px var(--primary); }
+.cmp-group.is-current .cmp-mlabel { color: var(--text); font-weight: 700; }
+.cmp-bars { height: calc(100% - 22px); display: flex; align-items: flex-end; justify-content: center; gap: 2px; }
+.cmp-bar { width: 32%; max-width: 20px; min-height: 0; border-radius: 4px 4px 0 0; transition: opacity .15s; }
+.cmp-bar.inc { background: var(--chart-inc); }
+.cmp-bar.exp { background: var(--chart-exp);
+  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.45) 0 2px, transparent 2px 5px); }
+.cmp-mlabel { position: absolute; bottom: 0; inset-inline: 0; text-align: center; font-size: 11.5px; color: var(--text-muted); }
+
+/* חלונית ערכים — מופיעה במעבר עכבר או במיקוד מקלדת */
+.cmp-tip {
+  position: absolute; bottom: 100%; inset-inline-start: 50%; transform: translateX(-50%) translateY(-6px);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg); padding: 9px 12px; min-width: 150px; z-index: 5;
+  opacity: 0; visibility: hidden; transition: opacity .12s; pointer-events: none;
+}
+[dir="rtl"] .cmp-tip { transform: translateX(50%) translateY(-6px); }
+.cmp-group:hover .cmp-tip, .cmp-group:focus-visible .cmp-tip { opacity: 1; visibility: visible; }
+.tip-m { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+.tip-r { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.tip-r b { margin-inline-start: auto; color: var(--text); font-variant-numeric: tabular-nums; }
+.tip-r b.pos { color: var(--income); } .tip-r b.neg { color: var(--expense); }
+.tip-r.net { border-top: 1px solid var(--border); margin-top: 5px; padding-top: 5px; }
+.tip-sw { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.tip-r .tip-sw.inc { background: var(--chart-inc); }
+.tip-r .tip-sw.exp { background: var(--chart-exp); }
+
+@media (prefers-reduced-motion: reduce) { .cmp-tip, .cmp-bar { transition: none; } }
+@media (max-width: 560px) { .cmp-chart { height: 170px; } .ct-v { font-size: 17px; } }
+
+/* התאמות לעיצוב ה-premium */
+.variant-premium .cmp-range button { border-radius: 9px; font-weight: 500; font-size: 13.5px; }
+.variant-premium .cmp-range button.active { background: var(--primary); }
+.variant-premium .ct-item { border-radius: 12px; padding: 14px 16px; }
+.variant-premium .ct-l { font-size: 13px; }
+.variant-premium .ct-v { font-weight: 600; font-size: 22px; letter-spacing: -.6px; }
+.variant-premium .cmp-group { border-radius: 10px; }
+.variant-premium .cmp-tip { border-radius: 10px; }
+
 </style>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1753,6 +1836,18 @@ body.table-only[data-page="wins"] #historyCard { display: none; }
         <h2>📅 תוצאות לפי חודש</h2>
         <span class="muted-inline">כל החודשים במבט אחד</span>
       </div>
+      <!-- השוואה בין חודשים: הכנסות מול הוצאות לאורך טווח נבחר -->
+      <div class="cmp-range" id="cmpRange" role="group" aria-label="טווח חודשים">
+        <button type="button" data-range="3">3 חודשים</button>
+        <button type="button" data-range="6" class="active">6 חודשים</button>
+        <button type="button" data-range="12">12 חודשים</button>
+      </div>
+      <div class="cmp-totals" id="cmpTotals"></div>
+      <div class="cmp-legend">
+        <span class="cl-item"><span class="cl-swatch inc"></span>הכנסות</span>
+        <span class="cl-item"><span class="cl-swatch exp"></span>הוצאות</span>
+      </div>
+      <div class="cmp-chart-wrap"><div class="cmp-chart" id="cmpChart"></div></div>
       <div class="bt-scroll"><div id="historyBody"></div></div>
     </section>
 
@@ -2181,6 +2276,11 @@ window.BUDGET_CONFIG = {"name": "Мой бюджет", "tagline": "Контро�
 
   /* ---------- i18n (עברית → רוסית) ---------- */
   const TR_RU = {
+    // השוואה בין חודשים
+    "3 חודשים": "3 месяца", "6 חודשים": "6 месяцев", "12 חודשים": "12 месяцев",
+    "טווח חודשים": "Диапазон месяцев",
+    "סך הכנסות": "Всего доходов", "סך הוצאות": "Всего расходов",
+    "נטו בטווח": "Чистый итог", "הוצאה ממוצעת לחודש": "Средний расход в месяц", "נטו": "Чистый",
     // דף ההצלחות
     "🏆 הצלחות": "🏆 Достижения", "🏆 ההישגים שלי": "🏆 Мои достижения",
     "בוא נתחיל": "Начнём", "הוסף הוצאות כדי לראות את ההתקדמות שלך": "Добавьте расходы, чтобы увидеть прогресс",
@@ -2349,6 +2449,11 @@ window.BUDGET_CONFIG = {"name": "Мой бюджет", "tagline": "Контро�
     "ערוך": "Изм.",
   };
   const TR_EN = {
+    // השוואה בין חודשים
+    "3 חודשים": "3 months", "6 חודשים": "6 months", "12 חודשים": "12 months",
+    "טווח חודשים": "Month range",
+    "סך הכנסות": "Total income", "סך הוצאות": "Total expenses",
+    "נטו בטווח": "Net for range", "הוצאה ממוצעת לחודש": "Average spend per month", "נטו": "Net",
     // דף ההצלחות
     "🏆 הצלחות": "🏆 Wins", "🏆 ההישגים שלי": "🏆 My achievements",
     "בוא נתחיל": "Let's begin", "הוסף הוצאות כדי לראות את ההתקדמות שלך": "Add expenses to see your progress",
@@ -2752,6 +2857,7 @@ window.BUDGET_CONFIG = {"name": "Мой бюджет", "tagline": "Контро�
     pieChart: $("pieChart"), pieLegend: $("pieLegend"), pieEmpty: $("pieEmpty"), barChart: $("barChart"),
     goalsGrid: $("goalsGrid"), goalsEmpty: $("goalsEmpty"), addGoal: $("addGoal"),
     winsHero: $("winsHero"), winsGrid: $("winsGrid"), winsCount: $("winsCount"),
+    cmpRange: $("cmpRange"), cmpTotals: $("cmpTotals"), cmpChart: $("cmpChart"),
     recurringList: $("recurringList"), recurringEmpty: $("recurringEmpty"),
     exportJson: $("exportJson"), exportCsv: $("exportCsv"), importBtn: $("importBtn"), importFile: $("importFile"), clearAll: $("clearAll"),
     themeToggle: $("themeToggle"),
@@ -3963,6 +4069,72 @@ window.BUDGET_CONFIG = {"name": "Мой бюджет", "tagline": "Контро�
     translateDom(document.getElementById("historyCard"));
   }
 
+  /* ---------- השוואה בין חודשים (הכנסות מול הוצאות) ---------- */
+  // הצורה: עמודות מקובצות — שתי סדרות על ציר אחד, זהות לפי מיקום קבוע + מקרא + מרקם,
+  // לא לפי צבע בלבד (הצמד ירוק/אדום קרוב מדי זה לזה עבור עיוורי צבעים).
+  let cmpMonths = +(localStorage.getItem(`${NS}.cmpRange`) || 6);
+  const MON_SHORT = ["ינו", "פבר", "מרץ", "אפר", "מאי", "יונ", "יול", "אוג", "ספט", "אוק", "נוב", "דצמ"];
+  function rangeMonths(n) {
+    const [y, m] = currentMonth.split("-").map(Number);
+    const out = [];
+    for (let i = n - 1; i >= 0; i--) { const d = new Date(y, m - 1 - i, 1); out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); }
+    return out;
+  }
+  // מעגל כלפי מעלה למספר "עגול" קרוב — בלי לקפוץ לכפולה הבאה של 10 ולבזבז חצי מהגובה
+  function niceCeil(v) {
+    if (v <= 0) return 1;
+    const mag = Math.pow(10, Math.floor(Math.log10(v))), r = v / mag;
+    const step = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find((x) => r <= x + 1e-9);
+    return Math.round(step * mag);
+  }
+  function renderMonthsCompare() {
+    if (!el.cmpChart) return;
+    const months = rangeMonths(cmpMonths);
+    const data = months.map((ym) => { const t = monthTotals(ym); return { ym, income: t.income, expense: t.expense }; });
+    const totalInc = data.reduce((s, d) => s + d.income, 0);
+    const totalExp = data.reduce((s, d) => s + d.expense, 0);
+    const active = data.filter((d) => d.income > 0 || d.expense > 0).length || 1;
+
+    el.cmpTotals.innerHTML =
+      `<div class="ct-item"><span class="ct-l">סך הכנסות</span><span class="ct-v inc">${fmt(totalInc)}</span></div>` +
+      `<div class="ct-item"><span class="ct-l">סך הוצאות</span><span class="ct-v exp">${fmt(totalExp)}</span></div>` +
+      `<div class="ct-item"><span class="ct-l">נטו בטווח</span><span class="ct-v ${totalInc - totalExp < 0 ? "neg" : "pos"}">${fmt(totalInc - totalExp)}</span></div>` +
+      `<div class="ct-item"><span class="ct-l">הוצאה ממוצעת לחודש</span><span class="ct-v">${fmt(Math.round(totalExp / active))}</span></div>`;
+
+    const top = niceCeil(Math.max(1, ...data.map((d) => Math.max(d.income, d.expense))));
+    const pct = (v) => Math.max(v > 0 ? 2 : 0, Math.round((v / top) * 100)); // מינימום נראה לערך קטן אך קיים
+    const gridHtml = [1, 0.5, 0].map((f) =>
+      `<div class="cg-line" style="bottom:${f * 100}%"><span class="cg-val">${fmt(Math.round(top * f))}</span></div>`).join("");
+    const barsHtml = data.map((d) => {
+      const mi = +d.ym.split("-")[1] - 1, label = tr(MON_SHORT[mi]);
+      const net = d.income - d.expense;
+      const aria = `${tr(MON_SHORT[mi])} ${d.ym.slice(0, 4)}: ${tr("הכנסות")} ${fmt(d.income)}, ${tr("הוצאות")} ${fmt(d.expense)}`;
+      const isCur = d.ym === currentMonth;
+      return `<div class="cmp-group ${isCur ? "is-current" : ""}" tabindex="0" role="img" aria-label="${escapeHtml(aria)}">
+        <div class="cmp-bars">
+          <div class="cmp-bar inc" style="height:${pct(d.income)}%"></div>
+          <div class="cmp-bar exp" style="height:${pct(d.expense)}%"></div>
+        </div>
+        <div class="cmp-mlabel">${escapeHtml(label)}</div>
+        <div class="cmp-tip" aria-hidden="true">
+          <div class="tip-m">${escapeHtml(label)} ${escapeHtml(d.ym.slice(0, 4))}</div>
+          <div class="tip-r"><span class="tip-sw inc"></span>${tr("הכנסות")}<b>${fmt(d.income)}</b></div>
+          <div class="tip-r"><span class="tip-sw exp"></span>${tr("הוצאות")}<b>${fmt(d.expense)}</b></div>
+          <div class="tip-r net"><span class="tip-sw"></span>${tr("נטו")}<b class="${net < 0 ? "neg" : "pos"}">${fmt(net)}</b></div>
+        </div>
+      </div>`;
+    }).join("");
+    el.cmpChart.innerHTML = `<div class="cmp-grid">${gridHtml}</div><div class="cmp-groups">${barsHtml}</div>`;
+    el.cmpRange.querySelectorAll("[data-range]").forEach((b) => b.classList.toggle("active", +b.dataset.range === cmpMonths));
+    translateDom(document.getElementById("historyCard"));
+  }
+  if (el.cmpRange) el.cmpRange.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-range]"); if (!b) return;
+    cmpMonths = +b.dataset.range;
+    localStorage.setItem(`${NS}.cmpRange`, String(cmpMonths));
+    renderMonthsCompare();
+  });
+
   /* ---------- דף ההצלחות ---------- */
   // כל ההישגים מחושבים מהנתונים האמיתיים — אין "פרסים" שמחולקים סתם.
   function monthsTracked() {
@@ -4238,7 +4410,7 @@ window.BUDGET_CONFIG = {"name": "Мой бюджет", "tagline": "Контро�
   function renderAll() {
     updateMonthLabel();
     renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges();
-    renderCatTableCard(); renderBudgetTable(); renderCompare(); renderHistory(); renderWins();
+    renderCatTableCard(); renderBudgetTable(); renderCompare(); renderHistory(); renderMonthsCompare(); renderWins();
     if (el.reviewView && !el.reviewView.hidden) renderReview();
     if (el.monthlyView && !el.monthlyView.hidden) renderMonthlyPanel();
     translateDom(document.body);

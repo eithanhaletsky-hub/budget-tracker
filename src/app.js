@@ -33,6 +33,11 @@
 
   /* ---------- i18n (עברית → רוסית) ---------- */
   const TR_RU = {
+    // השוואה בין חודשים
+    "3 חודשים": "3 месяца", "6 חודשים": "6 месяцев", "12 חודשים": "12 месяцев",
+    "טווח חודשים": "Диапазон месяцев",
+    "סך הכנסות": "Всего доходов", "סך הוצאות": "Всего расходов",
+    "נטו בטווח": "Чистый итог", "הוצאה ממוצעת לחודש": "Средний расход в месяц", "נטו": "Чистый",
     // דף ההצלחות
     "🏆 הצלחות": "🏆 Достижения", "🏆 ההישגים שלי": "🏆 Мои достижения",
     "בוא נתחיל": "Начнём", "הוסף הוצאות כדי לראות את ההתקדמות שלך": "Добавьте расходы, чтобы увидеть прогресс",
@@ -201,6 +206,11 @@
     "ערוך": "Изм.",
   };
   const TR_EN = {
+    // השוואה בין חודשים
+    "3 חודשים": "3 months", "6 חודשים": "6 months", "12 חודשים": "12 months",
+    "טווח חודשים": "Month range",
+    "סך הכנסות": "Total income", "סך הוצאות": "Total expenses",
+    "נטו בטווח": "Net for range", "הוצאה ממוצעת לחודש": "Average spend per month", "נטו": "Net",
     // דף ההצלחות
     "🏆 הצלחות": "🏆 Wins", "🏆 ההישגים שלי": "🏆 My achievements",
     "בוא נתחיל": "Let's begin", "הוסף הוצאות כדי לראות את ההתקדמות שלך": "Add expenses to see your progress",
@@ -604,6 +614,7 @@
     pieChart: $("pieChart"), pieLegend: $("pieLegend"), pieEmpty: $("pieEmpty"), barChart: $("barChart"),
     goalsGrid: $("goalsGrid"), goalsEmpty: $("goalsEmpty"), addGoal: $("addGoal"),
     winsHero: $("winsHero"), winsGrid: $("winsGrid"), winsCount: $("winsCount"),
+    cmpRange: $("cmpRange"), cmpTotals: $("cmpTotals"), cmpChart: $("cmpChart"),
     recurringList: $("recurringList"), recurringEmpty: $("recurringEmpty"),
     exportJson: $("exportJson"), exportCsv: $("exportCsv"), importBtn: $("importBtn"), importFile: $("importFile"), clearAll: $("clearAll"),
     themeToggle: $("themeToggle"),
@@ -1815,6 +1826,72 @@
     translateDom(document.getElementById("historyCard"));
   }
 
+  /* ---------- השוואה בין חודשים (הכנסות מול הוצאות) ---------- */
+  // הצורה: עמודות מקובצות — שתי סדרות על ציר אחד, זהות לפי מיקום קבוע + מקרא + מרקם,
+  // לא לפי צבע בלבד (הצמד ירוק/אדום קרוב מדי זה לזה עבור עיוורי צבעים).
+  let cmpMonths = +(localStorage.getItem(`${NS}.cmpRange`) || 6);
+  const MON_SHORT = ["ינו", "פבר", "מרץ", "אפר", "מאי", "יונ", "יול", "אוג", "ספט", "אוק", "נוב", "דצמ"];
+  function rangeMonths(n) {
+    const [y, m] = currentMonth.split("-").map(Number);
+    const out = [];
+    for (let i = n - 1; i >= 0; i--) { const d = new Date(y, m - 1 - i, 1); out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); }
+    return out;
+  }
+  // מעגל כלפי מעלה למספר "עגול" קרוב — בלי לקפוץ לכפולה הבאה של 10 ולבזבז חצי מהגובה
+  function niceCeil(v) {
+    if (v <= 0) return 1;
+    const mag = Math.pow(10, Math.floor(Math.log10(v))), r = v / mag;
+    const step = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find((x) => r <= x + 1e-9);
+    return Math.round(step * mag);
+  }
+  function renderMonthsCompare() {
+    if (!el.cmpChart) return;
+    const months = rangeMonths(cmpMonths);
+    const data = months.map((ym) => { const t = monthTotals(ym); return { ym, income: t.income, expense: t.expense }; });
+    const totalInc = data.reduce((s, d) => s + d.income, 0);
+    const totalExp = data.reduce((s, d) => s + d.expense, 0);
+    const active = data.filter((d) => d.income > 0 || d.expense > 0).length || 1;
+
+    el.cmpTotals.innerHTML =
+      `<div class="ct-item"><span class="ct-l">סך הכנסות</span><span class="ct-v inc">${fmt(totalInc)}</span></div>` +
+      `<div class="ct-item"><span class="ct-l">סך הוצאות</span><span class="ct-v exp">${fmt(totalExp)}</span></div>` +
+      `<div class="ct-item"><span class="ct-l">נטו בטווח</span><span class="ct-v ${totalInc - totalExp < 0 ? "neg" : "pos"}">${fmt(totalInc - totalExp)}</span></div>` +
+      `<div class="ct-item"><span class="ct-l">הוצאה ממוצעת לחודש</span><span class="ct-v">${fmt(Math.round(totalExp / active))}</span></div>`;
+
+    const top = niceCeil(Math.max(1, ...data.map((d) => Math.max(d.income, d.expense))));
+    const pct = (v) => Math.max(v > 0 ? 2 : 0, Math.round((v / top) * 100)); // מינימום נראה לערך קטן אך קיים
+    const gridHtml = [1, 0.5, 0].map((f) =>
+      `<div class="cg-line" style="bottom:${f * 100}%"><span class="cg-val">${fmt(Math.round(top * f))}</span></div>`).join("");
+    const barsHtml = data.map((d) => {
+      const mi = +d.ym.split("-")[1] - 1, label = tr(MON_SHORT[mi]);
+      const net = d.income - d.expense;
+      const aria = `${tr(MON_SHORT[mi])} ${d.ym.slice(0, 4)}: ${tr("הכנסות")} ${fmt(d.income)}, ${tr("הוצאות")} ${fmt(d.expense)}`;
+      const isCur = d.ym === currentMonth;
+      return `<div class="cmp-group ${isCur ? "is-current" : ""}" tabindex="0" role="img" aria-label="${escapeHtml(aria)}">
+        <div class="cmp-bars">
+          <div class="cmp-bar inc" style="height:${pct(d.income)}%"></div>
+          <div class="cmp-bar exp" style="height:${pct(d.expense)}%"></div>
+        </div>
+        <div class="cmp-mlabel">${escapeHtml(label)}</div>
+        <div class="cmp-tip" aria-hidden="true">
+          <div class="tip-m">${escapeHtml(label)} ${escapeHtml(d.ym.slice(0, 4))}</div>
+          <div class="tip-r"><span class="tip-sw inc"></span>${tr("הכנסות")}<b>${fmt(d.income)}</b></div>
+          <div class="tip-r"><span class="tip-sw exp"></span>${tr("הוצאות")}<b>${fmt(d.expense)}</b></div>
+          <div class="tip-r net"><span class="tip-sw"></span>${tr("נטו")}<b class="${net < 0 ? "neg" : "pos"}">${fmt(net)}</b></div>
+        </div>
+      </div>`;
+    }).join("");
+    el.cmpChart.innerHTML = `<div class="cmp-grid">${gridHtml}</div><div class="cmp-groups">${barsHtml}</div>`;
+    el.cmpRange.querySelectorAll("[data-range]").forEach((b) => b.classList.toggle("active", +b.dataset.range === cmpMonths));
+    translateDom(document.getElementById("historyCard"));
+  }
+  if (el.cmpRange) el.cmpRange.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-range]"); if (!b) return;
+    cmpMonths = +b.dataset.range;
+    localStorage.setItem(`${NS}.cmpRange`, String(cmpMonths));
+    renderMonthsCompare();
+  });
+
   /* ---------- דף ההצלחות ---------- */
   // כל ההישגים מחושבים מהנתונים האמיתיים — אין "פרסים" שמחולקים סתם.
   function monthsTracked() {
@@ -2090,7 +2167,7 @@
   function renderAll() {
     updateMonthLabel();
     renderSummary(); renderInsights(); renderList(); renderCharts(); renderGoals(); renderRecurring(); renderCatBudgets(); renderBadges();
-    renderCatTableCard(); renderBudgetTable(); renderCompare(); renderHistory(); renderWins();
+    renderCatTableCard(); renderBudgetTable(); renderCompare(); renderHistory(); renderMonthsCompare(); renderWins();
     if (el.reviewView && !el.reviewView.hidden) renderReview();
     if (el.monthlyView && !el.monthlyView.hidden) renderMonthlyPanel();
     translateDom(document.body);
